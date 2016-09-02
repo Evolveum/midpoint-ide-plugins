@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.evolveum.midpoint.eclipse.feature_0.0.1.qualifier.jar" id="com.evolveum.midpoint.eclipse.feature" version="0.0.1.qualifier">
+      <category name="midPoint"/>
+   </feature>
+   <category-def name="midPoint" label="MidPoint Development Tools"/>
+</site>
