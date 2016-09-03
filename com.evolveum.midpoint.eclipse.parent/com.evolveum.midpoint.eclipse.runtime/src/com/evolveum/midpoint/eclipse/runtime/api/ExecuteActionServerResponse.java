@@ -8,10 +8,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class ExecuteActionServerResponse extends ServerResponse {
 
-	public static final String MODEL_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-3";
-	public static final String API_TYPES_NS = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
-	public static final String COMMON_NS = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	
 	protected boolean wasParsed;
 	
 	protected String dataOutput;
@@ -55,18 +51,18 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	public void parseXmlResponse(String string) {
 		Element root = DOMUtil.parseDocument(rawResponseBody).getDocumentElement();
 
-		NodeList xmlDataList = root.getElementsByTagNameNS(API_TYPES_NS, "xmlData");
+		NodeList xmlDataList = root.getElementsByTagNameNS(Constants.API_TYPES_NS, "xmlData");
 		if (xmlDataList.getLength() > 0) {
 			dataOutput = DOMUtil.serializeDOMToString(xmlDataList.item(0));
 		}
 		
-		consoleOutput = getElementTextContent(root, API_TYPES_NS, "textOutput");
+		consoleOutput = getElementTextContent(root, Constants.API_TYPES_NS, "textOutput");
 		
-		NodeList resultList = root.getElementsByTagNameNS(MODEL_NS, "result");
+		NodeList resultList = root.getElementsByTagNameNS(Constants.MODEL_NS, "result");
 		if (resultList.getLength() > 0) {
 			Element result = (Element) resultList.item(0);
-			operationResultStatus = getElementTextContent(result, COMMON_NS, "status");
-			operationResultMessage = getElementTextContent(result, COMMON_NS, "message");
+			operationResultStatus = getElementTextContent(result, Constants.COMMON_NS, "status");
+			operationResultMessage = getElementTextContent(result, Constants.COMMON_NS, "message");
 			operationResult = DOMUtil.serializeDOMToString(result);
 		}
 		

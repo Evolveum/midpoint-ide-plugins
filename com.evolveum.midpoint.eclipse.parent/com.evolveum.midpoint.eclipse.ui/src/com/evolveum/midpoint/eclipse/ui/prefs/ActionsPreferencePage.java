@@ -32,7 +32,6 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 	public static final String ACTION_AFTER_UPLOAD = "actionAfterUpload";
 	
 	public static final String OUTPUT_FILE_NAME_PATTERN = "outputFileNamePattern";
-	public static final String OUTPUT_FILE_NAME_RELATIVE = "outputFileNameRelative";
 	public static final String OUTPUT_FILE_NAME_PATTERN_NO_SOURCE = "outputFileNameNoSource";
 
 	public static final String USE_MIDPOINT_LOG_VIEWER = "useMidPointLogViewer";
@@ -75,10 +74,9 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		Label patternInfo2 = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo2.setText("Absolute file name patterns must be in 'Eclipse logical' form, i.e. '/projectname/folder1/folder2/.../filename'.");
+		patternInfo2.setText("If using absolute file name patterns, they must be in 'Eclipse logical' form, i.e. '/projectname/folder1/.../filename'.");
 		patternInfo2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		
-		addField(new BooleanFieldEditor(OUTPUT_FILE_NAME_RELATIVE, "Path is relative to the file being executed", getFieldEditorParent()));
 		addField(new StringFieldEditor(OUTPUT_FILE_NAME_PATTERN_NO_SOURCE, "Output files with no source", getFieldEditorParent()));
 		
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)

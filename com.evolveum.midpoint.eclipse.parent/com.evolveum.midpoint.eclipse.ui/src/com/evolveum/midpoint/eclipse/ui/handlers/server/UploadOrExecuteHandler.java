@@ -447,7 +447,7 @@ public class UploadOrExecuteHandler extends AbstractHandler {
 				System.out.println("pattern = " + pattern + ", sourceName = " + sourceName + ", resolvedPattern = " + patternResolved);
 				IPath resolvedPath = new Path(patternResolved);
 				System.out.println("Resolved path = " + resolvedPath);
-				if (item.getSourcePath() != null && PluginPreferences.isOutputFileNameRelative()) {
+				if (item.getSourcePath() != null && !resolvedPath.isAbsolute()) {
 					prefix = item.getSourcePath().removeLastSegments(1);
 					resolvedPath = prefix.append(resolvedPath);
 				}

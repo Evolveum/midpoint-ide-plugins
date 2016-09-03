@@ -11,7 +11,7 @@ public class PluginPreferences {
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
 
 	public static ConnectionParameters getConnectionParameters() {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		String url = store.getString(MidPointPreferencePage.MIDPOINT_URL);
 		String login = store.getString(MidPointPreferencePage.MIDPOINT_LOGIN);
 		String password = store.getString(MidPointPreferencePage.MIDPOINT_PASSWORD);
@@ -19,54 +19,73 @@ public class PluginPreferences {
 	}
 	
 	public static String getActionFile(String number) {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_FILE_PREFIX + number);
 	}
 	
 	public static String getActionOpenAfter(String number) {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_OPEN_AFTER_PREFIX + number);
 	}
 
 	public static String getActionOpenAfterOther() {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_OPEN_AFTER_OTHER);
 	}
 
 
 	public static String getActionAfterUpload() {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_AFTER_UPLOAD);
 	}
 
 	public static String getLogfile() {
-		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
+		IPreferenceStore store = store();
 		return store.getString(MidPointPreferencePage.MIDPOINT_LOGFILE);
 	}
 	
 	public static boolean isUseMidPointLogViewer() {
-		return EclipseActivator.getInstance().getPreferenceStore().getBoolean(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
-	}
-	
-	public static boolean isOutputFileNameRelative() {
-		return EclipseActivator.getInstance().getPreferenceStore().getBoolean(ActionsPreferencePage.OUTPUT_FILE_NAME_RELATIVE);
+		return store().getBoolean(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
 	}
 	
 	public static String getOutputFileNamePattern() {
-		return EclipseActivator.getInstance().getPreferenceStore().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN);
+		return store().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN);
 	}
 
 	public static String getOutputFileNamePatternNoSource() {
-		return EclipseActivator.getInstance().getPreferenceStore().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN_NO_SOURCE);
+		return store().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN_NO_SOURCE);
 	}
 	
 	public static String getShowUploadOrExecuteResultMessageBox() {
-		return EclipseActivator.getInstance().getPreferenceStore().getString(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX);
+		return store().getString(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX);
+	}
+	
+	public static String getDownloadedFileNamePattern() {
+		return store().getString(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN);
 	}
 
+	public static int getDownloadedObjectsLimit() {
+		return store().getInt(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT);
+	}
+	
+	public static String getIncludeInDownload() {
+		return store().getString(DownloadPreferencePage.INCLUDE_IN_DOWNLOAD);
+	}
+	
+	public static String getExcludeFromDownload() {
+		return store().getString(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD);
+	}
+	
+	public static String getOverwriteWhenDownloading() {
+		return store().getString(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING);
+	}
+
+	private static IPreferenceStore store() {
+		return EclipseActivator.getInstance().getPreferenceStore();
+	}
 	
 	public static String getString(String key) {
-		return EclipseActivator.getInstance().getPreferenceStore().getString(key);
+		return store().getString(key);
 	}
 
 }

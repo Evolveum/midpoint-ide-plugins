@@ -16,6 +16,9 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		
 		store.setDefault(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN, "runs/$f.$n.$t");
-		store.setDefault(ActionsPreferencePage.OUTPUT_FILE_NAME_RELATIVE, "true");
+		
+		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "$T/$n.xml");
+		store.setDefault(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT, "100");
+		store.setDefault(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING, DownloadPreferencePage.VALUE_ASK);
 	}
 }

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.eclipse.runtime.impl;
+package com.evolveum.midpoint.eclipse.runtime.api;
 
 public enum ObjectTypes {
 	
@@ -51,5 +51,14 @@ public enum ObjectTypes {
         }
         return null;
     }
+
+	public static ObjectTypes findByAny(String w) {
+		for (ObjectTypes t : values()) {
+			if (t.elementName.equalsIgnoreCase(w) || t.restType.equalsIgnoreCase(w)) {
+				return t;
+			}
+		}
+		return null;
+	}
 
 }

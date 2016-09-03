@@ -8,6 +8,10 @@
 			id="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute">
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" name="Execute predefined action afterwards" />
 		</command>
+		<command name="Download"
+			description="Downloads objects from midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.command.download">
+		</command>
 		<command name="Compute difference"
 			description="Computes a difference between midPoint object and the current one"
 			id="com.evolveum.midpoint.eclipse.ui.command.computeDifference">
@@ -41,6 +45,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifference" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.UploadOrExecuteHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.download" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testConnection" />				 
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ShowConsoleHandler"
@@ -64,6 +70,10 @@
 				<parameter
                         name="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
 			</command>
+			<command 
+				commandId="com.evolveum.midpoint.eclipse.ui.command.download" 
+				label="Download from midPoint" 
+				style="push"/>
 			<separator name="separator-midPoint-end" visible="true"/>
 		</menuContribution>
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
@@ -83,6 +93,13 @@
                   style="push">
                   <parameter
                         name="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
+            </command>
+            <command
+                  commandId="com.evolveum.midpoint.eclipse.ui.command.download"
+                  mnemonic="D"
+                  id="com.evolveum.midpoint.eclipse.ui.menu.download"
+                  label="Download objects"
+                  style="push">
             </command>
             <command
                   commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifference"
@@ -170,13 +187,17 @@
 	</extension>
 	
 	<extension point="org.eclipse.ui.preferencePages">
-		<page name="midPoint"
+		<page name="MidPoint"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage"
 			id="com.evolveum.midpoint.eclipse.ui.preference.midPoint"/>
 		<page name="Actions"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ActionsPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.preference.actions"/>
+		<page name="Download"
+			class="com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage"
+			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.preference.download"/>
 	</extension>
 	
 	<extension

@@ -5,8 +5,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -28,10 +31,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
+import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.ServerObject;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.UploadServerResponse;
@@ -146,6 +152,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			System.out.println("Server response status line: " + statusLine);
 
 			if (response.getEntity() != null) {
+				// TODO encoding!
 				InputStream is = response.getEntity().getContent();
 				StringBuilder sb = new StringBuilder();
 				if (is != null) {
@@ -175,6 +182,41 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 		return serverResponse;
 
+	}
+
+	@Override
+	public List<ServerObject> downloadObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) throws IOException {
+
+		HttpClient client = createClient(connectionParameters);
+
+		String url = connectionParameters.getUrl() + "/"+type.getRestType()+"/search";
+		HttpPost request = new HttpPost(url);
+
+		HttpEntity body = new StringEntity("<query><paging><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);
+		request.setEntity(body);
+		
+		System.out.println("Requesting objects from " + url);
+		HttpResponse response = client.execute(request);
+
+		StatusLine statusLine = response.getStatusLine();
+		System.out.println("Server response status line: " + statusLine);
+		if (!isSuccess(statusLine)) {
+			throw new IOException("Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
+		}
+
+		List<ServerObject> rv = new ArrayList<>();
+		if (response.getEntity() != null) {
+			Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
+			List<Element> objectElements = DOMUtil.getChildElements(root, new QName(Constants.API_TYPES_NS, "object"));
+			for (Element objectElement : objectElements) {
+				String xml = DOMUtil.serializeDOMToString(objectElement);
+				Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
+				String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
+				ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, type, xml);
+				rv.add(object);
+			}
+		}
+		return rv;
 	}
 	
 	
