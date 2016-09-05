@@ -74,6 +74,7 @@ main:				for (ObjectTypes type : typesToDownload) {
 						List<ServerObject> objects = runtime.downloadObjects(type, limit, connectionParameters);
 						
 						monitor.subTask("Writing " + type.getRestType());
+						boolean yesToAll = false, noToAll = false;
 						for (ServerObject object : objects) {
 							if (monitor.isCanceled()) {
 								break main;
@@ -81,26 +82,28 @@ main:				for (ObjectTypes type : typesToDownload) {
 							IFile file = prepareOutputFileForCreation(object, root);
 							if (file.exists()) {
 								String overwrite = PluginPreferences.getOverwriteWhenDownloading();
-								if (DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
+								if (noToAll || DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
 									Console.log("File " + file + " already exists, skipping.");
 									continue;
 								}
 								final Holder<Integer> responseHolder = new Holder<>();
-								if (DownloadPreferencePage.VALUE_ASK.equals(overwrite)) {
+								if (DownloadPreferencePage.VALUE_ASK.equals(overwrite) && !yesToAll) {
 									Display.getDefault().syncExec(new Runnable() {
 										public void run() {
 											MessageDialog dialog = new MessageDialog(
 													null, "Confirm overwrite", null, "Are you sure to overwrite " + file + "?",
 													MessageDialog.QUESTION,
-													new String[] {"Yes", "No", "Cancel"},
+													new String[] {"Yes", "No", "Yes to all", "No to all", "Cancel"},
 													0);
 											responseHolder.setValue(dialog.open());
 										}
 									});
-									if (responseHolder.getValue() == 2) {
-										break main;
-									} else if (responseHolder.getValue() == 1) {
-										continue;
+									switch (responseHolder.getValue()) {
+									case 2: yesToAll = true;		// Yes to all
+									case 0: break;					// Yes
+									case 3: noToAll = true;			// No to all
+									case 1: continue;				// No
+									case 4: break main;				// Cancel
 									}
 								}
 								file.delete(true, monitor);
@@ -168,10 +171,10 @@ main:				for (ObjectTypes type : typesToDownload) {
 	
 	protected List<ObjectTypes> determineTypesToDownload() {
 		List<ObjectTypes> rv = new ArrayList<>();
-		String include = StringUtils.normalizeSpace(PluginPreferences.getIncludeInDownload());
-		String exclude = StringUtils.normalizeSpace(PluginPreferences.getExcludeFromDownload());
+		List<String> include = PluginPreferences.getIncludeInDownload();
+		List<String> exclude = PluginPreferences.getExcludeFromDownload();
 
-		if (StringUtils.isEmpty(include)) {
+		if (include.isEmpty()) {
 			rv.addAll(Arrays.<ObjectTypes>asList(ObjectTypes.values()));
 		} else {
 			rv.addAll(parseTypes(include));
@@ -182,9 +185,9 @@ main:				for (ObjectTypes type : typesToDownload) {
 		return rv;
 	}
 
-	private List<ObjectTypes> parseTypes(String string) {
+	private List<ObjectTypes> parseTypes(List<String> words) {
 		List<ObjectTypes> rv = new ArrayList<>();
-		for (String w : StringUtils.split(string)) {
+		for (String w : words) {
 			ObjectTypes t = ObjectTypes.findByAny(w);
 			if (t == null) {
 				Util.showAndLogWarning("Unknown type name", "Type '" + w + "' is unknown. Supported type names are: " +

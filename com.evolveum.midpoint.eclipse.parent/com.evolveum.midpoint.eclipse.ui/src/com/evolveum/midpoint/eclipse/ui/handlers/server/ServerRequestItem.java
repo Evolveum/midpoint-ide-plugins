@@ -2,7 +2,10 @@ package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
 import org.eclipse.core.runtime.IPath;
 
+import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
+import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 
 public class ServerRequestItem {
 	
@@ -48,6 +51,20 @@ public class ServerRequestItem {
 	public String toString() {
 		return "ServerRequestItem [action=" + serverAction + ", source=" + source + ", predefinedActionNumber="
 				+ predefinedActionNumber + "]";
+	}
+
+	public ServerRequest createServerRequest() {
+		if (serverAction == ServerAction.COMPARE) {
+			CompareServerRequest csr = new CompareServerRequest(serverAction, getContent());
+			csr.setShowLocalToRemote(PluginPreferences.getCompareShowLocalToRemote());
+			csr.setShowRemoteToLocal(PluginPreferences.getCompareShowRemoteToLocal());
+			csr.setShowLocal(PluginPreferences.getCompareShowLocalNormalized());
+			csr.setShowRemote(PluginPreferences.getCompareShowRemote());
+			csr.setIgnoreItems(PluginPreferences.getCompareIgnoreItems());
+			return csr;
+		} else {
+			return new ServerRequest(serverAction, getContent());
+		}	
 	}
 	
 	

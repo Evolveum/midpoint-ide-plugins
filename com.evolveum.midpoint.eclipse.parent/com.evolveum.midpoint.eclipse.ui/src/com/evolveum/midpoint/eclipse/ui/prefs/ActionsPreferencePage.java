@@ -13,7 +13,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-import com.evolveum.midpoint.eclipse.ui.handlers.server.UploadOrExecuteHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.ExecuteActionResponseItem;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
 
 public class ActionsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
@@ -31,8 +32,9 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 	
 	public static final String ACTION_AFTER_UPLOAD = "actionAfterUpload";
 	
-	public static final String OUTPUT_FILE_NAME_PATTERN = "outputFileNamePattern";
-	public static final String OUTPUT_FILE_NAME_PATTERN_NO_SOURCE = "outputFileNameNoSource";
+	public static final String ACTION_OUTPUT_FILE_NAME_PATTERN = "actionOutputFileNamePattern";
+	public static final String ACTION_OUTPUT_ROOT_DIRECTORY = "actionOutputRootDirectory";
+	public static final String ACTION_OUTPUT_FILE_NAME_PATTERN_NO_SOURCE = "actionOutputFileNameNoSource";
 
 	public static final String USE_MIDPOINT_LOG_VIEWER = "useMidPointLogViewer";
 	
@@ -43,10 +45,10 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 	protected void createFieldEditors() {
 		
 		final String[][] OPEN_AFTER_OPTIONS = new String[][] { 
-			{ "Server log", UploadOrExecuteHandler.OUTPUT_TYPE_LOG }, 
-			{ "Action data output", UploadOrExecuteHandler.OUTPUT_TYPE_DATA }, 
-			{ "Action console output", UploadOrExecuteHandler.OUTPUT_TYPE_CONSOLE }, 
-			{ "Operation result", UploadOrExecuteHandler.OUTPUT_TYPE_RESULT }, 
+			{ "Server log", ExecuteActionResponseItem.OUTPUT_TYPE_LOG }, 
+			{ "Action data output", ExecuteActionResponseItem.OUTPUT_TYPE_DATA }, 
+			{ "Action console output", ExecuteActionResponseItem.OUTPUT_TYPE_CONSOLE }, 
+			{ "Operation result", ExecuteActionResponseItem.OUTPUT_TYPE_RESULT }, 
 			{ "Nothing", "" } 
 		};
 		final String[][] AUTO_ACTION_OPTIONS = new String[][] { { "Action 1", "1" }, { "Action 2", "2" }, { "Action 3", "3" }, { "No action", "" } };
@@ -67,17 +69,18 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 
-		addField(new StringFieldEditor(OUTPUT_FILE_NAME_PATTERN, "Action output files pattern", getFieldEditorParent()));
+		addField(new StringFieldEditor(ACTION_OUTPUT_FILE_NAME_PATTERN, "Action output files pattern", getFieldEditorParent()));
 		Label patternInfo = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo.setText("Use $f for file name, $n for execution sequence number, $t for output type. An example: 'runs/$f.$n.$t'.");
+		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type. An example: 'runs/$F.$n.$t'.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		Label patternInfo2 = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		patternInfo2.setText("If using absolute file name patterns, they must be in 'Eclipse logical' form, i.e. '/projectname/folder1/.../filename'.");
 		patternInfo2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		
-		addField(new StringFieldEditor(OUTPUT_FILE_NAME_PATTERN_NO_SOURCE, "Output files with no source", getFieldEditorParent()));
+		addField(new ComboFieldEditor(ACTION_OUTPUT_ROOT_DIRECTORY, "Directory considered root", MidPointPreferencePage.ROOT_DIRECTORY_OPTIONS, getFieldEditorParent()));
+		addField(new StringFieldEditor(ACTION_OUTPUT_FILE_NAME_PATTERN_NO_SOURCE, "Output files with no source", getFieldEditorParent()));
 		
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));

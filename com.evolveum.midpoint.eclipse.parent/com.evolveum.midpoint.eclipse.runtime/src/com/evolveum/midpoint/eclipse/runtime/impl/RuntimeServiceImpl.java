@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -31,6 +32,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
@@ -116,17 +119,56 @@ public class RuntimeServiceImpl implements RuntimeService {
 			} else if (action == ServerAction.UPLOAD && !uploadable) {
 				throw new IllegalArgumentException("Unknown object type to upload: " + localName);
 			} else if (!executable && !uploadable) {
-				throw new IllegalArgumentException("Object with root element of <" + localName + "> cannot be uploaded nor executed.");
+				throw new IllegalArgumentException("Object with root element of <" + localName + "> cannot be uploaded, executed nor compared.");
 			}
 		} catch (Throwable t) {
 			return new ServerResponse(t);
 		}
 		
-		ServerResponse serverResponse = executable ? new ExecuteActionServerResponse() : new UploadServerResponse(); 
+		ServerResponse serverResponse; 
+
+		ServerAction finalAction;
+		if (request.getAction() == ServerAction.COMPARE) {
+			finalAction = ServerAction.COMPARE;
+			serverResponse = new CompareServerResponse();
+		} else if (uploadable) {
+			finalAction = ServerAction.UPLOAD;
+			serverResponse = new UploadServerResponse();
+		} else {
+			finalAction = ServerAction.EXECUTE;
+			serverResponse = new ExecuteActionServerResponse();
+		}
 
 		try {
 			HttpEntityEnclosingRequest httpRequest;
-			if (uploadable) {
+			
+			if (finalAction == ServerAction.COMPARE) {
+				List<String> opts = new ArrayList<>();
+				CompareServerRequest csr = (CompareServerRequest) request;
+				if (csr.isShowLocalToRemote()) {
+					opts.add("compareOptions=computeProvidedToCurrent");
+				}
+				if (csr.isShowRemoteToLocal()) {
+					opts.add("compareOptions=computeCurrentToProvided");
+				}
+				if (csr.isShowLocal()) {
+					opts.add("compareOptions=returnNormalized");
+				}
+				if (csr.isShowRemote()) {
+					opts.add("compareOptions=returnCurrent");
+				}
+				if (opts.isEmpty()) {
+					throw new IllegalStateException("None of compare options are selected.");
+				}
+				String compareOptions = StringUtils.join(opts, "&");
+				List<String> ignore = new ArrayList<>();
+				for (String item : csr.getIgnoreItems()) {
+					ignore.add("ignoreItems=" + item);
+				}
+				String ignoreItems = StringUtils.join(ignore, "&");
+				String url = connectionParameters.getUrl() + "/comparisons?readOptions=raw&" + compareOptions + "&" + ignoreItems;
+				httpRequest = new HttpPost(url);
+			} else if (finalAction == ServerAction.UPLOAD) {
 				String url = connectionParameters.getUrl() + "/" + restType;
 				String suffix = "?options=raw";
 
@@ -164,12 +206,15 @@ public class RuntimeServiceImpl implements RuntimeService {
 					is.close();
 				}
 				serverResponse.setRawResponseBody(sb.toString());
+				System.out.println("Server response (raw):\n" + sb.toString() + "\n---------------------------------");
 				if (serverResponse instanceof ExecuteActionServerResponse) {
 					Header contentType = response.getEntity().getContentType();
 					System.out.println("Content type of the response: " + contentType);
 					if (contentType != null && contentType.getValue().startsWith("application/xml")) {
 						((ExecuteActionServerResponse) serverResponse).parseXmlResponse(sb.toString());
 					}
+				} else if (serverResponse instanceof CompareServerResponse) {
+					((CompareServerResponse) serverResponse).parseXmlResponse(sb.toString());
 				}
 			}
 			

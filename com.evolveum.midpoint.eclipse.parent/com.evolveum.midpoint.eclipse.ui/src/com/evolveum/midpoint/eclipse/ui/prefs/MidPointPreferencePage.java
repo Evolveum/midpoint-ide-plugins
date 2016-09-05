@@ -35,12 +35,32 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 	public static final String VALUE_WHEN_ERRORS = "whenErrors";
 	public static final String VALUE_ALWAYS = "always";
 
-	final String[][] RESULT_BOX_OPTIONS = new String[][] { 
+	public final static String[][] RESULT_BOX_OPTIONS = new String[][] { 
 		{ "Always", VALUE_ALWAYS }, 
 		{ "Only when errors", VALUE_WHEN_ERRORS }, 
 		{ "Never", VALUE_NEVER } 
 	};
 	
+	public static final String VALUE_CURRENT_PROJECT = "currentProject";
+	public static final String VALUE_CURRENT_PROJECT_MINUS_1 = "currentProjectMinus1";
+	public static final String VALUE_CURRENT_PROJECT_MINUS_2 = "currentProjectMinus2";
+	public static final String VALUE_CURRENT_PROJECT_MINUS_3 = "currentProjectMinus3";
+	public static final String VALUE_CURRENT_DIRECTORY = "currentDirectory";
+	public static final String VALUE_CURRENT_DIRECTORY_PLUS_1 = "currentDirectoryPlus1";
+	public static final String VALUE_CURRENT_DIRECTORY_PLUS_2 = "currentDirectoryPlus2";
+	public static final String VALUE_CURRENT_DIRECTORY_PLUS_3 = "currentDirectoryPlus3";
+	
+	public static final String[][] ROOT_DIRECTORY_OPTIONS = new String[][] { 
+		{ "Current project", VALUE_CURRENT_PROJECT }, 
+		{ "One level under current project", VALUE_CURRENT_PROJECT_MINUS_1 }, 
+		{ "Two levels under current project", VALUE_CURRENT_PROJECT_MINUS_2 },
+		{ "Three levels under current project", VALUE_CURRENT_PROJECT_MINUS_3 },
+		{ "Current directory", VALUE_CURRENT_DIRECTORY },
+		{ "One level above current directory", VALUE_CURRENT_DIRECTORY_PLUS_1 },
+		{ "Two levels above current directory", VALUE_CURRENT_DIRECTORY_PLUS_2 },
+		{ "Three levels above current directory", VALUE_CURRENT_DIRECTORY_PLUS_3 }
+	};
+
 	private StringFieldEditor urlField;
 	private StringFieldEditor loginField;
 	private StringButtonFieldEditor passwordField; 

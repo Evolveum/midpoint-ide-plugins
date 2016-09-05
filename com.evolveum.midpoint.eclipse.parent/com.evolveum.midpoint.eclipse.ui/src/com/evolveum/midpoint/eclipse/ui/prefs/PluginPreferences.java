@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.eclipse.ui.prefs;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
@@ -48,12 +52,16 @@ public class PluginPreferences {
 		return store().getBoolean(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
 	}
 	
-	public static String getOutputFileNamePattern() {
-		return store().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN);
+	public static String getActionOutputFileNamePattern() {
+		return store().getString(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN);
+	}
+	
+	public static String getActionOutputRootDirectory() {
+		return store().getString(ActionsPreferencePage.ACTION_OUTPUT_ROOT_DIRECTORY);
 	}
 
 	public static String getOutputFileNamePatternNoSource() {
-		return store().getString(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN_NO_SOURCE);
+		return store().getString(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN_NO_SOURCE);
 	}
 	
 	public static String getShowUploadOrExecuteResultMessageBox() {
@@ -68,16 +76,55 @@ public class PluginPreferences {
 		return store().getInt(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT);
 	}
 	
-	public static String getIncludeInDownload() {
-		return store().getString(DownloadPreferencePage.INCLUDE_IN_DOWNLOAD);
+	public static List<String> getIncludeInDownload() {
+		return split(store().getString(DownloadPreferencePage.INCLUDE_IN_DOWNLOAD));
 	}
 	
-	public static String getExcludeFromDownload() {
-		return store().getString(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD);
+	public static List<String> getExcludeFromDownload() {
+		return split(store().getString(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD));
 	}
 	
 	public static String getOverwriteWhenDownloading() {
 		return store().getString(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING);
+	}
+
+	public static String getCompareResultFileNamePattern() {
+		return store().getString(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN);
+	}
+
+	public static String getCompareResultRootDirectory() {
+		return store().getString(ComparePreferencePage.COMPARE_RESULT_ROOT_DIRECTORY);
+	}
+
+	public static boolean getCompareShowLocalToRemote() {
+		return store().getBoolean(ComparePreferencePage.COMPARE_SHOW_LOCAL_TO_REMOTE);
+	}
+
+	public static boolean getCompareShowRemoteToLocal() {
+		return store().getBoolean(ComparePreferencePage.COMPARE_SHOW_REMOTE_TO_LOCAL);
+	}
+
+	public static boolean getCompareShowLocalNormalized() {
+		return store().getBoolean(ComparePreferencePage.COMPARE_SHOW_LOCAL_NORMALIZED);
+	}
+	
+	public static boolean getCompareShowRemote() {
+		return store().getBoolean(ComparePreferencePage.COMPARE_SHOW_REMOTE);
+	}
+
+	public static List<String> getCompareIgnoreItems() {
+		String aggregated = store().getString(ComparePreferencePage.COMPARE_IGNORE_ITEMS);
+		return split(aggregated);
+	}
+
+	private static List<String> split(String aggregated) {
+		String[] parts = StringUtils.split(aggregated, ",");
+		List<String> rv = new ArrayList<>();
+		for (String part : parts) {
+			part = part.trim();
+			rv.add(part);
+		}
+		return rv;
 	}
 
 	private static IPreferenceStore store() {

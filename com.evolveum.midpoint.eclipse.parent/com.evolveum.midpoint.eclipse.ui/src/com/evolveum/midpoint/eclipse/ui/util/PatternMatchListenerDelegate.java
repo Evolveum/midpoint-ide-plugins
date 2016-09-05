@@ -1,12 +1,14 @@
 package com.evolveum.midpoint.eclipse.ui.util;
 
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.ui.console.IPatternMatchListenerDelegate;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
-import com.evolveum.midpoint.eclipse.ui.handlers.server.UploadOrExecuteHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 
 /**
  * TODO fix this brutally hacked class...
@@ -30,44 +32,45 @@ public class PatternMatchListenerDelegate implements IPatternMatchListenerDelega
 	public void disconnect() {
 	}
 	
-	public static final int SERVER_LOG_START = UploadOrExecuteHandler.CONSOLE_REFERENCE_TEXT.indexOf(UploadOrExecuteHandler.SERVER_LOG);
-	public static final int SERVER_LOG_LENGTH = UploadOrExecuteHandler.SERVER_LOG.length();
-	public static final int DATA_OUTPUT_START = UploadOrExecuteHandler.CONSOLE_REFERENCE_TEXT.indexOf(UploadOrExecuteHandler.DATA_OUTPUT);
-	public static final int DATA_OUTPUT_LENGTH = UploadOrExecuteHandler.DATA_OUTPUT.length();
-	public static final int CONSOLE_OUTPUT_START = UploadOrExecuteHandler.CONSOLE_REFERENCE_TEXT.indexOf(UploadOrExecuteHandler.CONSOLE_OUTPUT);
-	public static final int CONSOLE_OUTPUT_LENGTH = UploadOrExecuteHandler.CONSOLE_OUTPUT.length();
-	public static final int OP_RESULT_START = UploadOrExecuteHandler.CONSOLE_REFERENCE_TEXT.indexOf(UploadOrExecuteHandler.OP_RESULT);
-	public static final int OP_RESULT_LENGTH = UploadOrExecuteHandler.OP_RESULT.length();
-
 	@Override
 	public void matchFound(PatternMatchEvent event) {
 		
 		if (!enabled) {
 			return;
 		}
+		
+		String text; 
+        try { 
+            text = console.getDocument().get(event.getOffset(), event.getLength()); 
+        } catch (BadLocationException e) { 
+        	Util.processUnexpectedException(e);
+            return; 
+        }
+        
+        String a = StringUtils.substringAfterLast(text, "(#");
+        String seq = StringUtils.substringBefore(a, ")");
+        System.out.println("text = "+text+", seq=" + seq);
 
 		HyperlinksRegistry registry = HyperlinksRegistry.getInstance();
 		
-		HyperlinksRegistry.Entry entry = registry.peek();
-		System.out.println("Head of hyperlink queue = " + entry);
-		
-		if (entry == null || entry.getLineOffset() > event.getOffset()) {
-			System.out.println("No hyperlink entry for event at " + event.getOffset() + " (head is " + entry + ")");
+		HyperlinksRegistry.Entry entry = registry.get(seq);
+		if (entry == null) {
 			return;
 		}
 		
-		registry.poll();
-		
 		try {
-			console.addHyperlink(new FileLink(entry.getLogFile(), UploadOrExecuteHandler.getLogViewerEditorId(), -1, -1, -1), event.getOffset() + SERVER_LOG_START, SERVER_LOG_LENGTH);
-			console.addHyperlink(new FileLink(entry.getDataFile(), UploadOrExecuteHandler.getTextEditorId(), -1, -1, -1), event.getOffset() + DATA_OUTPUT_START, DATA_OUTPUT_LENGTH);
-			console.addHyperlink(new FileLink(entry.getConsoleFile(), UploadOrExecuteHandler.getTextEditorId(), -1, -1, -1), event.getOffset() + CONSOLE_OUTPUT_START, CONSOLE_OUTPUT_LENGTH);
-			console.addHyperlink(new FileLink(entry.getResultFile(), UploadOrExecuteHandler.getTextEditorId(), -1, -1, -1), event.getOffset() + OP_RESULT_START, OP_RESULT_LENGTH);
+			for (int i = 0; i < entry.labels.size(); i++) {
+				String label = entry.labels.get(i);
+				IFile file = entry.files.get(i);
+				String editorId = entry.editorIds.get(i);
+				int start = text.indexOf(label);
+				if (start >= 0) {
+					console.addHyperlink(new FileLink(file, editorId, -1, -1, -1), event.getOffset() + start, label.length());					
+				}
+			}
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Util.processUnexpectedException(e);
 		}
-
 	}
 
 }

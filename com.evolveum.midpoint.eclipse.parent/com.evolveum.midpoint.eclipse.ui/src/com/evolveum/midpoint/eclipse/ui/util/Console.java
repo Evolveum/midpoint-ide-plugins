@@ -69,8 +69,6 @@ public class Console {
 
 		MessageConsole console = findConsole();
 		
-		int start = console.getDocument().getLength();
-		
 		MessageConsoleStream stream = console.newMessageStream();
 		stream.println(formatMessage(message));
 		try {
@@ -78,27 +76,28 @@ public class Console {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		IPath p = new Path("/T2/aaa.txt");
-		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(p);
-		
-		int end = console.getDocument().getLength();
-		
-//		System.out.println("Start: " + start + ", end: " + end);
-//		FileLink link = new FileLink(file, null, -1, -1, -1);
-//		try {
-//			console.addHyperlink(link, 10, 5);
-//		} catch (BadLocationException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
 	}
 
 	private static String formatMessage(String message) {
 		return new Date() + ": " + message;
 	}
 
+	public static void logWarning(String message, Throwable t) {
+		logWarning(message);
+		logWarning(t);
+	}
+	
+	public static void logWarning(Throwable t) {
+		if (t == null) {
+			return;
+		}
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		logWarning(sw.toString());
+		pw.close();
+	}
+	
 	public static void logWarning(String message) {
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
@@ -146,13 +145,6 @@ public class Console {
 
 			}
 		});
-	}
-
-	public static void registerHyperlink(String line, IFile logFile, IFile dataFile, IFile consoleFile, IFile opResultFile) {
-		MessageConsole console = findConsole();
-		int length = console.getDocument().getLength();
-		HyperlinksRegistry.getInstance().registerEntry(line, length, logFile, dataFile, consoleFile, opResultFile);
-		System.out.println("Registered " + logFile + " et al @" + length);
 	}
 
 }

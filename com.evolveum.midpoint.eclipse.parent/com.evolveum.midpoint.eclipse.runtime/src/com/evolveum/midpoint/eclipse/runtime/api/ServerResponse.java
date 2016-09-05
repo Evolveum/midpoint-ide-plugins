@@ -49,5 +49,5 @@ public class ServerResponse {
 		}
 		return statusCode + ": " + reasonPhrase;
 	}
-	
+
 }

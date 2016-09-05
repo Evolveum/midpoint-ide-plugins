@@ -15,10 +15,18 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(MidPointPreferencePage.MIDPOINT_PASSWORD, "5ecr3t");
 		store.setDefault(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		
-		store.setDefault(ActionsPreferencePage.OUTPUT_FILE_NAME_PATTERN, "runs/$f.$n.$t");
+		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN, "runs/$f.$n.$t");
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "$T/$n.xml");
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT, "100");
 		store.setDefault(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING, DownloadPreferencePage.VALUE_ASK);
+		
+		store.setDefault(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN, "diff/$F.$n.$t");
+		store.setDefault(ComparePreferencePage.COMPARE_SHOW_LOCAL_TO_REMOTE, "true");
+		store.setDefault(ComparePreferencePage.COMPARE_SHOW_REMOTE_TO_LOCAL, "true");
+		store.setDefault(ComparePreferencePage.COMPARE_SHOW_LOCAL_NORMALIZED, "true");
+		store.setDefault(ComparePreferencePage.COMPARE_SHOW_REMOTE, "true");
+		store.setDefault(ComparePreferencePage.COMPARE_IGNORE_ITEMS, "metadata");
 	}
+	
 }

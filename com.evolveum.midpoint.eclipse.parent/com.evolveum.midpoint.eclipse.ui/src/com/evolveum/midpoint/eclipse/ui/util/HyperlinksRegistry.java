@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.eclipse.ui.util;
 
-import java.util.PriorityQueue;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 
@@ -16,59 +18,27 @@ public class HyperlinksRegistry {
 		return instance;
 	}
 
-	public class Entry implements Comparable<Entry> {
-		String line;
-		int lineOffset;
-		IFile logFile, dataFile, consoleFile, resultFile;
-		public Entry(String line, int lineOffset, IFile logFile, IFile dataFile, IFile consoleFile, IFile resultFile) {
-			super();
-			this.line = line;
-			this.lineOffset = lineOffset;
-			this.logFile = logFile;
-			this.dataFile = dataFile;
-			this.consoleFile = consoleFile;
-			this.resultFile = resultFile;
-		}
-		@Override
-		public int compareTo(Entry o) {
-			return Integer.compare(this.lineOffset, o.lineOffset);
-		}
-		public String getLine() {
-			return line;
-		}
-		public int getLineOffset() {
-			return lineOffset;
-		}
-		public IFile getLogFile() {
-			return logFile;
-		}
-		public IFile getDataFile() {
-			return dataFile;
-		}
-		public IFile getConsoleFile() {
-			return consoleFile;
-		}
-		public IFile getResultFile() {
-			return resultFile;
-		}
-		@Override
-		public String toString() {
-			return "Entry [lineOffset=" + lineOffset + ", logFile=" + logFile + "]";
+	public class Entry {
+		public final List<String> labels;
+		public final List<IFile> files;
+		public final List<String> editorIds;
+		public Entry(List<String> labels, List<IFile> files, List<String> editorIds) {
+			this.labels = labels;
+			this.files = files;
+			this.editorIds = editorIds;
 		}
 	}
 	
-	public final PriorityQueue<Entry> entries = new PriorityQueue<>();
+	public final Map<String,Entry> entries = new HashMap<>();
 	
-	public synchronized void registerEntry(String line, int lineOffset, IFile logFile, IFile dataFile, IFile consoleFile, IFile resultFile) {
-		entries.add(new Entry(line, lineOffset, logFile, dataFile, consoleFile, resultFile));
+	public synchronized Entry get(String counter) {
+		Entry entry = entries.get(counter);
+		entries.remove(counter);
+		return entry;
 	}
 	
-	public synchronized Entry poll() {
-		return entries.poll();
-	}
-	
-	public synchronized Entry peek() {
-		return entries.peek();
+	public void registerEntry(String counter, List<String> labels, List<IFile> files, List<String> editorIds) {
+		entries.put(counter, new Entry(labels, files, editorIds));
 	}
 	
 }
