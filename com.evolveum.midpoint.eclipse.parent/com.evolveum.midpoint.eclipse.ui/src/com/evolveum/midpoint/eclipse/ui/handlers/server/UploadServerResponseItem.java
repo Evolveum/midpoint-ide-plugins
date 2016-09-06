@@ -44,6 +44,19 @@ public class UploadServerResponseItem extends ServerResponseItem<ServerResponse>
 	
 	@Override
 	public String getConsoleLogLine(int responseCounter) {
+		return getResultLine();
+	}
+
+	@Override
+	public void logResult(int responseCounter) {
+		super.logResult(responseCounter);
+		if (!response.isSuccess() && response.getStatusCode() != 0) {
+			logRawErrorDetails();
+		}
+	}
+
+	@Override
+	public String getResultLine() {
 		String itemName = requestItem.getDisplayName() != null ? requestItem.getDisplayName() : "the item";
 		if (response.isSuccess()) {
 			return "Successfully uploaded " + itemName; 

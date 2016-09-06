@@ -34,20 +34,21 @@ import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
 import com.evolveum.midpoint.eclipse.runtime.api.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.NotApplicableServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
-import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
 public class FileRequestHandler extends AbstractHandler {
 	
+	private static final int MAX_ITERATIONS = 1000;
 	public static final String CMD_UPLOAD_OR_EXECUTE = "com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute";
 	public static final String CMD_EXECUTE_ACTION = "com.evolveum.midpoint.eclipse.ui.command.executeAction";
-	public static final String CMD_COMPUTE_DIFFERENCE = "com.evolveum.midpoint.eclipse.ui.command.computeDifference";
+	public static final String CMD_COMPUTE_DIFFERENCE = "com.evolveum.midpoint.eclipse.ui.command.computeDifferences";
 
 	public static final String PARAM_WITH_ACTION = "com.evolveum.midpoint.eclipse.ui.commandParameter.withAction";
 	public static final String PARAM_ACTION_NUMBER = "com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber";
@@ -189,8 +190,8 @@ public class FileRequestHandler extends AbstractHandler {
 		}
 		return ServerRequestPack.fromTextFragment(selectedText, null, ServerAction.UPLOAD_OR_EXECUTE);
 	}
-
-	private void executeServerRequest(final RequestedAction requestedAction, ServerRequestPack requestItem) {
+	
+	private void executeServerRequest(RequestedAction requestedAction, ServerRequestPack requestItem) {
 		
 		String logfilename = PluginPreferences.getLogfile();
 		
@@ -215,9 +216,9 @@ public class FileRequestHandler extends AbstractHandler {
 				
 				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
 
-				int failCounter = 0, successCounter = 0;
-				ServerRequestItem lastItem = null;
-				ServerResponse lastErrorResponse = null;
+				List<ServerResponseItem<?>> responseItems = new ArrayList<>();
+				
+				int skipped = 0;
 				
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				monitor.beginTask("Processing", itemCount);
@@ -225,7 +226,6 @@ public class FileRequestHandler extends AbstractHandler {
 					if (monitor.isCanceled()) {
 						break;
 					}
-					lastItem = item;
 					if (item.getDisplayName() != null) {
 						monitor.subTask(item.getDisplayName());
 					}
@@ -235,89 +235,135 @@ public class FileRequestHandler extends AbstractHandler {
 					ServerRequest request = item.createServerRequest();
 					ServerResponse response = runtime.executeServerRequest(request, connectionParameters);
 					
-					ServerResponseItem responseItem;
-					if (response instanceof ExecuteActionServerResponse) {
-						responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
-					} else if (response instanceof CompareServerResponse) {
-						responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
+					if (response instanceof NotApplicableServerResponse) {
+						Console.logWarning("Item " + item.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+						skipped++;
 					} else {
-						responseItem = new UploadServerResponseItem(item, request, response);
-					}
-					
-					boolean ok = false;
-					for (int i = 0; i < 1000; i++) {
-						responseItem.prepareFileNames(responseCounter);
-						if (!responseItem.fileConflictsPresent()) {
-							ok = true;
-							break;
+						ServerResponseItem<?> responseItem;
+						if (response instanceof ExecuteActionServerResponse) {
+							responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
+						} else if (response instanceof CompareServerResponse) {
+							responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
+						} else {
+							responseItem = new UploadServerResponseItem(item, request, response);
 						}
-						responseCounter++;
-					}
-					if (!ok) {
-						throw new IllegalStateException("No free file name even after 1000 iterations");	// TODO
-					}
-					responseItem.createFiles();
-					responseItem.openFileIfNeeded();
+						responseItems.add(responseItem);
 
-					String logLine = responseItem.getConsoleLogLine(responseCounter);
-					if (response.isSuccess()) {
-						Console.log(logLine);
-						successCounter++;
-					} else {
-						Console.logError(logLine, response.getException());
-						if (response.getStatusCode() != 0 && 
-								!(response instanceof ExecuteActionServerResponse && ((ExecuteActionServerResponse) response).wasParsed())) {
-							// parsed action execution responses are written to files
-							Console.logError("Status: " + response.getStatusCode() + " " + response.getReasonPhrase());
-							if (response.getRawResponseBody() != null) {
-								Console.logWarning("Server response body:");
-								Console.logWarning(response.getRawResponseBody().trim());
-								Console.logWarning("-----------------------------");
+						boolean ok = false;
+						for (int i = 0; i < MAX_ITERATIONS; i++) {
+							responseItem.prepareFileNames(responseCounter);
+							if (!responseItem.fileConflictsPresent()) {
+								ok = true;
+								break;
 							}
+							responseCounter++;
 						}
-						failCounter++;
-						lastErrorResponse = response;
-					}
+						if (!ok) {
+							throw new IllegalStateException("No free file name even after "+MAX_ITERATIONS+" iterations");	// TODO
+						}
+						responseItem.createFiles();
+						responseItem.openFileIfNeeded();
 
-					if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
-						responseCounter++;
+						responseItem.logResult(responseCounter);
+
+						if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
+							responseCounter++;
+						}
 					}
 					
 					monitor.worked(1);
 				}
 				monitor.done();
 				
-				String showBox = PluginPreferences.getShowUploadOrExecuteResultMessageBox();
+				String showBoxCondition = 
+						requestedAction == RequestedAction.COMPARE ? 
+								PluginPreferences.getShowComparisonResultMessageBox() : PluginPreferences.getShowUploadOrExecuteResultMessageBox();
 				
-				if (itemCount == 1) {
-					String ofWhat = lastItem.getDisplayName() != null ? "of " + lastItem.getDisplayName() + " " : "";
-					if (successCounter > 0) {
-						if (MidPointPreferencePage.VALUE_ALWAYS.equals(showBox)) {
-							Util.showInformation("Success", "Upload/execution " + ofWhat + "finished successfully.");
-						}
-					} else {
-						if (!MidPointPreferencePage.VALUE_NEVER.equals(showBox)) {
-							Util.showError("Problem", "Upload/execution " + ofWhat + "failed: " + lastErrorResponse.getErrorDescription());
+				if (responseItems.size() == 1) {
+					ServerResponseItem<?> responseItem = responseItems.get(0);
+					if (responseItem.showResultLine(showBoxCondition)) {
+						if (responseItem.isSuccess()) {
+							Util.showInformation("Success", responseItem.getResultLine());
+						} else {
+							Util.showError("Problem", responseItem.getResultLine() + ": " + responseItem.getResponse().getErrorDescription());
 						}
 					}
 				} else {
-					if (failCounter == 0) {
-						String message = "Upload/execution of all " + successCounter + " items was successful.";
-						Console.log(message);
-						if (MidPointPreferencePage.VALUE_ALWAYS.equals(showBox)) {
-							Util.showInformation("Success", message);
+					boolean showBox = false;
+					int uploadOk = 0, uploadFail = 0, execOk = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
+					for (ServerResponseItem<?> responseItem : responseItems) {
+						if (responseItem.showResultLine(showBoxCondition)) {
+							showBox = true;
 						}
-					} else if (successCounter == 0) {
-						String message = "Upload/execution of all " + failCounter + " items failed.";
-						Console.logError(message);
-						if (!MidPointPreferencePage.VALUE_NEVER.equals(showBox)) {
-							Util.showError("Failure", message);
+						if (responseItem instanceof UploadServerResponseItem) {
+							if (responseItem.isSuccess()) {
+								uploadOk++; 
+							} else {
+								uploadFail++;
+							}
+						} else if (responseItem instanceof ExecuteActionResponseItem) {
+							if (responseItem.isSuccess()) {
+								execOk++; 
+							} else {
+								execFail++;
+							}
+						} else {
+							CompareServerResponseItem csri = (CompareServerResponseItem) responseItem;
+							CompareServerResponse csr = csri.getResponse();
+							if (!csr.isSuccess() || csr.getRemoteExists() == null) {
+								diffFail++;
+							} else if (!csr.getRemoteExists()) {
+								diffMissing++;
+							} else if (!csr.noDifferences()) {
+								diffModified++;
+							} else {
+								diffSame++;
+							}
+						}
+					}
+					
+					boolean noItems = false;
+					String message;
+					if (requestedAction == RequestedAction.COMPARE) {
+						if (diffSame == 0 && diffModified == 0 && diffMissing == 0 && diffFail == 0) {
+							message = "No items compared.";
+							noItems = true;
+						} else {
+							StringBuilder sb = new StringBuilder();
+							sb.append("No differences: ").append(diffSame).append(", modified: ").append(diffModified).append(", not on server: ").append(diffMissing).append(", failures: ").append(diffFail).append(". ");
+							message = sb.toString();
 						}
 					} else {
-						String message = "Upload/execution successful for " + successCounter + " item(s), failed for " + failCounter + " one(s)";
-						Console.logWarning(message);
-						if (!MidPointPreferencePage.VALUE_NEVER.equals(showBox)) {
-							Util.showWarning("Partial failure", message);
+						StringBuilder sb = new StringBuilder();
+						if (uploadOk > 0 || uploadFail > 0) {
+							sb.append("Uploaded OK: ").append(uploadOk).append(", fail: ").append(uploadFail).append(". ");
+						}
+						if (execOk > 0 || execFail > 0) {
+							sb.append("Executed OK: ").append(execOk).append(", fail: ").append(execFail).append(". ");
+						}
+						if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0) {
+							sb.append("No items uploaded or executed");
+							noItems = true;
+						}
+						message = sb.toString();
+					}
+					if (skipped > 0) {
+						message += "Skipped: " + skipped + ".";
+					}
+					if (noItems) {
+						Util.showAndLogWarning("No items", "There were no items to be processed.");
+					} else {
+						boolean someFailure = diffFail > 0 || uploadFail > 0 || execFail > 0;
+						if (someFailure) {
+							Console.logError(message);
+							if (showBox) {
+								Util.showError("Failure", message);
+							}
+						} else {
+							Console.log(message);
+							if (showBox) {
+								Util.showInformation("Success", message);
+							}
 						}
 					}
 				}

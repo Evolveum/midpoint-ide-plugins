@@ -42,8 +42,10 @@ public class DownloadPreferencePage extends FieldEditorPreferencePage implements
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		patternInfo.setText("Use $t for object type singular ('user'), $T plural ('users'), $n for object name, $o for OID.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
+		
+		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
+			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 
-		addField(new IntegerFieldEditor(DOWNLOADED_OBJECTS_LIMIT, "Max number of objects of one type", getFieldEditorParent()));
 		addField(new StringFieldEditor(INCLUDE_IN_DOWNLOAD, "Types to download", getFieldEditorParent()));
 		addField(new StringFieldEditor(EXCLUDE_FROM_DOWNLOAD, "Types NOT to download", getFieldEditorParent()));
 		
@@ -51,7 +53,12 @@ public class DownloadPreferencePage extends FieldEditorPreferencePage implements
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		patternInfo2.setText("Use singluar names, e.g. user, role. Separate by commas.");
 		patternInfo2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
-		
+
+		addField(new IntegerFieldEditor(DOWNLOADED_OBJECTS_LIMIT, "Max number of objects of one type", getFieldEditorParent()));
+
+		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
+			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
+
 		addField(new ComboFieldEditor(OVERWRITE_WHEN_DOWNLOADING, "Overwrite existing files", OVERWRITE_OPTIONS, getFieldEditorParent()));
 		
 //		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)

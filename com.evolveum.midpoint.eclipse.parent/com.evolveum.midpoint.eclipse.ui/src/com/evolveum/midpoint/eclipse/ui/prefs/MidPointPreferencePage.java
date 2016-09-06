@@ -30,9 +30,11 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 	public static final String MIDPOINT_PASSWORD = "midPointPassword";
 	public static final String MIDPOINT_LOGFILE = "midPointLogFile";
 	public static final String SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX = "showUploadExecuteResultMessageBox";
+	public static final String SHOW_COMPARISON_RESULT_MESSAGE_BOX = "showComparisonResultMessageBox";
 
 	public static final String VALUE_NEVER = "never";
 	public static final String VALUE_WHEN_ERRORS = "whenErrors";
+	public static final String VALUE_WHEN_DIFFERENCES_OR_ERRORS = "whenDifferencesOrErrors";
 	public static final String VALUE_ALWAYS = "always";
 
 	public final static String[][] RESULT_BOX_OPTIONS = new String[][] { 
@@ -40,7 +42,14 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 		{ "Only when errors", VALUE_WHEN_ERRORS }, 
 		{ "Never", VALUE_NEVER } 
 	};
-	
+
+	public final static String[][] COMPARISON_RESULT_BOX_OPTIONS = new String[][] { 
+		{ "Always", VALUE_ALWAYS }, 
+		{ "Only when differences or errors", VALUE_WHEN_DIFFERENCES_OR_ERRORS },
+		{ "Only when errors", VALUE_WHEN_ERRORS }, 
+		{ "Never", VALUE_NEVER } 
+	};
+
 	public static final String VALUE_CURRENT_PROJECT = "currentProject";
 	public static final String VALUE_CURRENT_PROJECT_MINUS_1 = "currentProjectMinus1";
 	public static final String VALUE_CURRENT_PROJECT_MINUS_2 = "currentProjectMinus2";
@@ -99,6 +108,7 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		
 		addField(new ComboFieldEditor(SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, "Show message box after upload/execute", RESULT_BOX_OPTIONS, getFieldEditorParent()));
+		addField(new ComboFieldEditor(SHOW_COMPARISON_RESULT_MESSAGE_BOX, "Show message box after comparing", COMPARISON_RESULT_BOX_OPTIONS, getFieldEditorParent()));
 
 	}
 

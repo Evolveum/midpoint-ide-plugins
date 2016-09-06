@@ -24,9 +24,9 @@ import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;
 public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionServerResponse> {
 
 	public static final String OUTPUT_TYPE_LOG = "log";
-	public static final String OUTPUT_TYPE_DATA = "data";
+	public static final String OUTPUT_TYPE_DATA = "data.xml";
 	public static final String OUTPUT_TYPE_CONSOLE = "console";
-	public static final String OUTPUT_TYPE_RESULT = "result";
+	public static final String OUTPUT_TYPE_RESULT = "result.xml";
 
 	private String logfilename;
 	private long logPosition;
@@ -167,14 +167,6 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 
 	@Override
 	public String getConsoleLogLine(int responseCounter) {
-		String itemName = requestItem.getDisplayName() != null ? requestItem.getDisplayName() : "the item";
-		String prefix;
-		if (response.isSuccess()) {
-			prefix = "Successfully executed " + itemName; 
-		} else {
-			prefix = "Failed to execute " + itemName;
-		}
-		
 		List<String> labels = Arrays.asList("Server log", "Data output", "Console output", "Operation result");
 		List<IFile> files = Arrays.asList(logFile, dataFile, consoleFile, opResultFile);
 		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(),
@@ -182,7 +174,26 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		String counterString = formatResponseCounter(responseCounter);
 
 		HyperlinksRegistry.getInstance().registerEntry(counterString, labels, files, editorIds);
-		return prefix + " [see " + StringUtils.join(labels, "; ") + "] (#" + counterString + ")";
+		return getResultLine() + " [see " + StringUtils.join(labels, "; ") + "] (#" + counterString + ")";
 	}
+	
+	@Override
+	public void logResult(int responseCounter) {
+		super.logResult(responseCounter);
+		if (!response.isSuccess() && response.getStatusCode() != 0 && !response.wasParsed()) {
+			logRawErrorDetails();
+		}
+	}
+
+	@Override
+	public String getResultLine() {
+		String itemName = requestItem.getDisplayName() != null ? requestItem.getDisplayName() : "the item";
+		if (response.isSuccess()) {
+			return "Successfully executed " + itemName; 
+		} else {
+			return "Failed to execute " + itemName;
+		}
+	}
+
 
 }

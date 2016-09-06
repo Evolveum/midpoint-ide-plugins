@@ -42,7 +42,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		return request;
 	}
 
-	public ServerResponse getResponse() {
+	public SR getResponse() {
 		return response;
 	}
 
@@ -172,7 +172,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 
 	public boolean fileConflictsPresent() {
 		String pattern = getFileNamePattern();
-		if (!pattern.contains(COUNTER_SYMBOL)) {
+		if (pattern == null || !pattern.contains(COUNTER_SYMBOL)) {
 			removeFiles();
 			return false;
 		} else {
@@ -209,5 +209,39 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 	}
 
 	public abstract String getConsoleLogLine(int responseCounter);
+	
+	public abstract String getResultLine();
+	
+	public void logResult(int responseCounter) {
+		String logLine = getConsoleLogLine(responseCounter);
+		if (response.isSuccess()) {
+			Console.log(logLine);
+		} else {
+			Console.logError(logLine, response.getException());
+		}
+	}
+	
+	protected void logRawErrorDetails() {
+		Console.logError("Status: " + response.getStatusCode() + " " + response.getReasonPhrase());
+		if (response.getRawResponseBody() != null) {
+			Console.logWarning("Server response body:");
+			Console.logWarning(response.getRawResponseBody().trim());
+			Console.logWarning("-----------------------------");
+		}
+	}
+
+	public boolean isSuccess() {
+		return response.isSuccess();
+	}
+
+	public boolean showResultLine(String when) {
+		if (MidPointPreferencePage.VALUE_ALWAYS.equals(when)) {
+			return true;
+		} else if (MidPointPreferencePage.VALUE_NEVER.equals(when)) {
+			return false;
+		} else {
+			return !isSuccess();
+		}
+	}
 
 }

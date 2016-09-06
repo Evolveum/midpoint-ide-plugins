@@ -21,7 +21,8 @@ public class ComparePreferencePage extends FieldEditorPreferencePage implements 
 	public static final String COMPARE_SHOW_REMOTE_TO_LOCAL = "compareShowRemoteToLocal";
 	public static final String COMPARE_SHOW_LOCAL_NORMALIZED = "compareShowLocalNormalized";
 	public static final String COMPARE_SHOW_REMOTE = "compareShowRemote";
-	public static final String COMPARE_IGNORE_ITEMS = "compareIgnoreItems";
+	public static final String COMPARE_IGNORE_METADATA = "compareIgnoreMetadata";
+	public static final String COMPARE_OTHER_ITEMS_TO_IGNORE = "compareOtherItemsToIgnore";
 
 	public ComparePreferencePage() {
 		super(GRID);
@@ -32,23 +33,28 @@ public class ComparePreferencePage extends FieldEditorPreferencePage implements 
 		addField(new StringFieldEditor(COMPARE_RESULT_FILE_NAME_PATTERN, "File name pattern for diff results", getFieldEditorParent()));
 		Label patternInfo = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo.setText("Use $f for file name ($F = with relative path), $n for sequence number, $t for output type. An example: 'diff/$F.$n.$t'.");
+		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type. An example: 'diff/$F.$n.$t'.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		addField(new ComboFieldEditor(COMPARE_RESULT_ROOT_DIRECTORY, "Directory considered root", MidPointPreferencePage.ROOT_DIRECTORY_OPTIONS, getFieldEditorParent()));
+
+		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
+			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 
 		addField(new BooleanFieldEditor(COMPARE_SHOW_LOCAL_TO_REMOTE, "Provide 'local-to-remote' delta", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(COMPARE_SHOW_REMOTE_TO_LOCAL, "Provide 'remote-to-local' delta", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(COMPARE_SHOW_LOCAL_NORMALIZED, "Provide normalize form of local file", getFieldEditorParent()));
 		addField(new BooleanFieldEditor(COMPARE_SHOW_REMOTE, "Provide current state of remote file", getFieldEditorParent()));
 		
-		addField(new StringFieldEditor(COMPARE_IGNORE_ITEMS, "Ignore items", getFieldEditorParent()));
+		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
+			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
+		
+		addField(new BooleanFieldEditor(COMPARE_IGNORE_METADATA, "Ignore object metadata", getFieldEditorParent()));
+		addField(new StringFieldEditor(COMPARE_OTHER_ITEMS_TO_IGNORE, "Other items to ignore", getFieldEditorParent()));
 		Label patternInfo2 = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		patternInfo2.setText("Separate item paths by commas.");
 		patternInfo2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 
-//		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
-//			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		
 	}
 

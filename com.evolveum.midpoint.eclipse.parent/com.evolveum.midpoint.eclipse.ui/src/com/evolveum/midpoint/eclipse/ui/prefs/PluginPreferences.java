@@ -67,7 +67,12 @@ public class PluginPreferences {
 	public static String getShowUploadOrExecuteResultMessageBox() {
 		return store().getString(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX);
 	}
+
+	public static String getShowComparisonResultMessageBox() {
+		return store().getString(MidPointPreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX);
+	}
 	
+
 	public static String getDownloadedFileNamePattern() {
 		return store().getString(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN);
 	}
@@ -113,8 +118,12 @@ public class PluginPreferences {
 	}
 
 	public static List<String> getCompareIgnoreItems() {
-		String aggregated = store().getString(ComparePreferencePage.COMPARE_IGNORE_ITEMS);
-		return split(aggregated);
+		String aggregated = store().getString(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE);
+		List<String> rv = split(aggregated);
+		if (store().getBoolean(ComparePreferencePage.COMPARE_IGNORE_METADATA)) {
+			rv.add("metadata");
+		}
+		return rv;
 	}
 
 	private static List<String> split(String aggregated) {

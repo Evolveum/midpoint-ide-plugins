@@ -12,9 +12,9 @@
 			description="Downloads objects from midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.command.download">
 		</command>
-		<command name="Compute difference"
-			description="Computes a difference between midPoint object and the current one"
-			id="com.evolveum.midpoint.eclipse.ui.command.computeDifference">
+		<command name="Compute differences"
+			description="Computes differences between midPoint object(s) and the local one(s)"
+			id="com.evolveum.midpoint.eclipse.ui.command.computeDifferences">
 		</command>
 		<command name="Execute predefined action"
 			description="Executes a predefined midPoint action"
@@ -42,7 +42,7 @@
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
-				 commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifference" />
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler"
@@ -74,6 +74,13 @@
 				commandId="com.evolveum.midpoint.eclipse.ui.command.download" 
 				label="Download from midPoint" 
 				style="push"/>
+            <command
+                  commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences"
+                  mnemonic="C"
+                  id="com.evolveum.midpoint.eclipse.ui.menu.computeDifferences"
+                  label="Compute differences"
+                  style="push">
+            </command>
 			<separator name="separator-midPoint-end" visible="true"/>
 		</menuContribution>
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
@@ -102,10 +109,10 @@
                   style="push">
             </command>
             <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifference"
+                  commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences"
                   mnemonic="C"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.computeDifference"
-                  label="Compute difference"
+                  id="com.evolveum.midpoint.eclipse.ui.menu.computeDifferences"
+                  label="Compute differences"
                   style="push">
             </command>
             <command

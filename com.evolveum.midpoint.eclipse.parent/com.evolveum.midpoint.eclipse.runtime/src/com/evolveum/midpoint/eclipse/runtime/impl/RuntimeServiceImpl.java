@@ -37,6 +37,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.NotApplicableServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
@@ -115,11 +116,11 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 			ServerAction action = request.getAction();
 			if (action == ServerAction.EXECUTE && !executable) {
-				throw new IllegalArgumentException("Unsupported root element for an action: " + localName + "; supported ones are: " + SCRIPTING_ACTIONS);
+				return new NotApplicableServerResponse("Unsupported root element for an action: " + localName + "; supported ones are: " + SCRIPTING_ACTIONS);
 			} else if (action == ServerAction.UPLOAD && !uploadable) {
-				throw new IllegalArgumentException("Unknown object type to upload: " + localName);
+				return new NotApplicableServerResponse("Unknown object type to upload: " + localName);
 			} else if (!executable && !uploadable) {
-				throw new IllegalArgumentException("Object with root element of <" + localName + "> cannot be uploaded, executed nor compared.");
+				return new NotApplicableServerResponse("Object with root element of <" + localName + "> cannot be uploaded, executed nor compared.");
 			}
 		} catch (Throwable t) {
 			return new ServerResponse(t);
@@ -210,11 +211,11 @@ public class RuntimeServiceImpl implements RuntimeService {
 				if (serverResponse instanceof ExecuteActionServerResponse) {
 					Header contentType = response.getEntity().getContentType();
 					System.out.println("Content type of the response: " + contentType);
-					if (contentType != null && contentType.getValue().startsWith("application/xml")) {
+					if (contentType != null && contentType.getValue().startsWith("application/xml") && isSuccess(statusLine)) {
 						((ExecuteActionServerResponse) serverResponse).parseXmlResponse(sb.toString());
 					}
-				} else if (serverResponse instanceof CompareServerResponse) {
-					((CompareServerResponse) serverResponse).parseXmlResponse(sb.toString());
+				} else if (serverResponse instanceof CompareServerResponse && isSuccess(statusLine)) {
+					((CompareServerResponse) serverResponse).parseXmlResponse(sb.toString(), (CompareServerRequest) request);
 				}
 			}
 			
@@ -254,6 +255,8 @@ public class RuntimeServiceImpl implements RuntimeService {
 			Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
 			List<Element> objectElements = DOMUtil.getChildElements(root, new QName(Constants.API_TYPES_NS, "object"));
 			for (Element objectElement : objectElements) {
+				fixObjectName(objectElement);
+				DOMUtil.fixNamespaceDeclarations(objectElement);
 				String xml = DOMUtil.serializeDOMToString(objectElement);
 				Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
 				String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
@@ -262,6 +265,19 @@ public class RuntimeServiceImpl implements RuntimeService {
 			}
 		}
 		return rv;
+	}
+
+	private void fixObjectName(Element objectElement) {
+		QName xsitype = DOMUtil.resolveXsiType(objectElement);
+		if (xsitype == null) {
+			return;
+		}
+		String elementName = ObjectTypes.getElementNameForXsiType(xsitype.getLocalPart());
+		if (elementName == null) {
+			return;
+		}
+		objectElement.getOwnerDocument().renameNode(objectElement, Constants.COMMON_NS, elementName);
+		DOMUtil.removeXsiType(objectElement);
 	}
 	
 	

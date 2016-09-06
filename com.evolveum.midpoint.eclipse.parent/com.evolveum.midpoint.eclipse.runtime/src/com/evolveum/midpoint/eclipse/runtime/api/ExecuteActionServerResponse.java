@@ -51,9 +51,10 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	public void parseXmlResponse(String string) {
 		Element root = DOMUtil.parseDocument(rawResponseBody).getDocumentElement();
 
-		NodeList xmlDataList = root.getElementsByTagNameNS(Constants.API_TYPES_NS, "xmlData");
-		if (xmlDataList.getLength() > 0) {
-			dataOutput = DOMUtil.serializeDOMToString(xmlDataList.item(0));
+		Element xmlDataElement = getElement(root, Constants.API_TYPES_NS, "xmlData");
+		if (xmlDataElement != null) {
+			DOMUtil.fixNamespaceDeclarations(xmlDataElement);
+			dataOutput = DOMUtil.serializeDOMToString(xmlDataElement);
 		}
 		
 		consoleOutput = getElementTextContent(root, Constants.API_TYPES_NS, "textOutput");
@@ -61,21 +62,13 @@ public class ExecuteActionServerResponse extends ServerResponse {
 		NodeList resultList = root.getElementsByTagNameNS(Constants.MODEL_NS, "result");
 		if (resultList.getLength() > 0) {
 			Element result = (Element) resultList.item(0);
+			DOMUtil.fixNamespaceDeclarations(result);
 			operationResultStatus = getElementTextContent(result, Constants.COMMON_NS, "status");
 			operationResultMessage = getElementTextContent(result, Constants.COMMON_NS, "message");
 			operationResult = DOMUtil.serializeDOMToString(result);
 		}
 		
 		wasParsed = true;
-	}
-
-	private String getElementTextContent(Element root, String ns, String localName) {
-		NodeList nodes = root.getElementsByTagNameNS(ns, localName);
-		if (nodes.getLength() > 0) {
-			return ((Element) (nodes.item(0))).getTextContent();
-		} else {
-			return null;
-		}
 	}
 
 	public boolean wasParsed() {

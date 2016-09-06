@@ -2,37 +2,39 @@ package com.evolveum.midpoint.eclipse.runtime.api;
 
 public enum ObjectTypes {
 	
-    CONNECTOR("connector", "connectors"),
-    CONNECTOR_HOST("connectorHost", "connectorHosts"),
-    GENERIC_OBJECT("genericObject", "genericObjects"),
-    RESOURCE("resource", "resources"),
-    USER("user", "users"),
-    OBJECT_TEMPLATE("objectTemplate", "objectTemplates"),
-    SYSTEM_CONFIGURATION("systemConfiguration", "systemConfigurations"),
-    TASK("task", "tasks"),
-    SHADOW("shadow", "shadows"),
-    ROLE("role", "roles"),
-    PASSWORD_POLICY("valuePolicy", "valuePolicies"),
-    NODE("node", "nodes"),
-    ORG("org", "orgs"),
-    ABSTRACT_ROLE("abstractRole", "abstractRoles"),
-    FOCUS("focus", "focus"),
-    REPORT("report", "reports"),
-    REPORT_OUTPUT("reportOutput", "reportOutputs"),
-    SECURITY_POLICY("securityPolicy", "securityPolicies"),
-    LOOKUP_TABLE("lookupTable", "lookupTables"),
-    ACCESS_CERTIFICATION_DEFINITION("accessCertificationDefinition", "accessCertificationDefinitions"),
-    ACCESS_CERTIFICATION_CAMPAIGN("accessCertificationCampaig", "accessCertificationCampaigns"),
-    SEQUENCE("sequence", "sequences"),
-    SERVICE("service", "services"),
-    OBJECT("object", "objects");
+    CONNECTOR("connector", "connectors", "ConnectorType"),
+    CONNECTOR_HOST("connectorHost", "connectorHosts", "ConnectorHostType"),
+    GENERIC_OBJECT("genericObject", "genericObjects", "GenericObjectType"),
+    RESOURCE("resource", "resources", "ResourceType"),
+    USER("user", "users", "UserType"),
+    OBJECT_TEMPLATE("objectTemplate", "objectTemplates", "ObjectTemplateType"),
+    SYSTEM_CONFIGURATION("systemConfiguration", "systemConfigurations", "SystemConfigurationType"),
+    TASK("task", "tasks", "TaskType"),
+    SHADOW("shadow", "shadows", "ShadowType"),
+    ROLE("role", "roles", "RoleType"),
+    PASSWORD_POLICY("valuePolicy", "valuePolicies", "ValuePolicyType"),
+    NODE("node", "nodes", "NodeType"),
+    ORG("org", "orgs", "OrgType"),
+    ABSTRACT_ROLE("abstractRole", "abstractRoles", "AbstractRoleType"),
+    FOCUS("focus", "focus", "FocusType"),
+    REPORT("report", "reports", "ReportType"),
+    REPORT_OUTPUT("reportOutput", "reportOutputs", "ReportOutputType"),
+    SECURITY_POLICY("securityPolicy", "securityPolicies", "SecurityPolicyType"),
+    LOOKUP_TABLE("lookupTable", "lookupTables", "LookupTableType"),
+    ACCESS_CERTIFICATION_DEFINITION("accessCertificationDefinition", "accessCertificationDefinitions", "AccessCertificationDefinitionType"),
+    ACCESS_CERTIFICATION_CAMPAIGN("accessCertificationCampaig", "accessCertificationCampaigns", "AccessCertificationCampaignType"),
+    SEQUENCE("sequence", "sequences", "SequenceType"),
+    SERVICE("service", "services", "ServiceType"),
+    OBJECT("object", "objects", "ObjectType");
 	
 	private String elementName;
 	private String restType;
+	private String typeName;
 	
-	ObjectTypes(String elementName, String restType) {
+	ObjectTypes(String elementName, String restType, String typeName) {
 		this.elementName = elementName;
 		this.restType = restType;
+		this.typeName = typeName;
 	}
 	
     public String getElementName() {
@@ -41,6 +43,10 @@ public enum ObjectTypes {
 
 	public String getRestType() {
 		return restType;
+	}
+	
+	public String getTypeName() {
+		return typeName;
 	}
 
 	public static String getRestTypeForElementName(String elementName) {
@@ -54,11 +60,20 @@ public enum ObjectTypes {
 
 	public static ObjectTypes findByAny(String w) {
 		for (ObjectTypes t : values()) {
-			if (t.elementName.equalsIgnoreCase(w) || t.restType.equalsIgnoreCase(w)) {
+			if (t.elementName.equalsIgnoreCase(w) || t.restType.equalsIgnoreCase(w) || t.typeName.equalsIgnoreCase(w)) {
 				return t;
 			}
 		}
 		return null;
 	}
+
+	public static String getElementNameForXsiType(String localPart) {
+		for (ObjectTypes type : values()) {
+            if (type.typeName.equals(localPart)) {
+                return type.elementName;
+            }
+        }
+        return null;	
+    }
 
 }
