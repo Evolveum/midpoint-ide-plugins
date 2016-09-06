@@ -24,11 +24,9 @@ import com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
 
 public class MidPointPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-	
-	public static final String MIDPOINT_URL = "midPointUrl";
-	public static final String MIDPOINT_LOGIN = "midPointLogin";
-	public static final String MIDPOINT_PASSWORD = "midPointPassword";
-	public static final String MIDPOINT_LOGFILE = "midPointLogFile";
+
+	public static final String SERVERS = "servers";
+
 	public static final String SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX = "showUploadExecuteResultMessageBox";
 	public static final String SHOW_COMPARISON_RESULT_MESSAGE_BOX = "showComparisonResultMessageBox";
 
@@ -70,64 +68,22 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 		{ "Three levels above current directory", VALUE_CURRENT_DIRECTORY_PLUS_3 }
 	};
 
-	private StringFieldEditor urlField;
-	private StringFieldEditor loginField;
-	private StringButtonFieldEditor passwordField; 
-	
 	public MidPointPreferencePage() {
 		super(GRID);
 	}
 
 	protected void createFieldEditors() {
-		urlField = new StringFieldEditor(MIDPOINT_URL, "Server URL", getFieldEditorParent());
-		loginField = new StringFieldEditor(MIDPOINT_LOGIN, "Login", getFieldEditorParent());
-		passwordField = new StringButtonFieldEditor(MIDPOINT_PASSWORD, "Password", getFieldEditorParent()) {
-			@Override
-		    protected void doFillIntoGrid(Composite parent, int numColumns) {
-		        super.doFillIntoGrid(parent, numColumns);
-		        getTextControl().setEchoChar('*');
-		    }
-			@Override
-			protected String changePressed() {
-				testConnection();
-				return null;
-			}
-		};
-		passwordField.setChangeButtonText("Test connection");
 
-		addField(urlField);
-		addField(loginField);
-		addField(passwordField);
+		addField(new ServersFieldEditor(SERVERS, "Servers", 
+				new String[] { "Name", "URL", "Login", "Properties" }, 
+				new int[] { 100, 200, 100, 200 }, getFieldEditorParent()));
 
-		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
-			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-
-		addField(new FileFieldEditor(MIDPOINT_LOGFILE, "Server log file", getFieldEditorParent()));
-		
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		
 		addField(new ComboFieldEditor(SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, "Show message box after upload/execute", RESULT_BOX_OPTIONS, getFieldEditorParent()));
 		addField(new ComboFieldEditor(SHOW_COMPARISON_RESULT_MESSAGE_BOX, "Show message box after comparing", COMPARISON_RESULT_BOX_OPTIONS, getFieldEditorParent()));
 
-	}
-
-	protected void testConnection() {
-		ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
-		IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
-		
-		try {
-			Command command = commandService.getCommand(PluginConstants.COMMAND_TEST_CONNECTION);
-			Parameterization[] params = new Parameterization[] { 
-					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_URL), urlField.getStringValue()),
-					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_LOGIN), loginField.getStringValue()),
-					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_PASSWORD), passwordField.getStringValue()),				
-					};
-			ParameterizedCommand parametrizedCommand = new ParameterizedCommand(command, params);
-			handlerService.executeCommand(parametrizedCommand, null);
-		} catch (CommandException e) {
-			e.printStackTrace();		// TODO log
-		}
 	}
 
 	public void init(IWorkbench workbench) {

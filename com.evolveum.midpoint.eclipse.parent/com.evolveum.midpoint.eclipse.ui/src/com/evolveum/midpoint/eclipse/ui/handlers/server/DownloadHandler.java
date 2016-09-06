@@ -44,6 +44,8 @@ import com.evolveum.midpoint.eclipse.ui.util.Util;
 import com.evolveum.midpoint.util.Holder;
 
 public class DownloadHandler extends AbstractHandler {
+	
+	public static final String CMD_DOWNLOAD = "com.evolveum.midpoint.eclipse.ui.command.download";
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {

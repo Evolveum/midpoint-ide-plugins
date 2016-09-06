@@ -44,10 +44,13 @@ import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerObject;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.TestConnectionResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.UploadServerResponse;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class RuntimeServiceImpl implements RuntimeService {
+	
+	public static final String REST = "/ws/rest";
 
 	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
 			"scriptingExpression",
@@ -61,21 +64,26 @@ public class RuntimeServiceImpl implements RuntimeService {
 			);
 	
 	@Override
-	public void testConnection(ConnectionParameters parameters) throws IOException {
+	public TestConnectionResponse testConnection(ConnectionParameters parameters) {
 		
-		HttpClient client = createClient(parameters);
+		try {
+			HttpClient client = createClient(parameters);
+			String url = parameters.getUrl() + REST + "/users/search";
+			HttpPost request = new HttpPost(url);
 
-		String url = parameters.getUrl() + "/users/search";
-		HttpPost request = new HttpPost(url);
-
-		HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", ContentType.APPLICATION_XML);
-		request.setEntity(body);
+			HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", ContentType.APPLICATION_XML);
+			request.setEntity(body);
 		
-		HttpResponse response = client.execute(request);
+			HttpResponse response = client.execute(request);
 		
-		StatusLine statusLine = response.getStatusLine();
-		if (!isSuccess(statusLine)) {
-			throw new IOException("Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
+			StatusLine statusLine = response.getStatusLine();
+			if (isSuccess(statusLine)) {
+				return new TestConnectionResponse(true, null, null);
+			} else {
+				return new TestConnectionResponse(false, "Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase(), null);
+			}
+		} catch (Throwable t) {
+			return new TestConnectionResponse(false, null, t);
 		}
 	}
 
@@ -167,10 +175,10 @@ public class RuntimeServiceImpl implements RuntimeService {
 					ignore.add("ignoreItems=" + item);
 				}
 				String ignoreItems = StringUtils.join(ignore, "&");
-				String url = connectionParameters.getUrl() + "/comparisons?readOptions=raw&" + compareOptions + "&" + ignoreItems;
+				String url = connectionParameters.getUrl() + REST + "/comparisons?readOptions=raw&" + compareOptions + "&" + ignoreItems;
 				httpRequest = new HttpPost(url);
 			} else if (finalAction == ServerAction.UPLOAD) {
-				String url = connectionParameters.getUrl() + "/" + restType;
+				String url = connectionParameters.getUrl() + REST + "/" + restType;
 				String suffix = "?options=raw";
 
 				if (oid != null && !oid.isEmpty()) {
@@ -179,7 +187,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 					httpRequest = new HttpPost(url + suffix);
 				}
 			} else {
-				String url = connectionParameters.getUrl() + "/scriptExecutions";
+				String url = connectionParameters.getUrl() + REST + "/scriptExecutions";
 				httpRequest = new HttpPost(url);
 			}
 
@@ -235,7 +243,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 		HttpClient client = createClient(connectionParameters);
 
-		String url = connectionParameters.getUrl() + "/"+type.getRestType()+"/search";
+		String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search";
 		HttpPost request = new HttpPost(url);
 
 		HttpEntity body = new StringEntity("<query><paging><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);

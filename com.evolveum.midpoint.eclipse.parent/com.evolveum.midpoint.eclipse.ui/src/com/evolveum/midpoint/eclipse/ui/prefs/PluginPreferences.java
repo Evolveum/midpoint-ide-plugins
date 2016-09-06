@@ -4,10 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.Parameterization;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.commands.common.CommandException;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 
 import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.ui.PluginConstants;
+import com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
+import com.evolveum.midpoint.eclipse.ui.util.Util;
 
 public class PluginPreferences {
 
@@ -15,13 +25,24 @@ public class PluginPreferences {
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
 
 	public static ConnectionParameters getConnectionParameters() {
-		IPreferenceStore store = store();
-		String url = store.getString(MidPointPreferencePage.MIDPOINT_URL);
-		String login = store.getString(MidPointPreferencePage.MIDPOINT_LOGIN);
-		String password = store.getString(MidPointPreferencePage.MIDPOINT_PASSWORD);
-		return new ConnectionParameters(url, login, password);
+		ServerDataItem s = getCurrentServer();
+		if (s == null) {
+			return new ConnectionParameters("", "", "", "");			// TODO...
+		} else {
+			return new ConnectionParameters(s.getName(), s.getUrl(), s.getLogin(), s.getPassword());
+		}
 	}
 	
+	private static ServerDataItem getCurrentServer() {
+		List<ServerDataItem> servers = ServersCache.getInstance().getServers();
+		for (ServerDataItem server : servers) {
+			if (server.isSelected()) {
+				return server;
+			}
+		}
+		return null;
+	}
+
 	public static String getActionFile(String number) {
 		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_FILE_PREFIX + number);
@@ -37,15 +58,14 @@ public class PluginPreferences {
 		return store.getString(ActionsPreferencePage.ACTION_OPEN_AFTER_OTHER);
 	}
 
-
 	public static String getActionAfterUpload() {
 		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_AFTER_UPLOAD);
 	}
 
 	public static String getLogfile() {
-		IPreferenceStore store = store();
-		return store.getString(MidPointPreferencePage.MIDPOINT_LOGFILE);
+		ServerDataItem s = getCurrentServer();
+		return s != null ? s.getLogFile() : null;
 	}
 	
 	public static boolean isUseMidPointLogViewer() {
@@ -142,6 +162,35 @@ public class PluginPreferences {
 	
 	public static String getString(String key) {
 		return store().getString(key);
+	}
+	
+	
+	public static void testConnection(String name, String url, String login, String password) {
+		ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
+		IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+		
+		try {
+			Command command = commandService.getCommand(PluginConstants.COMMAND_TEST_CONNECTION);
+			Parameterization[] params = new Parameterization[] { 
+					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_NAME), name),				
+					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_URL), url),
+					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_LOGIN), login),
+					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_PASSWORD), password),				
+					};
+			ParameterizedCommand parametrizedCommand = new ParameterizedCommand(command, params);
+			handlerService.executeCommand(parametrizedCommand, null);
+		} catch (CommandException e) {
+			Util.showAndLogError("Error", "Couldn't execute Test command: " + e);
+		}
+	}
+	
+	public static boolean isServerSelected() {
+		return getCurrentServer() != null;
+	}
+
+	public static String getSelectedServerName() {
+		ServerDataItem s = getCurrentServer();
+		return s != null ? s.getName() : null;
 	}
 
 }

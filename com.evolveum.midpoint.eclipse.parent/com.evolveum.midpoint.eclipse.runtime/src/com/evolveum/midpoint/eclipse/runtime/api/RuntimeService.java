@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface RuntimeService {
 	
-	void testConnection(ConnectionParameters parameters) throws IOException;
+	TestConnectionResponse testConnection(ConnectionParameters parameters);
 
 	ServerResponse executeServerRequest(ServerRequest request, ConnectionParameters connectionParameters);
 

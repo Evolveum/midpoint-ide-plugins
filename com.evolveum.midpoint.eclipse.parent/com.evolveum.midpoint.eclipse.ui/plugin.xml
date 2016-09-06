@@ -24,6 +24,7 @@
 		<command name="Test connection"
 			description="Tests a connection to midPoint server"
 			id="com.evolveum.midpoint.eclipse.ui.command.testConnection">
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.serverName" name="Server name"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.serverUrl" name="Server URL"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.login" name="Login"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.password" name="Password"/>
@@ -58,7 +59,9 @@
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-			<separator name="separator-midPoint-start" visible="true"/>
+			<dynamic class="com.evolveum.midpoint.eclipse.ui.PopupMenuContributor"
+      			id="menu:com.evolveum.midpoint.eclipse.ui.menu.popup"/>
+<!--			<separator name="separator-midPoint-start" visible="true"/>
 			<command 
 				commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute" 
 				label="Upload/execute (midPoint)" 
@@ -81,11 +84,13 @@
                   label="Compute differences"
                   style="push">
             </command>
-			<separator name="separator-midPoint-end" visible="true"/>
+			<separator name="separator-midPoint-end" visible="true"/> -->
 		</menuContribution>
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu label="midPoint" mnemonic="M" id="com.evolveum.midpoint.eclipse.ui.menu.midPointMenu">
-            <command
+         	<dynamic class="com.evolveum.midpoint.eclipse.ui.MainMenuContributor"
+      			id="menu:com.evolveum.midpoint.eclipse.ui.menu.main"/>
+            <!--<command
                   commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
                   mnemonic="U"
                   id="com.evolveum.midpoint.eclipse.ui.menu.uploadOrExecute"
@@ -169,7 +174,7 @@
                   id="com.evolveum.midpoint.eclipse.ui.menu.preferencesActions"
                   label="Preferences (actions)"
                   style="push">
-            </command>
+            </command>-->
          </menu>
       </menuContribution>
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
@@ -197,6 +202,10 @@
 		<page name="MidPoint"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage"
 			id="com.evolveum.midpoint.eclipse.ui.preference.midPoint"/>
+		<page name="Environments"
+			class="com.evolveum.midpoint.eclipse.ui.prefs.ServersPreferencePage"
+			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.preference.environments"/>
 		<page name="Actions"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ActionsPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"

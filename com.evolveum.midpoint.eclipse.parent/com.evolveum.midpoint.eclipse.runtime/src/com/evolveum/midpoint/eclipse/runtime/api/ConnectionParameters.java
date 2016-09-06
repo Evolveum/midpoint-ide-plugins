@@ -1,9 +1,17 @@
 package com.evolveum.midpoint.eclipse.runtime.api;
 
 public class ConnectionParameters {
+	private String name;			// human-readable connection (server) name
 	private String url;
 	private String login;
 	private String password;
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
 	public String getUrl() {
 		return url;
 	}
@@ -23,8 +31,8 @@ public class ConnectionParameters {
 		this.password = password;
 	}
 	
-	public ConnectionParameters(String url, String login, String password) {
-		super();
+	public ConnectionParameters(String name, String url, String login, String password) {
+		this.name = name;
 		this.url = url;
 		this.login = login;
 		this.password = password;
@@ -32,7 +40,7 @@ public class ConnectionParameters {
 	
 	@Override
 	public String toString() {
-		return "ConnectionParameters [url=" + url + ", login=" + login + "]";
+		return "ConnectionParameters [name=" + name + ", url=" + url + ", login=" + login + "]";
 	}
 
 }

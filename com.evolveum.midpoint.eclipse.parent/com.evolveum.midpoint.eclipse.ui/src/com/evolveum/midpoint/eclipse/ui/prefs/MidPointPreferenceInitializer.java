@@ -10,9 +10,6 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 	public void initializeDefaultPreferences() {
 		IPreferenceStore store = EclipseActivator.getInstance().getPreferenceStore();
 
-		store.setDefault(MidPointPreferencePage.MIDPOINT_URL, "http://localhost:8080/midpoint/ws/rest");
-		store.setDefault(MidPointPreferencePage.MIDPOINT_LOGIN, "administrator");
-		store.setDefault(MidPointPreferencePage.MIDPOINT_PASSWORD, "5ecr3t");
 		store.setDefault(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		store.setDefault(MidPointPreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		
@@ -29,6 +26,8 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ComparePreferencePage.COMPARE_SHOW_REMOTE, "true");
 		store.setDefault(ComparePreferencePage.COMPARE_IGNORE_METADATA, "true");
 		store.setDefault(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE, "");
+		
+		store.setDefault(ServersPreferencePage.SERVERS, ServerDataItem.createDefaultXml());
 	}
 	
 }
