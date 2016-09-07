@@ -3,12 +3,9 @@ package com.evolveum.midpoint.eclipse.ui.util;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.PreparedStatement;
 import java.util.Date;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
@@ -24,6 +21,9 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+
+import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.util.Util.Options;
 
 public class Console {
 
@@ -59,52 +59,93 @@ public class Console {
 		try {
 			view = (IConsoleView) page.showView(IConsoleConstants.ID_CONSOLE_VIEW);
 		} catch (PartInitException e) {
-
 			return;
 		}
 		view.display(findConsole());
 	}
+	
+	public static void log(Severity severity, Options options, String message, Throwable t) {
+		if (message != null) {
+			log(severity, options, message, false);
+		}
+		if (t != null) {
+			log(severity, options, toString(t), true);
+		}
+	}
+	
+	private static String toString(Throwable t) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		pw.close();
+		return sw.toString();
+	}
+
+	public static void log(Severity severity, Options options, String message) {
+		log(severity, options, message, false);
+	}
+	
+	public static void log(Severity severity, Options options, String message, boolean exception) {
+		String formatted = formatMessage(message, options);
+		switch (severity) {
+		case INFO: _plain(formatted); break;
+		case WARN: _colored(formatted, SWT.COLOR_DARK_YELLOW); break;
+		default: _colored(formatted, exception ? SWT.COLOR_DARK_RED : SWT.COLOR_RED); break;
+		}
+	}
+
+	private static String formatMessage(String message, Options options) {
+		String prefix;
+		if (options == Util.NO_SERVER_NAME) {
+			prefix = "";
+		} else {
+			prefix = " " + serverPrefix();
+		}
+		return new Date() + prefix + ": " + message;
+	}
 
 	public static void log(String message) {
+		log(Severity.INFO, null, message, null);
+	}
 
+	public static void logWarning(String message, Throwable t) {
+		log(Severity.WARN, null, message, t);
+	}
+	
+	public static void logWarning(String message) {
+		log(Severity.WARN, null, message, null);
+	}
+
+	public static void logError(String message) {
+		log(Severity.ERROR, null, message, null);
+	}
+
+	public static void logError(String message, Throwable t) {
+		log(Severity.ERROR, null, message, t);
+	}
+
+	public static void logError(Throwable t) {
+		log(Severity.ERROR, null, null, t);
+	}
+	
+	private static void _plain(String message) {
 		MessageConsole console = findConsole();
-		
 		MessageConsoleStream stream = console.newMessageStream();
-		stream.println(formatMessage(message));
+		stream.println(message);
 		try {
 			stream.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
-	private static String formatMessage(String message) {
-		return new Date() + ": " + message;
-	}
-
-	public static void logWarning(String message, Throwable t) {
-		logWarning(message);
-		logWarning(t);
-	}
 	
-	public static void logWarning(Throwable t) {
-		if (t == null) {
-			return;
-		}
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		t.printStackTrace(pw);
-		logWarning(sw.toString());
-		pw.close();
-	}
-	
-	public static void logWarning(String message) {
+	private static void _colored(String message, int color) {
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
 				MessageConsoleStream stream = findConsole().newMessageStream();
 				Display display = Display.getCurrent();
-				stream.setColor(display.getSystemColor(SWT.COLOR_DARK_YELLOW));
-				stream.println(formatMessage(message));
+				stream.setColor(display.getSystemColor(color));
+				stream.println(message);
 				try {
 					stream.close();
 				} catch (IOException e) {
@@ -113,38 +154,9 @@ public class Console {
 			}
 		});
 	}
-	
-	public static void logError(String message, Throwable t) {
-		logError(message);
-		logError(t);
-	}
 
-	public static void logError(Throwable t) {
-		if (t == null) {
-			return;
-		}
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		t.printStackTrace(pw);
-		logError(sw.toString());
-		pw.close();
-	}
-
-	public static void logError(String message) {
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				MessageConsoleStream stream = findConsole().newMessageStream();
-				Display display = Display.getCurrent();
-				stream.setColor(display.getSystemColor(SWT.COLOR_RED));
-				stream.println(formatMessage(message));
-				try {
-					stream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-			}
-		});
+	public static String serverPrefix() {
+		return "[" + PluginPreferences.getSelectedServerName() + "]";
 	}
 
 }

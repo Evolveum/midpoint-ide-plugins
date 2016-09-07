@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -189,6 +190,14 @@ public class ServerDataItem implements DataItem {
 	private static boolean getBoolean(Element e, String elementName) {
 		Element sub = DOMUtil.getChildElement(e, elementName);
 		return sub != null ? Boolean.valueOf(sub.getTextContent()) : false;
+	}
+
+	public ConnectionParameters getConnectionParameters() {
+		return new ConnectionParameters(name, url, login, password);
+	}
+
+	public String getDisplayName() {
+		return StringUtils.isNotBlank(name) ? name : url;
 	}
 	
 }

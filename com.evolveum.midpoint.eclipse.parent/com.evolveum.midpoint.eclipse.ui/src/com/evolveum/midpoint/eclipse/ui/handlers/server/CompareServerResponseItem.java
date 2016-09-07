@@ -83,22 +83,26 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 		if (response.getLocalToRemote() != null) {
 			labels.add("local-to-remote");
 			files.add(localToRemoteFile);
-			editorIds.add(FileRequestHandler.getTextEditorId());
+			//editorIds.add(FileRequestHandler.getTextEditorId());
+			editorIds.add(null);
 		}
 		if (response.getRemoteToLocal() != null) {
 			labels.add("remote-to-local");
 			files.add(remoteToLocalFile);
-			editorIds.add(FileRequestHandler.getTextEditorId());
+			//editorIds.add(FileRequestHandler.getTextEditorId());
+			editorIds.add(null);
 		}
 		if (response.getLocal() != null) {
 			labels.add("local version (normalized)");
 			files.add(localFile);
-			editorIds.add(FileRequestHandler.getTextEditorId());
+			//editorIds.add(FileRequestHandler.getTextEditorId());
+			editorIds.add(null);
 		}
 		if (response.getRemote() != null) {
 			labels.add("remote version");
 			files.add(remoteFile);
-			editorIds.add(FileRequestHandler.getTextEditorId());
+			//editorIds.add(FileRequestHandler.getTextEditorId());
+			editorIds.add(null);
 		}
 		
 		String counterString = formatResponseCounter(responseCounter);

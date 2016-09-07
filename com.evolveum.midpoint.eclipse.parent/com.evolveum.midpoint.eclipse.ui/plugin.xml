@@ -29,6 +29,10 @@
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.login" name="Login"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.password" name="Password"/>
 		</command>
+		<command name="Test connections"
+			description="Tests connections to midPoint servers"
+			id="com.evolveum.midpoint.eclipse.ui.command.testConnections">
+		</command>
 		<command name="Show plugin console"
 			description="Shows a console for midPoint plugin"
 			id="com.evolveum.midpoint.eclipse.ui.command.showConsole"/>
@@ -38,6 +42,8 @@
 		<command name="Preferences (actions)"
 			description="Edit midPoint plugin preferences related to actions"
 			id="com.evolveum.midpoint.eclipse.ui.command.editActionsPreferences"/>
+		<command name="NoOp"
+			id="com.evolveum.midpoint.eclipse.ui.command.noop"/>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
@@ -50,6 +56,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.download" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testConnection" />				 
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.testConnections" />				 
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ShowConsoleHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.showConsole" />				 
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.EditPreferencesHandler"
@@ -59,122 +67,13 @@
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-			<dynamic class="com.evolveum.midpoint.eclipse.ui.PopupMenuContributor"
+			<dynamic class="com.evolveum.midpoint.eclipse.ui.menus.PopupMenuContributor"
       			id="menu:com.evolveum.midpoint.eclipse.ui.menu.popup"/>
-<!--			<separator name="separator-midPoint-start" visible="true"/>
-			<command 
-				commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute" 
-				label="Upload/execute (midPoint)" 
-				style="push"/>
-			<command 
-				commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute" 
-				label="Upload/execute (midPoint); with action" 
-				style="push">
-				<parameter
-                        name="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
-			</command>
-			<command 
-				commandId="com.evolveum.midpoint.eclipse.ui.command.download" 
-				label="Download from midPoint" 
-				style="push"/>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences"
-                  mnemonic="C"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.computeDifferences"
-                  label="Compute differences"
-                  style="push">
-            </command>
-			<separator name="separator-midPoint-end" visible="true"/> -->
 		</menuContribution>
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu label="midPoint" mnemonic="M" id="com.evolveum.midpoint.eclipse.ui.menu.midPointMenu">
-         	<dynamic class="com.evolveum.midpoint.eclipse.ui.MainMenuContributor"
+         	<dynamic class="com.evolveum.midpoint.eclipse.ui.menus.MainMenuContributor"
       			id="menu:com.evolveum.midpoint.eclipse.ui.menu.main"/>
-            <!--<command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
-                  mnemonic="U"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.uploadOrExecute"
-                  label="Upload/execute"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
-                  mnemonic="A"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.uploadOrExecuteWithAction"
-                  label="Upload/execute (with predefined action)"
-                  style="push">
-                  <parameter
-                        name="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.download"
-                  mnemonic="D"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.download"
-                  label="Download objects"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences"
-                  mnemonic="C"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.computeDifferences"
-                  label="Compute differences"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
-                  mnemonic="1"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.executeAction1"
-                  label="Execute predefined action 1"
-                  style="push">
-                  <parameter
-                        name="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="1"/>
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
-                  mnemonic="2"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.executeAction2"
-                  label="Execute predefined action 2"
-                  style="push">
-                  <parameter
-                        name="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="2"/>
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
-                  mnemonic="3"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.executeAction3"
-                  label="Execute predefined action 3"
-                  style="push">
-                  <parameter
-                        name="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="3"/>
-            </command>
-            <separator name="separator1" visible="true"/>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.testConnection"
-                  mnemonic="T"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.testConnection"
-                  label="Test connection to midPoint server"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.showConsole"
-                  mnemonic="S"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.showConsole"
-                  label="Show plugin console"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.editPreferences"
-                  mnemonic="P"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.preferences"
-                  label="Preferences"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.evolveum.midpoint.eclipse.ui.command.editActionsPreferences"
-                  id="com.evolveum.midpoint.eclipse.ui.menu.preferencesActions"
-                  label="Preferences (actions)"
-                  style="push">
-            </command>-->
          </menu>
       </menuContribution>
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
@@ -202,10 +101,6 @@
 		<page name="MidPoint"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage"
 			id="com.evolveum.midpoint.eclipse.ui.preference.midPoint"/>
-		<page name="Environments"
-			class="com.evolveum.midpoint.eclipse.ui.prefs.ServersPreferencePage"
-			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
-			id="com.evolveum.midpoint.eclipse.ui.preference.environments"/>
 		<page name="Actions"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ActionsPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"

@@ -15,12 +15,8 @@ public class TextFragmentServerRequestSource extends ServerRequestSource {
 	}
 	
 	@Override
-	public byte[] resolve() {
-		try {
-			return text.getBytes("utf-8");
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalStateException(e);
-		}
+	public String resolve() {
+		return text;
 	}
 
 	@Override

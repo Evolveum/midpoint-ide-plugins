@@ -16,16 +16,22 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
+
+import com.evolveum.midpoint.eclipse.ui.util.Console;
 
 /**
  * Hacked from the nice original of https://raw.githubusercontent.com/orctom/pathtools/master/PathTools/src/pathtools/TableFieldEditor.java
@@ -296,6 +302,32 @@ public abstract class AbstractServersFieldEditor<T extends DataItem> extends Fie
 			table.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent event) {
 					table = null;
+				}
+			});
+			table.addListener(SWT.MouseDoubleClick, new Listener() {
+				public void handleEvent(Event event) {
+					Rectangle clientArea = table.getClientArea();
+					Point pt = new Point(event.x, event.y);
+					int index = table.getTopIndex();
+					while (index < table.getItemCount()) {
+						TableItem item = table.getItem(index);
+						boolean rowVisible = false;
+						for (int i = 0; i < columnNames.length; i++) {
+							Rectangle rect = item.getBounds(i);
+							if (rect.contains(pt)) {
+								table.setSelection(index);
+								editPressed();
+								return;
+							}
+							if (!rowVisible && rect.intersects(clientArea)) {
+								rowVisible = true;
+							}
+						}
+						if (!rowVisible) {
+							return;
+						}
+						index++;
+					}
 				}
 			});
 			for (String columnName : columnNames) {

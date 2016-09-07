@@ -110,7 +110,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		boolean uploadable, executable;
 		
 		try {
-			Document document = DOMUtil.parse(new ByteArrayInputStream(request.getData()));
+			Document document = DOMUtil.parseDocument(request.getData());
 			Element rootElement = document.getDocumentElement();
 			String nodeName = rootElement.getNodeName();
 			String localName = rootElement.getLocalName();
@@ -192,7 +192,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			}
 
 			HttpClient client = createClient(connectionParameters);
-			HttpEntity body = new ByteArrayEntity(request.getData(), ContentType.APPLICATION_XML);
+			HttpEntity body = new StringEntity(request.getData(), ContentType.APPLICATION_XML);				// TODO charset if defined in XML?
 			httpRequest.setEntity(body);
 
 			HttpUriRequest uriRequest = (HttpUriRequest) httpRequest;
@@ -275,7 +275,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		return rv;
 	}
 
-	private void fixObjectName(Element objectElement) {
+	public static void fixObjectName(Element objectElement) {
 		QName xsitype = DOMUtil.resolveXsiType(objectElement);
 		if (xsitype == null) {
 			return;

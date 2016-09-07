@@ -40,12 +40,15 @@ import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerDataItem;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
+import com.evolveum.midpoint.eclipse.ui.util.Expander;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
 public class FileRequestHandler extends AbstractHandler {
 	
 	private static final int MAX_ITERATIONS = 1000;
+	public static final String CMD_NOOP = "com.evolveum.midpoint.eclipse.ui.command.noop";
 	public static final String CMD_UPLOAD_OR_EXECUTE = "com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute";
 	public static final String CMD_EXECUTE_ACTION = "com.evolveum.midpoint.eclipse.ui.command.executeAction";
 	public static final String CMD_COMPUTE_DIFFERENCE = "com.evolveum.midpoint.eclipse.ui.command.computeDifferences";
@@ -85,7 +88,7 @@ public class FileRequestHandler extends AbstractHandler {
 		ServerRequestPack requestPack;
 		switch (action) {
 		case EXECUTE_ACTION:
-			requestPack = createRequestForPredefinedAction(event.getParameter(PARAM_ACTION_NUMBER));
+			requestPack = createRequestForPredefinedAction(Integer.valueOf(event.getParameter(PARAM_ACTION_NUMBER)));
 			break;
 		case COMPARE:
 			requestPack = createRequestPackFromSelection(event, action);
@@ -98,8 +101,8 @@ public class FileRequestHandler extends AbstractHandler {
 			if (requestPack.isEmpty()) {
 				return null;
 			}
-			String actionAfterUpload = PluginPreferences.getActionAfterUpload();
-			if (actionAfterUpload != null && !actionAfterUpload.isEmpty()) {
+			int  actionAfterUpload = PluginPreferences.getActionAfterUpload();
+			if (actionAfterUpload != 0) {
 				requestPack.add(createRequestForPredefinedAction(actionAfterUpload).getItems());
 			}
 			break;
@@ -114,7 +117,7 @@ public class FileRequestHandler extends AbstractHandler {
 		return null;
 	}
 
-	private ServerRequestPack createRequestForPredefinedAction(String actionNumber) {
+	private ServerRequestPack createRequestForPredefinedAction(int actionNumber) {
 		String fileName = PluginPreferences.getActionFile(actionNumber);
 		if (fileName == null || fileName.isEmpty()) {
 			Util.showAndLogWarning("No file for action", "Action #" + actionNumber + " has no file defined.");
@@ -147,37 +150,39 @@ public class FileRequestHandler extends AbstractHandler {
 		} else if (selection instanceof IStructuredSelection) {
 			List<IFile> files = getXmlFiles((IStructuredSelection) selection);
 			if (files.isEmpty()) {
-				MessageDialog.openWarning(null, "No files to upload/execute", "There are no XML files to be uploaded or executed.");
+				MessageDialog.openWarning(null, "No files to upload/execute", "There are no XML files to be processed.");
 				return ServerRequestPack.EMPTY;
 			}
 			return ServerRequestPack.fromWorkspaceFiles(files, action == RequestedAction.COMPARE ? ServerAction.COMPARE : ServerAction.UPLOAD_OR_EXECUTE);
 		} else {
-			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be uploaded or executed.");
+			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be processed.");
 			return ServerRequestPack.EMPTY;
 		}
 
 		//System.out.println("Selected text=[" + selectedText + "]");
 		if (selectedText == null || selectedText.isEmpty()) {		// note "no trim" here!
 			IEditorPart editor = HandlerUtil.getActiveEditor(event);
-			IEditorInput editorInput = editor.getEditorInput();
-			IDocument doc = (IDocument)editor.getAdapter(IDocument.class);
-			if (doc != null) {
-            	selectedText = doc.get();
-            	IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
-            	if (selectedText != null && !selectedText.trim().isEmpty()) {
-            		IPath path = file != null ? file.getFullPath() : null;			// TODO what for files that are not in the workspace?
-            		ServerAction serverAction;
-            		if (file != null) {
-            			serverAction = action == RequestedAction.COMPARE ? ServerAction.COMPARE : ServerAction.UPLOAD_OR_EXECUTE;
-            		} else {
-            			if (action == RequestedAction.COMPARE) {
-            				MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
-            				return ServerRequestPack.EMPTY;
-            			}
-            			serverAction = ServerAction.UPLOAD_OR_EXECUTE;
-            		}
-            		return ServerRequestPack.fromTextFragment(selectedText, path, serverAction);
-            	}
+			if (editor != null) {
+				IEditorInput editorInput = editor.getEditorInput();
+				IDocument doc = (IDocument)editor.getAdapter(IDocument.class);
+				if (doc != null) {
+					selectedText = doc.get();
+					IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
+					if (selectedText != null && !selectedText.trim().isEmpty()) {
+						IPath path = file != null ? file.getFullPath() : null;			// TODO what for files that are not in the workspace?
+						ServerAction serverAction;
+						if (file != null) {
+							serverAction = action == RequestedAction.COMPARE ? ServerAction.COMPARE : ServerAction.UPLOAD_OR_EXECUTE;
+						} else {
+							if (action == RequestedAction.COMPARE) {
+								MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
+								return ServerRequestPack.EMPTY;
+							}
+							serverAction = ServerAction.UPLOAD_OR_EXECUTE;
+						}
+						return ServerRequestPack.fromTextFragment(selectedText, path, serverAction);
+					}
+				}
 			}
 		}
 		if (selectedText == null || selectedText.trim().isEmpty()) {
@@ -205,6 +210,15 @@ public class FileRequestHandler extends AbstractHandler {
 			jobTitle = "Uploading/executing";
 		}
 		
+		ServerDataItem selectedServer = PluginPreferences.getSelectedServer();
+		if (selectedServer == null) {
+			return;		// shouldn't occur
+		}
+		
+		if (!Expander.checkPropertiesFile(selectedServer)) {
+			return;		// message was logged
+		}
+		
 		Job job = new Job(jobTitle) {
 			protected IStatus run(IProgressMonitor monitor) {
 				
@@ -219,6 +233,7 @@ public class FileRequestHandler extends AbstractHandler {
 				List<ServerResponseItem<?>> responseItems = new ArrayList<>();
 				
 				int skipped = 0;
+				int skippedAloud = 0;
 				
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				monitor.beginTask("Processing", itemCount);
@@ -233,41 +248,46 @@ public class FileRequestHandler extends AbstractHandler {
 					long logPosition = getLogPosition(logfilename);
 					
 					ServerRequest request = item.createServerRequest();
-					ServerResponse response = runtime.executeServerRequest(request, connectionParameters);
-					
-					if (response instanceof NotApplicableServerResponse) {
-						Console.logWarning("Item " + item.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+					if (request == null) {
+						skippedAloud++;		// hack
 						skipped++;
 					} else {
-						ServerResponseItem<?> responseItem;
-						if (response instanceof ExecuteActionServerResponse) {
-							responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
-						} else if (response instanceof CompareServerResponse) {
-							responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
+						ServerResponse response = runtime.executeServerRequest(request, connectionParameters);
+					
+						if (response instanceof NotApplicableServerResponse) {
+							Console.logWarning("Item " + item.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+							skipped++;
 						} else {
-							responseItem = new UploadServerResponseItem(item, request, response);
-						}
-						responseItems.add(responseItem);
-
-						boolean ok = false;
-						for (int i = 0; i < MAX_ITERATIONS; i++) {
-							responseItem.prepareFileNames(responseCounter);
-							if (!responseItem.fileConflictsPresent()) {
-								ok = true;
-								break;
+							ServerResponseItem<?> responseItem;
+							if (response instanceof ExecuteActionServerResponse) {
+								responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
+							} else if (response instanceof CompareServerResponse) {
+								responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
+							} else {
+								responseItem = new UploadServerResponseItem(item, request, response);
 							}
-							responseCounter++;
-						}
-						if (!ok) {
-							throw new IllegalStateException("No free file name even after "+MAX_ITERATIONS+" iterations");	// TODO
-						}
-						responseItem.createFiles();
-						responseItem.openFileIfNeeded();
+							responseItems.add(responseItem);
 
-						responseItem.logResult(responseCounter);
+							boolean ok = false;
+							for (int i = 0; i < MAX_ITERATIONS; i++) {
+								responseItem.prepareFileNames(responseCounter);
+								if (!responseItem.fileConflictsPresent()) {
+									ok = true;
+									break;
+								}
+								responseCounter++;
+							}
+							if (!ok) {
+								throw new IllegalStateException("No free file name even after "+MAX_ITERATIONS+" iterations");	// TODO
+							}
+							responseItem.createFiles();
+							responseItem.openFileIfNeeded();
 
-						if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
-							responseCounter++;
+							responseItem.logResult(responseCounter);
+
+							if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
+								responseCounter++;
+							}
 						}
 					}
 					
@@ -351,7 +371,11 @@ public class FileRequestHandler extends AbstractHandler {
 						message += "Skipped: " + skipped + ".";
 					}
 					if (noItems) {
-						Util.showAndLogWarning("No items", "There were no items to be processed.");
+						if (skippedAloud > 0) {
+							Console.logWarning("There were no items to be processed.");
+						} else {
+							Util.showAndLogWarning("No items", "There were no items to be processed.");
+						}
 					} else {
 						boolean someFailure = diffFail > 0 || uploadFail > 0 || execFail > 0;
 						if (someFailure) {

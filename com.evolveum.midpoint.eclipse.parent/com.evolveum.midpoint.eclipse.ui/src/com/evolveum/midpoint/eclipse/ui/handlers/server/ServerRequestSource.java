@@ -6,6 +6,6 @@ public abstract class ServerRequestSource {
 
 	public abstract IPath getPath();
 	public abstract String getDisplayName();
-	public abstract byte[] resolve();
+	public abstract String resolve();
 	
 }

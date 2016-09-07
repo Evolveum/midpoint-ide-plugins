@@ -118,9 +118,9 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 
 	@Override
 	public void openFileIfNeeded() {
-		String predefinedActionNumber = requestItem.getPredefinedActionNumber();
+		int predefinedActionNumber = requestItem.getPredefinedActionNumber();
 		String openAfter;
-		if (StringUtils.isNotBlank(predefinedActionNumber)) {
+		if (predefinedActionNumber != 0) {
 			openAfter = PluginPreferences.getActionOpenAfter(predefinedActionNumber);
 		} else {
 			openAfter = PluginPreferences.getActionOpenAfterOther();
@@ -169,8 +169,8 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 	public String getConsoleLogLine(int responseCounter) {
 		List<String> labels = Arrays.asList("Server log", "Data output", "Console output", "Operation result");
 		List<IFile> files = Arrays.asList(logFile, dataFile, consoleFile, opResultFile);
-		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(),
-				FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId());
+		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(), null, null, null);
+				//FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId());
 		String counterString = formatResponseCounter(responseCounter);
 
 		HyperlinksRegistry.getInstance().registerEntry(counterString, labels, files, editorIds);

@@ -7,7 +7,7 @@ public class CompareServerRequest extends ServerRequest {
 	boolean showLocalToRemote, showRemoteToLocal, showLocal, showRemote;
 	List<String> ignoreItems;
 
-	public CompareServerRequest(ServerAction action, byte[] data) {
+	public CompareServerRequest(ServerAction action, String data) {
 		super(action, data);
 	}
 

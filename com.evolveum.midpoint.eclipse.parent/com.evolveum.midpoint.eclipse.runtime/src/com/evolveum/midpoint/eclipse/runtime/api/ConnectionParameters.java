@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.eclipse.runtime.api;
 
+import org.apache.commons.lang.StringUtils;
+
 public class ConnectionParameters {
 	private String name;			// human-readable connection (server) name
 	private String url;
@@ -41,6 +43,9 @@ public class ConnectionParameters {
 	@Override
 	public String toString() {
 		return "ConnectionParameters [name=" + name + ", url=" + url + ", login=" + login + "]";
+	}
+	public String getDisplayName() {
+		return StringUtils.isNotBlank(name) ? name : url;
 	}
 
 }

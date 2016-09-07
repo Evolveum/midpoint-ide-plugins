@@ -23,9 +23,11 @@ public class PluginPreferences {
 
 	public static final String PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.midPoint";
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
+	public static final String DONWLOAD_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.download";
+	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
 
 	public static ConnectionParameters getConnectionParameters() {
-		ServerDataItem s = getCurrentServer();
+		ServerDataItem s = getSelectedServer();
 		if (s == null) {
 			return new ConnectionParameters("", "", "", "");			// TODO...
 		} else {
@@ -33,8 +35,8 @@ public class PluginPreferences {
 		}
 	}
 	
-	private static ServerDataItem getCurrentServer() {
-		List<ServerDataItem> servers = ServersCache.getInstance().getServers();
+	public static ServerDataItem getSelectedServer() {
+		List<ServerDataItem> servers = getServers();
 		for (ServerDataItem server : servers) {
 			if (server.isSelected()) {
 				return server;
@@ -43,12 +45,16 @@ public class PluginPreferences {
 		return null;
 	}
 
-	public static String getActionFile(String number) {
+	public static List<ServerDataItem> getServers() {
+		return ServersCache.getInstance().getServers();
+	}
+
+	public static String getActionFile(int number) {
 		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_FILE_PREFIX + number);
 	}
 	
-	public static String getActionOpenAfter(String number) {
+	public static String getActionOpenAfter(int number) {
 		IPreferenceStore store = store();
 		return store.getString(ActionsPreferencePage.ACTION_OPEN_AFTER_PREFIX + number);
 	}
@@ -58,13 +64,12 @@ public class PluginPreferences {
 		return store.getString(ActionsPreferencePage.ACTION_OPEN_AFTER_OTHER);
 	}
 
-	public static String getActionAfterUpload() {
-		IPreferenceStore store = store();
-		return store.getString(ActionsPreferencePage.ACTION_AFTER_UPLOAD);
+	public static int getActionAfterUpload() {
+		return store().getInt(ActionsPreferencePage.ACTION_AFTER_UPLOAD);
 	}
 
 	public static String getLogfile() {
-		ServerDataItem s = getCurrentServer();
+		ServerDataItem s = getSelectedServer();
 		return s != null ? s.getLogFile() : null;
 	}
 	
@@ -170,7 +175,7 @@ public class PluginPreferences {
 		IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
 		
 		try {
-			Command command = commandService.getCommand(PluginConstants.COMMAND_TEST_CONNECTION);
+			Command command = commandService.getCommand(PluginConstants.CMD_TEST_CONNECTION);
 			Parameterization[] params = new Parameterization[] { 
 					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_NAME), name),				
 					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_URL), url),
@@ -185,12 +190,20 @@ public class PluginPreferences {
 	}
 	
 	public static boolean isServerSelected() {
-		return getCurrentServer() != null;
+		return getSelectedServer() != null;
 	}
 
 	public static String getSelectedServerName() {
-		ServerDataItem s = getCurrentServer();
-		return s != null ? s.getName() : null;
+		ServerDataItem s = getSelectedServer();
+		if (s == null) {
+			return null;
+		} else if (StringUtils.isNotBlank(s.getName())) {
+			return s.getName();
+		} else if (StringUtils.isNotBlank(s.getUrl())) {
+			return s.getUrl();
+		} else {
+			return "(unnamed)";
+		}
 	}
 
 }

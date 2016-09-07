@@ -6,14 +6,15 @@ import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.util.Expander;
 
 public class ServerRequestItem {
 	
 	private ServerAction serverAction;
 	private ServerRequestSource source;
-	private String predefinedActionNumber;
+	private int predefinedActionNumber;
 	
-	public ServerRequestItem(ServerAction action, ServerRequestSource source, String actionNumber) {
+	public ServerRequestItem(ServerAction action, ServerRequestSource source, int actionNumber) {
 		this.serverAction = action;
 		this.source = source;
 		this.predefinedActionNumber = actionNumber;
@@ -34,16 +35,17 @@ public class ServerRequestItem {
 	public String getDisplayName() {
 		return source.getDisplayName();
 	}
-	public byte[] getContent() {
-		return source.resolve();
+	public String getExpandedContent() {
+		String content = source.resolve();
+		return Expander.expand(content, PluginPreferences.getSelectedServer());
 	}
 	public IPath getSourcePath() {
 		return source.getPath();
 	}
-	public String getPredefinedActionNumber() {
+	public int getPredefinedActionNumber() {
 		return predefinedActionNumber;
 	}
-	public void setPredefinedActionNumber(String predefinedActionNumber) {
+	public void setPredefinedActionNumber(int predefinedActionNumber) {
 		this.predefinedActionNumber = predefinedActionNumber;
 	}
 
@@ -54,8 +56,12 @@ public class ServerRequestItem {
 	}
 
 	public ServerRequest createServerRequest() {
+		String expandedContent = getExpandedContent();
+		if (expandedContent == null) {
+			return null;
+		}
 		if (serverAction == ServerAction.COMPARE) {
-			CompareServerRequest csr = new CompareServerRequest(serverAction, getContent());
+			CompareServerRequest csr = new CompareServerRequest(serverAction, expandedContent);
 			csr.setShowLocalToRemote(PluginPreferences.getCompareShowLocalToRemote());
 			csr.setShowRemoteToLocal(PluginPreferences.getCompareShowRemoteToLocal());
 			csr.setShowLocal(PluginPreferences.getCompareShowLocalNormalized());
@@ -63,7 +69,7 @@ public class ServerRequestItem {
 			csr.setIgnoreItems(PluginPreferences.getCompareIgnoreItems());
 			return csr;
 		} else {
-			return new ServerRequest(serverAction, getContent());
+			return new ServerRequest(serverAction, expandedContent);
 		}	
 	}
 	

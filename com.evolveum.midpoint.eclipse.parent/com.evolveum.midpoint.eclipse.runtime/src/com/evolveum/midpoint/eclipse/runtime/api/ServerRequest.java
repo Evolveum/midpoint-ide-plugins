@@ -3,9 +3,9 @@ package com.evolveum.midpoint.eclipse.runtime.api;
 public class ServerRequest {
 
 	private ServerAction action;
-	private byte[] data;
+	private String data;
 	
-	public ServerRequest(ServerAction action, byte[] data) {
+	public ServerRequest(ServerAction action, String data) {
 		super();
 		this.action = action;
 		this.data = data;
@@ -16,10 +16,10 @@ public class ServerRequest {
 	public void setAction(ServerAction action) {
 		this.action = action;
 	}
-	public byte[] getData() {
+	public String getData() {
 		return data;
 	}
-	public void setData(byte[] data) {
+	public void setData(String data) {
 		this.data = data;
 	}
 	

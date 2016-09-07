@@ -27,7 +27,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ComparePreferencePage.COMPARE_IGNORE_METADATA, "true");
 		store.setDefault(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE, "");
 		
-		store.setDefault(ServersPreferencePage.SERVERS, ServerDataItem.createDefaultXml());
+		store.setDefault(MidPointPreferencePage.SERVERS, ServerDataItem.createDefaultXml());
 	}
 	
 }

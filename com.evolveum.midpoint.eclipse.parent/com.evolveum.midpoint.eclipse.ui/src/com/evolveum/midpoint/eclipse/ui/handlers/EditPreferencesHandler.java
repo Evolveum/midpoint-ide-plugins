@@ -7,20 +7,22 @@ import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 
 public class EditPreferencesHandler extends AbstractHandler {
 
-	public static final String CMD_EDIT_ACTIONS_PREFERENCES = "com.evolveum.midpoint.eclipse.ui.command.editActionsPreferences";
-	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
 		String id = 
-				CMD_EDIT_ACTIONS_PREFERENCES.equals(event.getCommand().getId()) ?
+				PluginConstants.CMD_EDIT_ACTIONS_PREFERENCES.equals(event.getCommand().getId()) ?
 						PluginPreferences.ACTIONS_PREFERENCES_ID : PluginPreferences.PREFERENCES_ID; 
 
-		PreferenceDialog pref = PreferencesUtil.createPreferenceDialogOn(HandlerUtil.getActiveShell(event), id, null, null);
+		PreferenceDialog pref = PreferencesUtil.createPreferenceDialogOn(
+				HandlerUtil.getActiveShell(event), id, 
+				new String[] { PluginPreferences.PREFERENCES_ID, PluginPreferences.ACTIONS_PREFERENCES_ID, PluginPreferences.DONWLOAD_PREFERENCES_ID, PluginPreferences.COMPARE_PREFERENCES_ID }, 
+				null);
 		if (pref != null) {
 			pref.open();
 		}
