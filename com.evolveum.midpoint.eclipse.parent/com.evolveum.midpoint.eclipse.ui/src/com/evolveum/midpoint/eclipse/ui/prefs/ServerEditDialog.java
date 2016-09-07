@@ -182,6 +182,9 @@ public class ServerEditDialog extends TitleAreaDialog {
 		
 		txtProperties = new Text(container, SWT.BORDER);
 		txtProperties.setLayoutData(gd);
+		if (existingDataItem != null) {
+			txtProperties.setText(existingDataItem.getPropertiesFile());
+		}
 		
 		GridData gd2 = new GridData();
 		gd2.horizontalAlignment = GridData.FILL;
@@ -224,6 +227,9 @@ public class ServerEditDialog extends TitleAreaDialog {
 		
 		txtLogFile = new Text(container, SWT.BORDER);
 		txtLogFile.setLayoutData(gd);
+		if (existingDataItem != null) {
+			txtLogFile.setText(existingDataItem.getLogFile());
+		}
 		
 		GridData gd2 = new GridData();
 		gd2.horizontalAlignment = GridData.FILL;
