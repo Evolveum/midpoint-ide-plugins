@@ -80,8 +80,8 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		}
 		
 		String patternResolved = pattern
-				.replace("$f", DownloadHandler.fixComponent(sourceName))
-				.replace("$F", DownloadHandler.fixComponent(rootToSource.toPortableString()))
+				.replace("$f", sourceName)
+				.replace("$F", rootToSource.toPortableString())
 				.replace(COUNTER_SYMBOL, formatResponseCounter(responseCounter))
 				.replace("$t", DownloadHandler.fixComponent(outputType))
 				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName())); 

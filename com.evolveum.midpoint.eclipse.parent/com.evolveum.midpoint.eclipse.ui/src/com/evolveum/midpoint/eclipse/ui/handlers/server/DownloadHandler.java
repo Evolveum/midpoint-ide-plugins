@@ -64,6 +64,7 @@ public class DownloadHandler extends AbstractHandler {
 
 				monitor.beginTask("Downloading", typesToDownload.size());
 				try {
+					boolean yesToAll = false, noToAll = false;
 main:				for (ObjectTypes type : typesToDownload) {
 						if (monitor.isCanceled()) {
 							break;
@@ -72,7 +73,6 @@ main:				for (ObjectTypes type : typesToDownload) {
 						List<ServerObject> objects = runtime.downloadObjects(type, limit, connectionParameters);
 						
 						monitor.subTask("Writing " + type.getRestType());
-						boolean yesToAll = false, noToAll = false;
 						for (ServerObject object : objects) {
 							if (monitor.isCanceled()) {
 								break main;
@@ -100,7 +100,9 @@ main:				for (ObjectTypes type : typesToDownload) {
 									case 2: yesToAll = true;		// Yes to all
 									case 0: break;					// Yes
 									case 3: noToAll = true;			// No to all
-									case 1: continue;				// No
+									case 1: 						// No
+										Console.log("File " + file + " already exists, skipping.");
+										continue;
 									case 4: break main;				// Cancel
 									}
 								}
