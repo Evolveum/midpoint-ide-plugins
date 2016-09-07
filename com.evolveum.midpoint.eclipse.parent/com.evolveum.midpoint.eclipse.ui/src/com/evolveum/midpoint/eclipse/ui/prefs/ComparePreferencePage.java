@@ -33,7 +33,7 @@ public class ComparePreferencePage extends FieldEditorPreferencePage implements 
 		addField(new StringFieldEditor(COMPARE_RESULT_FILE_NAME_PATTERN, "File name pattern for diff results", getFieldEditorParent()));
 		Label patternInfo = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type. An example: 'diff/$F.$n.$t'.");
+		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type, $s for server.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		addField(new ComboFieldEditor(COMPARE_RESULT_ROOT_DIRECTORY, "Directory considered root", MidPointPreferencePage.ROOT_DIRECTORY_OPTIONS, getFieldEditorParent()));
 
