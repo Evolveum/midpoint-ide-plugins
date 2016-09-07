@@ -14,7 +14,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.util.DOMUtil;
 
-public class ServerDataItem implements DataItem {
+public class ServerInfo implements DataItem {
 	
 	private static final String E_SELECTED = "selected";
 	private static final String E_LOG_FILE = "logFile";
@@ -23,38 +23,41 @@ public class ServerDataItem implements DataItem {
 	private static final String E_LOGIN = "login";
 	private static final String E_URL = "url";
 	private static final String E_NAME = "name";
+	private static final String E_SHORT_NAME = "shortName";
 
 	private boolean selected;
 	private String name;
 	private String url;
 	private String login;
 	private String password;
+	private String shortName;
 	private String propertiesFile;
 	private String logFile;
 	
-	public ServerDataItem(boolean selected, String name, String url, String login, String password, String propertiesFile,
+	public ServerInfo(boolean selected, String name, String url, String login, String password, String shortName, String propertiesFile,
 			String logFile) {
 		this.selected = selected;
 		this.name = name;
 		this.url = url;
 		this.login = login;
 		this.password = password;
+		this.shortName = shortName;
 		this.propertiesFile = propertiesFile;
 		this.logFile = logFile;
 	}
 
-	public ServerDataItem() {
+	public ServerInfo() {
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public String[] getColumnValues() {
-		return new String[] { name, url, login, propertiesFile, logFile }; 
+		return new String[] { name, url, login, shortName, propertiesFile, logFile }; 
 	}
 
 	@Override
 	public DataItem clone() {
-		ServerDataItem clone = new ServerDataItem(selected, name, url, login, password, propertiesFile, logFile);
+		ServerInfo clone = new ServerInfo(selected, name, url, login, password, shortName, propertiesFile, logFile);
 		return clone;
 	}
 	
@@ -99,6 +102,14 @@ public class ServerDataItem implements DataItem {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
+	public String getShortName() {
+		return shortName;
+	}
+
+	public void setShortName(String shortName) {
+		this.shortName = shortName;
+	}
 
 	public String getPropertiesFile() {
 		return propertiesFile;
@@ -116,21 +127,21 @@ public class ServerDataItem implements DataItem {
 		this.logFile = logFile;
 	}
 
-	public static ServerDataItem createDefault() {
-		return new ServerDataItem(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", "", "");
+	public static ServerInfo createDefault() {
+		return new ServerInfo(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", "", "", "");
 	}
 
 	public static String createDefaultXml() {
-		ServerDataItem theOne = createDefault();
+		ServerInfo theOne = createDefault();
 		theOne.setSelected(true);
 		theOne.setName("Default");
 		return toXml(Collections.singletonList(theOne));
 	}
 
-	public static String toXml(List<ServerDataItem> items) {
+	public static String toXml(List<ServerInfo> items) {
 		Document doc = DOMUtil.getDocument(new QName("servers"));
 		Element servers = doc.getDocumentElement();
-		for (ServerDataItem item : items) {
+		for (ServerInfo item : items) {
 			Element server = DOMUtil.createSubElement(servers, new QName("server"));
 			item.toXml(server);
 		}
@@ -144,14 +155,15 @@ public class ServerDataItem implements DataItem {
 		DOMUtil.createSubElement(server, new QName(E_URL)).setTextContent(url);
 		DOMUtil.createSubElement(server, new QName(E_LOGIN)).setTextContent(login);
 		DOMUtil.createSubElement(server, new QName(E_PASSWORD)).setTextContent(password);
+		DOMUtil.createSubElement(server, new QName(E_SHORT_NAME)).setTextContent(shortName);
 		DOMUtil.createSubElement(server, new QName(E_PROPERTIES_FILE)).setTextContent(propertiesFile);
 		DOMUtil.createSubElement(server, new QName(E_LOG_FILE)).setTextContent(logFile);
 		DOMUtil.createSubElement(server, new QName(E_SELECTED)).setTextContent(String.valueOf(selected));
 	}
 
-	public static List<ServerDataItem> fromXml(String string) {
+	public static List<ServerInfo> fromXml(String string) {
 		System.out.println("fromXml called with " + string);
-		List<ServerDataItem> rv = new ArrayList<>();
+		List<ServerInfo> rv = new ArrayList<>();
 		if (StringUtils.isBlank(string)) {
 			return rv;
 		}
@@ -160,7 +172,7 @@ public class ServerDataItem implements DataItem {
 			Element serversElement = doc.getDocumentElement();
 			List<Element> serverElements = DOMUtil.listChildElements(serversElement);		// TODO only 'server' elements
 			for (Element serverElement : serverElements) {
-				rv.add(ServerDataItem.fromXml(serverElement));
+				rv.add(ServerInfo.fromXml(serverElement));
 			}
 		} catch (Throwable t) {
 			Console.logError("Couldn't parse servers list '" + string + "'", t);
@@ -169,13 +181,14 @@ public class ServerDataItem implements DataItem {
 		return rv;
 	}
 
-	private static ServerDataItem fromXml(Element e) {
-		ServerDataItem rv = new ServerDataItem(
+	private static ServerInfo fromXml(Element e) {
+		ServerInfo rv = new ServerInfo(
 				getBoolean(e, E_SELECTED),
 				get(e, E_NAME),
 				get(e, E_URL),
 				get(e, E_LOGIN),
 				get(e, E_PASSWORD),
+				get(e, E_SHORT_NAME),
 				get(e, E_PROPERTIES_FILE),
 				get(e, E_LOG_FILE));
 		
@@ -198,6 +211,10 @@ public class ServerDataItem implements DataItem {
 
 	public String getDisplayName() {
 		return StringUtils.isNotBlank(name) ? name : url;
+	}
+	
+	public String getShortNameOrName() {
+		return StringUtils.isNotBlank(shortName) ? shortName : name;
 	}
 	
 }

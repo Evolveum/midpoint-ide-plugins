@@ -40,7 +40,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
-import com.evolveum.midpoint.eclipse.ui.prefs.ServerDataItem;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Expander;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
@@ -210,7 +210,7 @@ public class FileRequestHandler extends AbstractHandler {
 			jobTitle = "Uploading/executing";
 		}
 		
-		ServerDataItem selectedServer = PluginPreferences.getSelectedServer();
+		ServerInfo selectedServer = PluginPreferences.getSelectedServer();
 		if (selectedServer == null) {
 			return;		// shouldn't occur
 		}

@@ -1,12 +1,11 @@
 package com.evolveum.midpoint.eclipse.ui.prefs;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 
-public class ServersFieldEditor extends AbstractServersFieldEditor<ServerDataItem> {
+public class ServersFieldEditor extends AbstractServersFieldEditor<ServerInfo> {
 
 	protected ServersFieldEditor(String name, String labelText, String[] columnNames, int[] columnWidths,
 			Composite parent) {
@@ -14,18 +13,18 @@ public class ServersFieldEditor extends AbstractServersFieldEditor<ServerDataIte
 	}
 
 	@Override
-	protected String createStringRepresentation(List<ServerDataItem> items) {
-		return ServerDataItem.toXml(items);
+	protected String createStringRepresentation(List<ServerInfo> items) {
+		return ServerInfo.toXml(items);
 	}
 
 	@Override
-	protected List<ServerDataItem> parseStringRepresentation(String string) {
-		return ServerDataItem.fromXml(string);
+	protected List<ServerInfo> parseStringRepresentation(String string) {
+		return ServerInfo.fromXml(string);
 	}
 
 	@Override
-	protected ServerDataItem createNewItem() {
-		ServerEditDialog dialog = ServerEditDialog.createNew(getShell(), ServerDataItem.createDefault());
+	protected ServerInfo createNewItem() {
+		ServerEditDialog dialog = ServerEditDialog.createNew(getShell(), ServerInfo.createDefault());
 		dialog.create();
 		if (dialog.open() == Window.OK) {
 			return dialog.getServerDataItem();
@@ -41,7 +40,7 @@ public class ServersFieldEditor extends AbstractServersFieldEditor<ServerDataIte
 			ServerEditDialog dialog = ServerEditDialog.createEdit(getShell(), currentItems.get(index));
 			dialog.create();
 			if (dialog.open() == Window.OK) {
-				ServerDataItem newItem = dialog.getServerDataItem();
+				ServerInfo newItem = dialog.getServerDataItem();
 				currentItems.set(index, newItem);
 				table.getItem(index).setText(newItem.getColumnValues());
 			}
@@ -52,7 +51,7 @@ public class ServersFieldEditor extends AbstractServersFieldEditor<ServerDataIte
 	protected void testPressed() {
 		int index = table.getSelectionIndex();
 		if (index >= 0) {
-			ServerDataItem item = currentItems.get(index);
+			ServerInfo item = currentItems.get(index);
 			PluginPreferences.testConnection(item.getName(), item.getUrl(), item.getLogin(), item.getPassword());
 		}
 	}

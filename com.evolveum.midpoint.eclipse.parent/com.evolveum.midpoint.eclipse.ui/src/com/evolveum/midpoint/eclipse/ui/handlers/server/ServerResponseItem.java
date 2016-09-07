@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Path;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
+import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
@@ -79,10 +80,11 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		}
 		
 		String patternResolved = pattern
-				.replace("$f", sourceName)
-				.replace("$F", rootToSource.toPortableString())
+				.replace("$f", DownloadHandler.fixComponent(sourceName))
+				.replace("$F", DownloadHandler.fixComponent(rootToSource.toPortableString()))
 				.replace(COUNTER_SYMBOL, formatResponseCounter(responseCounter))
-				.replace("$t", outputType); 
+				.replace("$t", DownloadHandler.fixComponent(outputType))
+				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName())); 
 
 		System.out.println("patternResolved = " + patternResolved);
 		IPath resolvedPath = new Path(patternResolved);
@@ -92,6 +94,8 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		System.out.println("Final result = " + resolvedPath);
 		return resolvedPath;
 	}
+	
+	
 
 	protected String formatResponseCounter(int responseCounter) {
 		return String.format("%05d", responseCounter);

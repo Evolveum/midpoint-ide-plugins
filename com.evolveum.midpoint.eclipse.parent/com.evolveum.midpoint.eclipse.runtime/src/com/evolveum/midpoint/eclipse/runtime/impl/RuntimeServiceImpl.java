@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.eclipse.runtime.impl;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,7 +23,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -246,7 +244,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search";
 		HttpPost request = new HttpPost(url);
 
-		HttpEntity body = new StringEntity("<query><paging><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);
+		HttpEntity body = new StringEntity("<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);
 		request.setEntity(body);
 		
 		System.out.println("Requesting objects from " + url);

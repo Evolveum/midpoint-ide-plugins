@@ -1,9 +1,5 @@
 package com.evolveum.midpoint.eclipse.runtime.api;
 
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;

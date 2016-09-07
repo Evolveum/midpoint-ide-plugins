@@ -1,26 +1,13 @@
 package com.evolveum.midpoint.eclipse.ui.prefs;
 
-import org.eclipse.core.commands.Command;
-import org.eclipse.core.commands.Parameterization;
-import org.eclipse.core.commands.ParameterizedCommand;
-import org.eclipse.core.commands.common.CommandException;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.FileFieldEditor;
-import org.eclipse.jface.preference.StringButtonFieldEditor;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.commands.ICommandService;
-import org.eclipse.ui.handlers.IHandlerService;
 
-import com.evolveum.midpoint.eclipse.ui.PluginConstants;
-import com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
 
 public class MidPointPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
@@ -75,8 +62,8 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 	protected void createFieldEditors() {
 
 		addField(new ServersFieldEditor(SERVERS, "Servers", 
-				new String[] { "Name", "URL", "Login", "Properties" }, 
-				new int[] { 100, 200, 100, 200 }, getFieldEditorParent()));
+				new String[] { "Name", "URL", "Login", "Short name", "Properties" }, 
+				new int[] { 100, 200, 100, 50, 200 }, getFieldEditorParent()));
 
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));

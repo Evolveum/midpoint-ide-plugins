@@ -1,10 +1,8 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -36,7 +33,6 @@ import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerObject;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -157,13 +153,13 @@ main:				for (ObjectTypes type : typesToDownload) {
 		if (StringUtils.isBlank(pattern)) {
 			return null;
 		}
-
-		// TODO what if OID contains '$'?
+		
 		String patternResolved = pattern
-				.replace("$t", object.getType().getElementName())
-				.replace("$T", object.getType().getRestType())
-				.replace("$o", object.getOid())
-				.replace("$n", object.getName());		// name is last; to prevent problems if it would contain '$'
+				.replace("$t", fixComponent(object.getType().getElementName()))
+				.replace("$T", fixComponent(object.getType().getRestType()))
+				.replace("$o", fixComponent(object.getOid()))
+				.replace("$n", fixComponent(object.getName()))
+				.replace("$s", fixComponent(PluginPreferences.getSelectedServerShortName()));
 		
 		System.out.println("pattern = " + pattern + ", resolvedPattern = " + patternResolved);
 		IPath rv = root.getFullPath().append(new Path(patternResolved));
@@ -171,13 +167,30 @@ main:				for (ObjectTypes type : typesToDownload) {
 		return rv;
 	}
 	
+	public static String fixComponent(String s) {
+		if (s == null) {
+			return null;
+		}
+		return s
+				.replace('<', '_')
+				.replace('>', '_')
+				.replace(':', '_')
+				.replace('"', '_')
+				.replace('\'', '_')
+				.replace('/', '_')
+				.replace('\\', '_')
+				.replace('|', '_')
+				.replace('?', '_')
+				.replace('*', '_');
+	}
+
 	protected List<ObjectTypes> determineTypesToDownload() {
 		List<ObjectTypes> rv = new ArrayList<>();
 		List<String> include = PluginPreferences.getIncludeInDownload();
 		List<String> exclude = PluginPreferences.getExcludeFromDownload();
 
 		if (include.isEmpty()) {
-			rv.addAll(Arrays.<ObjectTypes>asList(ObjectTypes.values()));
+			rv.addAll(ObjectTypes.getConcreteTypes());
 		} else {
 			rv.addAll(parseTypes(include));
 		}

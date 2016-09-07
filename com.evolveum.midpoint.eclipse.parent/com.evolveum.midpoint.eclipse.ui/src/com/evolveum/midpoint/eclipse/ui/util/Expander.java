@@ -9,11 +9,11 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.eclipse.ui.prefs.ServerDataItem;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 
 public class Expander {
 
-	public static boolean checkPropertiesFile(ServerDataItem server) {
+	public static boolean checkPropertiesFile(ServerInfo server) {
 		if (server == null) {
 			return false;
 		} else if (StringUtils.isBlank(server.getPropertiesFile())) {
@@ -23,7 +23,7 @@ public class Expander {
 		}
 	}
 
-	public static String expand(String content, ServerDataItem server) {
+	public static String expand(String content, ServerInfo server) {
 		if (server == null || StringUtils.isBlank(server.getPropertiesFile())) {
 			return content;
 		}
@@ -71,7 +71,7 @@ public class Expander {
         return result.toString();
 	}
 
-	public static Properties getMacros(ServerDataItem server) {
+	public static Properties getMacros(ServerInfo server) {
 		Properties macros = new Properties();
 		FileReader reader = null;
 		try {

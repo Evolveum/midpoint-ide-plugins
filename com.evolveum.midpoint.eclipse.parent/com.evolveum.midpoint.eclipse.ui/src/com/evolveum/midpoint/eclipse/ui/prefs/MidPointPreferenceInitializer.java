@@ -17,6 +17,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "$T/$n.xml");
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT, "100");
+		store.setDefault(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD, "users,shadows,reports,reportOutputs,connectors,accessCertificationCampaigns,lookupTables");
 		store.setDefault(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING, DownloadPreferencePage.VALUE_ASK);
 		
 		store.setDefault(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN, "diff/$F.$n.$t");
@@ -27,7 +28,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ComparePreferencePage.COMPARE_IGNORE_METADATA, "true");
 		store.setDefault(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE, "");
 		
-		store.setDefault(MidPointPreferencePage.SERVERS, ServerDataItem.createDefaultXml());
+		store.setDefault(MidPointPreferencePage.SERVERS, ServerInfo.createDefaultXml());
 	}
 	
 }

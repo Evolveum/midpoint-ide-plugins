@@ -32,11 +32,11 @@ public class ServersCache {
 		cachedServers = null;
 	}
 
-	private List<ServerDataItem> cachedServers = null;
+	private List<ServerInfo> cachedServers = null;
 	
-	public List<ServerDataItem> getServers() {
+	public List<ServerInfo> getServers() {
 		if (cachedServers == null) {
-			cachedServers = ServerDataItem.fromXml(EclipseActivator.getInstance().getPreferenceStore().getString(MidPointPreferencePage.SERVERS));
+			cachedServers = ServerInfo.fromXml(EclipseActivator.getInstance().getPreferenceStore().getString(MidPointPreferencePage.SERVERS));
 		}
 		return cachedServers;
 	}

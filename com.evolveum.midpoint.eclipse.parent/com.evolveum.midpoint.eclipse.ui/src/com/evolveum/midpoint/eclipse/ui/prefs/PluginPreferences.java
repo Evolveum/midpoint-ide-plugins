@@ -27,7 +27,7 @@ public class PluginPreferences {
 	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
 
 	public static ConnectionParameters getConnectionParameters() {
-		ServerDataItem s = getSelectedServer();
+		ServerInfo s = getSelectedServer();
 		if (s == null) {
 			return new ConnectionParameters("", "", "", "");			// TODO...
 		} else {
@@ -35,9 +35,9 @@ public class PluginPreferences {
 		}
 	}
 	
-	public static ServerDataItem getSelectedServer() {
-		List<ServerDataItem> servers = getServers();
-		for (ServerDataItem server : servers) {
+	public static ServerInfo getSelectedServer() {
+		List<ServerInfo> servers = getServers();
+		for (ServerInfo server : servers) {
 			if (server.isSelected()) {
 				return server;
 			}
@@ -45,7 +45,7 @@ public class PluginPreferences {
 		return null;
 	}
 
-	public static List<ServerDataItem> getServers() {
+	public static List<ServerInfo> getServers() {
 		return ServersCache.getInstance().getServers();
 	}
 
@@ -69,7 +69,7 @@ public class PluginPreferences {
 	}
 
 	public static String getLogfile() {
-		ServerDataItem s = getSelectedServer();
+		ServerInfo s = getSelectedServer();
 		return s != null ? s.getLogFile() : null;
 	}
 	
@@ -194,7 +194,7 @@ public class PluginPreferences {
 	}
 
 	public static String getSelectedServerName() {
-		ServerDataItem s = getSelectedServer();
+		ServerInfo s = getSelectedServer();
 		if (s == null) {
 			return null;
 		} else if (StringUtils.isNotBlank(s.getName())) {
@@ -203,6 +203,19 @@ public class PluginPreferences {
 			return s.getUrl();
 		} else {
 			return "(unnamed)";
+		}
+	}
+
+	public static String getSelectedServerShortName() {
+		ServerInfo s = getSelectedServer();
+		if (s == null) {
+			return null;
+		} else if (StringUtils.isNotBlank(s.getShortName())) {
+			return s.getShortName();
+		} else if (StringUtils.isNotBlank(s.getName())) {
+			return s.getName();
+		} else {
+			return "unnamed";
 		}
 	}
 

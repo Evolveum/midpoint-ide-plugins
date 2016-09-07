@@ -3,7 +3,6 @@ package com.evolveum.midpoint.eclipse.ui.util;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.PreparedStatement;
 import java.util.Date;
 
 import org.eclipse.swt.SWT;

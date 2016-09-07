@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.eclipse.ui.handlers;
 
 import java.util.List;
-import java.util.logging.Level;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -17,7 +16,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.TestConnectionResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
-import com.evolveum.midpoint.eclipse.ui.prefs.ServerDataItem;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Severity;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
@@ -44,7 +43,7 @@ public class TestConnectionHandler extends AbstractHandler {
 							event.getParameter(PARAM_LOGIN),
 							event.getParameter(PARAM_PASSWORD));
 				} else {
-					List<ServerDataItem> servers = PluginPreferences.getServers();
+					List<ServerInfo> servers = PluginPreferences.getServers();
 					if (servers.size() == 0) {
 						return Status.OK_STATUS;		// we shouldn't have come here
 					} else if (servers.size() == 1) {
@@ -65,9 +64,9 @@ public class TestConnectionHandler extends AbstractHandler {
 
 				int countOk = 0, countFail = 0;
 				
-				List<ServerDataItem> servers = PluginPreferences.getServers();
+				List<ServerInfo> servers = PluginPreferences.getServers();
 				monitor.beginTask("Processing", servers.size());
-				for (ServerDataItem server : servers) {
+				for (ServerInfo server : servers) {
 					if (monitor.isCanceled()) {
 						break;
 					}

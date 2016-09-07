@@ -40,7 +40,7 @@ public class DownloadPreferencePage extends FieldEditorPreferencePage implements
 		addField(new StringFieldEditor(DOWNLOADED_FILE_NAME_PATTERN, "Downloaded file name pattern", getFieldEditorParent()));
 		Label patternInfo = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo.setText("Use $t for object type singular ('user'), $T plural ('users'), $n for object name, $o for OID.");
+		patternInfo.setText("Use $t for object type singular ('user'), $T plural ('users'), $n for object name, $o for OID, $s for server.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
@@ -51,7 +51,7 @@ public class DownloadPreferencePage extends FieldEditorPreferencePage implements
 		
 		Label patternInfo2 = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo2.setText("Use singluar names, e.g. user, role. Separate by commas.");
+		patternInfo2.setText("Use plural names, e.g. users, roles. Separate by commas.");
 		patternInfo2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 
 		addField(new IntegerFieldEditor(DOWNLOADED_OBJECTS_LIMIT, "Max number of objects of one type", getFieldEditorParent()));

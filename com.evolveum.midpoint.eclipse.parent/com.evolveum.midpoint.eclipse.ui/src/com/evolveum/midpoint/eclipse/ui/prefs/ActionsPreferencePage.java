@@ -14,7 +14,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import com.evolveum.midpoint.eclipse.ui.handlers.server.ExecuteActionResponseItem;
-import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
 
 public class ActionsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
@@ -72,7 +71,7 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 		addField(new StringFieldEditor(ACTION_OUTPUT_FILE_NAME_PATTERN, "Action output files pattern", getFieldEditorParent()));
 		Label patternInfo = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type. An example: 'runs/$F.$n.$t'.");
+		patternInfo.setText("Use $f for file name ($F = with relative path from root), $n for sequence number, $t for output type, $s for server.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		Label patternInfo2 = new Label(getFieldEditorParent(), SWT.LEFT);
 		patternInfo2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));

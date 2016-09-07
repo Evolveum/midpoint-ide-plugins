@@ -1,24 +1,14 @@
 package com.evolveum.midpoint.eclipse.ui.menus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.actions.CompoundContributionItem;
-import org.eclipse.ui.menus.CommandContributionItem;
-import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
 
-import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
-import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 
 public class MainMenuContributor extends CompoundContributionItem implements IWorkbenchContribution {

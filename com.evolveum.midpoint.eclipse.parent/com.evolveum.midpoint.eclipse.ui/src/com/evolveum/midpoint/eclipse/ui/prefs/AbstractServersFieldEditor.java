@@ -31,8 +31,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Widget;
 
-import com.evolveum.midpoint.eclipse.ui.util.Console;
-
 /**
  * Hacked from the nice original of https://raw.githubusercontent.com/orctom/pathtools/master/PathTools/src/pathtools/TableFieldEditor.java
  * Original made by Sandip V. Chitale. Thank you for that.

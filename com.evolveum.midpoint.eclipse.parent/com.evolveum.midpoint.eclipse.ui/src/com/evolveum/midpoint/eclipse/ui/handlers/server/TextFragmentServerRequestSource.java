@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
-import java.io.UnsupportedEncodingException;
-
 import org.eclipse.core.runtime.IPath;
 
 public class TextFragmentServerRequestSource extends ServerRequestSource {

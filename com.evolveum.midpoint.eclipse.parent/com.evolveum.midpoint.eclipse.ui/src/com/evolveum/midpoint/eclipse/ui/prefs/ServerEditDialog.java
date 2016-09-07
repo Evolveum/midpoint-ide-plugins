@@ -22,27 +22,28 @@ public class ServerEditDialog extends TitleAreaDialog {
 	private Text txtUrl;
 	private Text txtLogin;
 	private Text txtPassword;
+	private Text txtShortName;
 	private Text txtProperties;
 	private Text txtLogFile;
 	private Button btnTestConnection;
 	private Button btnBrowsePropertiesFile;
 	private Button btnBrowseLogFile;
 	
-	private ServerDataItem newDataItem;
-	private ServerDataItem existingDataItem;
+	private ServerInfo newDataItem;
+	private ServerInfo existingDataItem;
 	private boolean createNew;
 
-	public ServerEditDialog(Shell parentShell, ServerDataItem dataItemToEdit, boolean createNew) {
+	public ServerEditDialog(Shell parentShell, ServerInfo dataItemToEdit, boolean createNew) {
 		super(parentShell);
 		existingDataItem = dataItemToEdit;
 		this.createNew = createNew;
 	}
 	
-	public static ServerEditDialog createEdit(Shell shell, ServerDataItem data) {
+	public static ServerEditDialog createEdit(Shell shell, ServerInfo data) {
 		return new ServerEditDialog(shell, data, false);
 	}
 
-	public static ServerEditDialog createNew(Shell shell, ServerDataItem data) {
+	public static ServerEditDialog createNew(Shell shell, ServerInfo data) {
 		return new ServerEditDialog(shell, data, true);
 	}
 
@@ -69,6 +70,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 		createUrl(container);
 		createLogin(container);
 		createPassword(container);
+		createShortName(container);
 		createPropertiesFile(container);
 		createLogFile(container);
 
@@ -151,6 +153,22 @@ public class ServerEditDialog extends TitleAreaDialog {
             }
         });
         btnTestConnection.addDisposeListener(event -> btnTestConnection = null);		
+	}
+	
+	private void createShortName(Composite container) {
+		Label label = new Label(container, SWT.NONE);
+		label.setText("Short name");
+
+		GridData gd = new GridData();
+		gd.grabExcessHorizontalSpace = true;
+		gd.horizontalSpan = 3;
+		gd.horizontalAlignment = GridData.FILL;
+		
+		txtShortName = new Text(container, SWT.BORDER);
+		txtShortName.setLayoutData(gd);
+		if (existingDataItem != null) {
+			txtShortName.setText(existingDataItem.getShortName());
+		}
 	}
 
 	private void createPropertiesFile(Composite container) {
@@ -262,11 +280,12 @@ public class ServerEditDialog extends TitleAreaDialog {
 	// save content of the Text fields because they get disposed
 	// as soon as the Dialog closes
 	private void saveInput() {
-		newDataItem = new ServerDataItem();
+		newDataItem = new ServerInfo();
 		newDataItem.setName(txtName.getText());
 		newDataItem.setUrl(txtUrl.getText());
 		newDataItem.setLogin(txtLogin.getText());
 		newDataItem.setPassword(txtPassword.getText());
+		newDataItem.setShortName(txtShortName.getText());
 		newDataItem.setPropertiesFile(txtProperties.getText());
 		newDataItem.setLogFile(txtLogFile.getText());
 		if (existingDataItem != null) {
@@ -274,7 +293,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 		}
 	}
 	
-	public ServerDataItem getServerDataItem() {
+	public ServerInfo getServerDataItem() {
 		return newDataItem;
 	}
 
