@@ -29,10 +29,11 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
-import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerObject;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.SearchObjectsServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -70,7 +71,14 @@ main:				for (ObjectTypes type : typesToDownload) {
 							break;
 						}
 						monitor.subTask("Downloading " + type.getRestType());
-						List<ServerObject> objects = runtime.downloadObjects(type, limit, connectionParameters);
+						SearchObjectsServerResponse serverResponse = runtime.getObjects(type, limit, connectionParameters);
+						
+						if (!serverResponse.isSuccess()) {
+							Console.logError("Couldn't download objects of type " + type + ": " + serverResponse.getErrorDescription(), serverResponse.getException());
+							continue;
+						}
+						
+						List<ServerObject> objects = serverResponse.getServerObjects();
 						
 						monitor.subTask("Writing " + type.getRestType());
 						for (ServerObject object : objects) {

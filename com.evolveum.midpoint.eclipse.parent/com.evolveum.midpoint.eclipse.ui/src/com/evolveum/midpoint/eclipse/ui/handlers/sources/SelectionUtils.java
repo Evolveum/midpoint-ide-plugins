@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.commands.ExecutionEvent;
@@ -50,6 +51,14 @@ public class SelectionUtils {
 		ISelection selection = selectionService.getSelection();
 		System.out.println("Current selection: " + selection.getClass());
 		return selection;
+	}
+
+	public static List<IFile> getXmlFiles(ISelection selection) {
+		if (selection instanceof IStructuredSelection) {
+			return getXmlFiles((IStructuredSelection) selection);
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 }

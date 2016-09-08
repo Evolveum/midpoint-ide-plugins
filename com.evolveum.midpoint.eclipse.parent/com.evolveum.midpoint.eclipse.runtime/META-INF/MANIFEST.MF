@@ -10,6 +10,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.evolveum.midpoint.eclipse.runtime,
  com.evolveum.midpoint.eclipse.runtime.api,
+ com.evolveum.midpoint.eclipse.runtime.api.req,
+ com.evolveum.midpoint.eclipse.runtime.api.resp,
  com.evolveum.midpoint.util,
  org.apache.commons.io,
  org.apache.commons.lang

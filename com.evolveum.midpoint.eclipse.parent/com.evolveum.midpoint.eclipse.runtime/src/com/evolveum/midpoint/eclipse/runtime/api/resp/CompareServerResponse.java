@@ -1,7 +1,9 @@
-package com.evolveum.midpoint.eclipse.runtime.api;
+package com.evolveum.midpoint.eclipse.runtime.api.resp;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.eclipse.runtime.api.Constants;
+import com.evolveum.midpoint.eclipse.runtime.api.req.CompareServerRequest;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class CompareServerResponse extends ServerResponse {

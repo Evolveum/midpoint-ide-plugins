@@ -5,8 +5,8 @@ import java.util.Collections;
 
 import org.eclipse.core.resources.IFile;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
 
 public class UploadServerResponseItem extends ServerResponseItem<ServerResponse> {
 

@@ -1,9 +1,10 @@
-package com.evolveum.midpoint.eclipse.runtime.api;
+package com.evolveum.midpoint.eclipse.runtime.api.resp;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class ExecuteActionServerResponse extends ServerResponse {

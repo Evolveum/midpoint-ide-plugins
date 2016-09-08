@@ -11,9 +11,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
-import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
-import com.evolveum.midpoint.eclipse.runtime.api.TestConnectionResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.TestConnectionResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;

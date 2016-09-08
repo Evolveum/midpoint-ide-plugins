@@ -14,6 +14,7 @@ public class PluginConstants {
 	public static final String CMD_UPLOAD_OR_EXECUTE = "com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute";
 	public static final String CMD_EXECUTE_ACTION = "com.evolveum.midpoint.eclipse.ui.command.executeAction";
 	public static final String CMD_COMPUTE_DIFFERENCE = "com.evolveum.midpoint.eclipse.ui.command.computeDifferences";
+	public static final String CMD_RELOAD_FROM_SERVER = "com.evolveum.midpoint.eclipse.ui.command.reloadFromServer";
 	public static final String CMD_SET_AS_ACTION = "com.evolveum.midpoint.eclipse.ui.command.setAsAction";
 	public static final String SERVER_LOG = "Server log";
 	public static final String DATA_OUTPUT = "Data output";

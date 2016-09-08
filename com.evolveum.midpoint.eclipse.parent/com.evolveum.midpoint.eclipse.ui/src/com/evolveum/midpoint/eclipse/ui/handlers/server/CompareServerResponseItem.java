@@ -8,8 +8,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 
-import com.evolveum.midpoint.eclipse.runtime.api.CompareServerResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;

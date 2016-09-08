@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.util.DOMUtil;
 

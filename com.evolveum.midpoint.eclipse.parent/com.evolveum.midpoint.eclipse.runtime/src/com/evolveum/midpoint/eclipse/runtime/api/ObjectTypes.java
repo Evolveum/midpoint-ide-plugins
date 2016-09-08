@@ -76,6 +76,15 @@ public enum ObjectTypes {
 		return null;
 	}
 
+	public static ObjectTypes findByElementName(String w) {
+		for (ObjectTypes t : values()) {
+			if (t.elementName.equalsIgnoreCase(w)) {
+				return t;
+			}
+		}
+		return null;
+	}
+
 	public static String getElementNameForXsiType(String localPart) {
 		for (ObjectTypes type : values()) {
             if (type.typeName.equals(localPart)) {

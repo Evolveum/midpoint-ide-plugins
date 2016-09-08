@@ -56,6 +56,19 @@ public class MenuUtil {
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
+	public static void addReloadFromServer(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		List<IFile> files = getSelectedXmlFiles();
+		if (files == null || files.size() == 0) {
+			return;
+		}
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_RELOAD_FROM_SERVER, null, 
+						null, null, null, 
+						"Reload objects from server", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
 	public static void addComputeDifferences(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		items.add(new CommandContributionItem( 
 				new CommandContributionItemParameter(
@@ -124,28 +137,8 @@ public class MenuUtil {
 	}
 
 	public static void addSetAsAction(List<IContributionItem> items, IServiceLocator serviceLocator, int number) {
-		IWorkbench wb = PlatformUI.getWorkbench();
-		if (wb == null) {
-			return;
-		}
-		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-		if (win == null) {
-			return;
-		}
-		IWorkbenchPage page = win.getActivePage();
-		if (page == null) {
-			return;
-		}
-		ISelection selection = page.getSelection();
-		if (!(selection instanceof IStructuredSelection)) {
-			return;
-		}
-		IStructuredSelection ss = (IStructuredSelection) selection;
-		if (ss.size() != 1) {
-			return;
-		}
-		List<IFile> files = SelectionUtils.getXmlFiles(ss);
-		if (files.size() != 1) {
+		List<IFile> files = getSelectedXmlFiles();
+		if (files == null || files.size() != 1) {
 			return;
 		}
 		   
@@ -157,6 +150,31 @@ public class MenuUtil {
 						null, null, null, 
 						"Set as action " + number, 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static List<IFile> getSelectedXmlFiles() {
+		IWorkbench wb = PlatformUI.getWorkbench();
+		if (wb == null) {
+			return null;
+		}
+		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+		if (win == null) {
+			return null;
+		}
+		IWorkbenchPage page = win.getActivePage();
+		if (page == null) {
+			return null;
+		}
+		ISelection selection = page.getSelection();
+		if (!(selection instanceof IStructuredSelection)) {
+			return null;
+		}
+		IStructuredSelection ss = (IStructuredSelection) selection;
+		if (ss.size() != 1) {
+			return null;
+		}
+		List<IFile> files = SelectionUtils.getXmlFiles(ss);
+		return files;
 	}
 
 }

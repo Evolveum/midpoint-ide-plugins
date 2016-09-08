@@ -13,7 +13,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.IHandlerService;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler;
 import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;

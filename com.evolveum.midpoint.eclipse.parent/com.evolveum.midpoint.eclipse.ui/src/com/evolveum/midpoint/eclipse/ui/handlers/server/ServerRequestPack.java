@@ -6,7 +6,7 @@ import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.TextFragmentSource;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.WorkspaceFileSource;
 

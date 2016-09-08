@@ -13,8 +13,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;

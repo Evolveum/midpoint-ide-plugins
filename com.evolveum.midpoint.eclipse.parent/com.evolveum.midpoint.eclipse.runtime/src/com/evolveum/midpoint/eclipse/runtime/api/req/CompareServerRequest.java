@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.eclipse.runtime.api;
+package com.evolveum.midpoint.eclipse.runtime.api.req;
 
 import java.util.List;
 

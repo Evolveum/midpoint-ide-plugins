@@ -12,6 +12,10 @@
 			description="Downloads objects from midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.command.download">
 		</command>
+		<command name="Reload from server"
+			description="Downloads selected objects from midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.command.reloadFromServer">
+		</command>
 		<command name="Compute differences"
 			description="Computes differences between midPoint object(s) and the local one(s)"
 			id="com.evolveum.midpoint.eclipse.ui.command.computeDifferences">
@@ -57,6 +61,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.computeDifferences" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.ReloadHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.reloadFromServer" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.download" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"

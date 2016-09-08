@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.eclipse.runtime.api;
+package com.evolveum.midpoint.eclipse.runtime.api.req;
 
 public enum ServerAction {
 

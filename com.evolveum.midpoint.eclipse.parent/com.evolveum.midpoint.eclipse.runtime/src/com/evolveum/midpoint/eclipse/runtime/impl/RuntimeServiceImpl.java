@@ -30,20 +30,21 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
-import com.evolveum.midpoint.eclipse.runtime.api.CompareServerResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
-import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.NotApplicableServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerObject;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.TestConnectionResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.UploadServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.req.CompareServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.CompareServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.NotApplicableServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.SearchObjectsServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.TestConnectionResponse;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.UploadServerResponse;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class RuntimeServiceImpl implements RuntimeService {
@@ -238,40 +239,57 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 
 	@Override
-	public List<ServerObject> downloadObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) throws IOException {
+	public SearchObjectsServerResponse getObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) {
+		String query = "<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>";
+		return executeQuery(type, query, connectionParameters);
+	}
+	
+	private SearchObjectsServerResponse executeQuery(ObjectTypes type, String query, ConnectionParameters connectionParameters) {
 
-		HttpClient client = createClient(connectionParameters);
+		SearchObjectsServerResponse resp = new SearchObjectsServerResponse();
 
-		String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?include=row&include=jpegPhoto";
-		HttpPost request = new HttpPost(url);
+		try {
+			HttpClient client = createClient(connectionParameters);
 
-		HttpEntity body = new StringEntity("<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);
-		request.setEntity(body);
-		
-		System.out.println("Requesting objects from " + url);
-		HttpResponse response = client.execute(request);
+			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?include=row&include=jpegPhoto";
+			HttpPost request = new HttpPost(url);
 
-		StatusLine statusLine = response.getStatusLine();
-		System.out.println("Server response status line: " + statusLine);
-		if (!isSuccess(statusLine)) {
-			throw new IOException("Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase());
-		}
+			HttpEntity body = new StringEntity(query, ContentType.APPLICATION_XML);
+			request.setEntity(body);
 
-		List<ServerObject> rv = new ArrayList<>();
-		if (response.getEntity() != null) {
-			Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
-			List<Element> objectElements = DOMUtil.getChildElements(root, new QName(Constants.API_TYPES_NS, "object"));
-			for (Element objectElement : objectElements) {
-				fixObjectName(objectElement);
-				DOMUtil.fixNamespaceDeclarations(objectElement);
-				String xml = DOMUtil.serializeDOMToString(objectElement);
-				Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
-				String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
-				ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, type, xml);
-				rv.add(object);
+			System.out.println("Requesting objects from " + url);
+			HttpResponse response = client.execute(request);
+
+			StatusLine statusLine = response.getStatusLine();
+			System.out.println("Server response status line: " + statusLine);
+
+			resp.setStatusCode(statusLine.getStatusCode());
+			resp.setReasonPhrase(statusLine.getReasonPhrase());
+
+			if (!isSuccess(statusLine)) {
+				return resp;
 			}
+
+			List<ServerObject> objects = new ArrayList<>();
+			if (response.getEntity() != null) {
+				Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
+				List<Element> objectElements = DOMUtil.getChildElements(root, new QName(Constants.API_TYPES_NS, "object"));
+				for (Element objectElement : objectElements) {
+					fixObjectName(objectElement);
+					DOMUtil.fixNamespaceDeclarations(objectElement);
+					String xml = DOMUtil.serializeDOMToString(objectElement);
+					Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
+					String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
+					ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, type, xml);
+					objects.add(object);
+				}
+			}
+			resp.getServerObjects().addAll(objects);
+			return resp;
+		} catch (Throwable t) {
+			resp.setException(t);
 		}
-		return rv;
+		return resp;
 	}
 
 	public static void fixObjectName(Element objectElement) {
@@ -286,6 +304,52 @@ public class RuntimeServiceImpl implements RuntimeService {
 		objectElement.getOwnerDocument().renameNode(objectElement, Constants.COMMON_NS, elementName);
 		DOMUtil.removeXsiType(objectElement);
 	}
-	
+
+	@Override
+	public ServerResponse getCurrentVersionOfObject(String data, ConnectionParameters connectionParameters) {
+		try {
+			Document document = DOMUtil.parseDocument(data);
+			Element rootElement = document.getDocumentElement();
+			String nodeName = rootElement.getNodeName();
+			String localName = rootElement.getLocalName();
+			String uri = rootElement.getNamespaceURI();
+			String oid = rootElement.getAttribute("oid");
+			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid);
+			
+			if (StringUtils.isNotBlank(oid)) {
+				return getObject(oid, connectionParameters);
+			}
+			
+			Element nameElement = DOMUtil.getChildElement(rootElement, "name");
+			if (nameElement == null) {
+				return new NotApplicableServerResponse("There is no OID nor name in this object");
+			}
+			String name = nameElement.getTextContent();
+			System.out.println("Object name: " + name);
+			ObjectTypes type = ObjectTypes.findByElementName(localName);
+			if (type == null) {
+				return new NotApplicableServerResponse("Object with root element of <" + localName + "> cannot be updated - unknown object type");
+			}
+			
+			String query = "<query>"
+							+ "<filter>"
+								+ "<equal>"
+									+ "<path>name</path>"
+									+ "<value>" + name + "</value>"
+								+ "</equal>"
+							+ "</filter>"
+						+ "</query>";
+			
+			return executeQuery(type, query, connectionParameters);
+
+		} catch (Throwable t) {
+			return new ServerResponse(t);
+		}
+	}
+
+	@Override
+	public SearchObjectsServerResponse getObject(String oid, ConnectionParameters connectionParameters) {
+		return executeQuery(ObjectTypes.OBJECT, "<query><filter><inOid><value>"+oid+"</value></inOid></filter></query>", connectionParameters);
+	}
 	
 }

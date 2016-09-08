@@ -15,8 +15,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 
-import com.evolveum.midpoint.eclipse.runtime.api.ExecuteActionServerResponse;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;

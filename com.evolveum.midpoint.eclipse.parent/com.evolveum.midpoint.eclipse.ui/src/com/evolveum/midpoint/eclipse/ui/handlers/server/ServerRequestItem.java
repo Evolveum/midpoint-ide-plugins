@@ -2,9 +2,9 @@ package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
 import org.eclipse.core.runtime.IPath;
 
-import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
-import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.req.CompareServerRequest;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.Source;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Expander;
