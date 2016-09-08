@@ -53,7 +53,16 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 				items.add(new Separator());
 				items.addAll(actionItems);
 			}
-
+			
+			List<IContributionItem> setAsActionItems = new ArrayList<>();
+			MenuUtil.addSetAsAction(setAsActionItems, serviceLocator, 1);
+			MenuUtil.addSetAsAction(setAsActionItems, serviceLocator, 2);
+			MenuUtil.addSetAsAction(setAsActionItems, serviceLocator, 3);
+			if (!setAsActionItems.isEmpty()) {
+				items.add(new Separator());
+				items.addAll(setAsActionItems);
+			}
+			
 			items.add(new Separator());
 
 			MenuUtil.addTestConnections(items, serviceLocator);

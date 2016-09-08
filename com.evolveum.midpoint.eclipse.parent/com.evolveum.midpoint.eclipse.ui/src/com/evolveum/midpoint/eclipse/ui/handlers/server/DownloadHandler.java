@@ -45,11 +45,11 @@ public class DownloadHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IContainer root = determineDownloadRoot(event);
-		if (root == null) {
+		IContainer selected = getSelectedDirectory(event);
+		if (selected == null) {
 			return null;
 		}
-		System.out.println("Download root: " + root);
+		System.out.println("Selected directory: " + selected);
 		
 		Job job = new Job("Downloading from midPoint") {
 			protected IStatus run(IProgressMonitor monitor) {
@@ -77,7 +77,7 @@ main:				for (ObjectTypes type : typesToDownload) {
 							if (monitor.isCanceled()) {
 								break main;
 							}
-							IFile file = prepareOutputFileForCreation(object, root);
+							IFile file = prepareOutputFileForCreation(object, selected);
 							if (file.exists()) {
 								String overwrite = PluginPreferences.getOverwriteWhenDownloading();
 								if (noToAll || DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
@@ -110,7 +110,7 @@ main:				for (ObjectTypes type : typesToDownload) {
 							} else {
 								createParentFolders(file.getParent());
 							}
-							file.create(new ByteArrayInputStream(object.getXml().getBytes()), true, monitor);
+							file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
 							Console.log("File " + file + " was successfully created.");
 							count++;
 						}
@@ -129,8 +129,8 @@ main:				for (ObjectTypes type : typesToDownload) {
 		return null;
 	}
 	
-	private IFile prepareOutputFileForCreation(ServerObject object, IContainer root) {
-		IPath path = computeFilePath(object, root);
+	private IFile prepareOutputFileForCreation(ServerObject object, IContainer selected) {
+		IPath path = computeFilePath(object, selected);
 		System.out.println("Path = " + path);
 		if (path == null) {
 			return null;
@@ -150,7 +150,8 @@ main:				for (ObjectTypes type : typesToDownload) {
 	    }
 	}
 
-	private IPath computeFilePath(ServerObject object, IContainer root) {
+	private IPath computeFilePath(ServerObject object, IContainer selected) {
+		IPath root = ServerResponseItem.determineRoot(selected.getFullPath(), PluginPreferences.getDownloadedFilesRootDirectory());
 		String pattern = PluginPreferences.getDownloadedFileNamePattern();
 		if (StringUtils.isBlank(pattern)) {
 			return null;
@@ -164,7 +165,7 @@ main:				for (ObjectTypes type : typesToDownload) {
 				.replace("$s", fixComponent(PluginPreferences.getSelectedServerShortName()));
 		
 		System.out.println("pattern = " + pattern + ", resolvedPattern = " + patternResolved);
-		IPath rv = root.getFullPath().append(new Path(patternResolved));
+		IPath rv = root.append(new Path(patternResolved));
 		System.out.println("Final result = " + rv);
 		return rv;
 	}
@@ -217,7 +218,7 @@ main:				for (ObjectTypes type : typesToDownload) {
 		return rv;
 	}
 
-	private IContainer determineDownloadRoot(ExecutionEvent event) {
+	private IContainer getSelectedDirectory(ExecutionEvent event) {
 		ISelectionService selectionService = HandlerUtil.getActiveWorkbenchWindow(event).getSelectionService();
 		ISelection selection = selectionService.getSelection();
 		System.out.println("Current selection: " + selection.getClass());

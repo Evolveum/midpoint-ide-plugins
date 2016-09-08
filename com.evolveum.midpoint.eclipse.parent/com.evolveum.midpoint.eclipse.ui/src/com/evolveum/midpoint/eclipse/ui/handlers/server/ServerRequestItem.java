@@ -5,22 +5,23 @@ import org.eclipse.core.runtime.IPath;
 import com.evolveum.midpoint.eclipse.runtime.api.CompareServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.ServerRequest;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.Source;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Expander;
 
 public class ServerRequestItem {
 	
 	private ServerAction serverAction;
-	private ServerRequestSource source;
+	private Source source;
 	private int predefinedActionNumber;
 	
-	public ServerRequestItem(ServerAction action, ServerRequestSource source, int actionNumber) {
+	public ServerRequestItem(ServerAction action, Source source, int actionNumber) {
 		this.serverAction = action;
 		this.source = source;
 		this.predefinedActionNumber = actionNumber;
 	}
 	
-	public ServerRequestItem(ServerAction action, ServerRequestSource source) {
+	public ServerRequestItem(ServerAction action, Source source) {
 		this.serverAction = action;
 		this.source = source;
 	}

@@ -1,8 +1,8 @@
-package com.evolveum.midpoint.eclipse.ui.handlers.server;
+package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
 import org.eclipse.core.runtime.IPath;
 
-public abstract class ServerRequestSource {
+public abstract class Source {
 
 	public abstract IPath getPath();
 	public abstract String getDisplayName();

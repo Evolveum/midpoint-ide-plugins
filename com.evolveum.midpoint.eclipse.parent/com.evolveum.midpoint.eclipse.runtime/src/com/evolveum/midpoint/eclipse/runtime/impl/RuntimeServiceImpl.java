@@ -242,7 +242,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 		HttpClient client = createClient(connectionParameters);
 
-		String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search";
+		String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?include=row&include=jpegPhoto";
 		HttpPost request = new HttpPost(url);
 
 		HttpEntity body = new StringEntity("<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>", ContentType.APPLICATION_XML);

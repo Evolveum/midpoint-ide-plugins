@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.eclipse.ui.handlers.server;
+package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,12 +11,12 @@ import org.eclipse.core.runtime.IPath;
 
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
-public class PhysicalFileServerRequestSource extends ServerRequestSource {
+public class PhysicalFileSource extends Source {
 
 	private final String filename;				// not null
 	private final IFile file;					// might be null
 	
-	public PhysicalFileServerRequestSource(String filename) {
+	public PhysicalFileSource(String filename) {
 		this.filename = filename;
 		this.file = Util.physicalToLogicalFile(filename);
 	}

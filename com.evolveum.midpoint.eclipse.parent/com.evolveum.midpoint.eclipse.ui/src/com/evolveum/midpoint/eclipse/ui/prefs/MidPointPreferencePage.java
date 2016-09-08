@@ -55,6 +55,11 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 		{ "Three levels above current directory", VALUE_CURRENT_DIRECTORY_PLUS_3 }
 	};
 
+	public static final String[][] ROOT_DIRECTORY_OPTIONS_FOR_SELECTION = new String[][] { 
+		{ "Current project", VALUE_CURRENT_PROJECT }, 
+		{ "Current directory", VALUE_CURRENT_DIRECTORY },
+	};
+
 	public MidPointPreferencePage() {
 		super(GRID);
 	}

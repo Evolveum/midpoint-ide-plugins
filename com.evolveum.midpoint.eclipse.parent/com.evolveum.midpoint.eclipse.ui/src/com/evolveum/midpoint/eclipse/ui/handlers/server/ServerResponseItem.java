@@ -103,7 +103,11 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 
 	private IPath determineRoot(IPath source) {
 		String rootSpec = getRootSpecification();
-		if (StringUtils.isBlank(rootSpec) || MidPointPreferencePage.VALUE_CURRENT_DIRECTORY.equals(rootSpec)) {
+		return determineRoot(source, rootSpec);
+	}
+
+	public static IPath determineRoot(IPath source, String rootSpec) {
+		if (MidPointPreferencePage.VALUE_CURRENT_DIRECTORY.equals(rootSpec)) {
 			return goUp(source, 1);
 		} else if (MidPointPreferencePage.VALUE_CURRENT_DIRECTORY_PLUS_1.equals(rootSpec)) {
 			return goUp(source, 2);
@@ -113,7 +117,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 			return goUp(source, 4);
 		} 
 		int keep;
-		if (MidPointPreferencePage.VALUE_CURRENT_PROJECT.equals(rootSpec)) {
+		if (StringUtils.isBlank(rootSpec) || MidPointPreferencePage.VALUE_CURRENT_PROJECT.equals(rootSpec)) {
 			keep = 1;
 		} else if (MidPointPreferencePage.VALUE_CURRENT_PROJECT_MINUS_1.equals(rootSpec)) {
 			keep = 2;
@@ -125,12 +129,13 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 			throw new IllegalStateException("Invalid root specification: " + rootSpec);
 		}
 		if (source.segmentCount() <= keep) {
-			keep = source.segmentCount()-1;
+			return source;
+		} else {
+			return source.uptoSegment(keep);
 		}
-		return source.uptoSegment(keep);
 	}
 
-	private IPath goUp(IPath source, int levels) {
+	private static IPath goUp(IPath source, int levels) {
 		while (source.segmentCount() > 1 && levels > 0) {
 			source = source.removeLastSegments(1);
 			levels--;

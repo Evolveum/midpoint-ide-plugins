@@ -1,13 +1,13 @@
-package com.evolveum.midpoint.eclipse.ui.handlers.server;
+package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
 import org.eclipse.core.runtime.IPath;
 
-public class TextFragmentServerRequestSource extends ServerRequestSource {
+public class TextFragmentSource extends Source {
 
 	private final String text;			// not null
 	private final IPath path;			// optional (to know display name)
 	
-	public TextFragmentServerRequestSource(String text, IPath path) {
+	public TextFragmentSource(String text, IPath path) {
 		this.text = text;
 		this.path = path;
 	}

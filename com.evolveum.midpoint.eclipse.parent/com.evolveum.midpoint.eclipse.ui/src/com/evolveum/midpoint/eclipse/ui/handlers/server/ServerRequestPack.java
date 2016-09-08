@@ -7,6 +7,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
 import com.evolveum.midpoint.eclipse.runtime.api.ServerAction;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.TextFragmentSource;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.WorkspaceFileSource;
 
 public class ServerRequestPack {
 	
@@ -40,13 +42,13 @@ public class ServerRequestPack {
 	public static ServerRequestPack fromWorkspaceFiles(List<IFile> files, ServerAction serverAction) {
 		List<ServerRequestItem> items = new ArrayList<>();
 		for (IFile file : files) {
-			items.add(new ServerRequestItem(serverAction, new WorkspaceFileServerRequestSource(file)));
+			items.add(new ServerRequestItem(serverAction, new WorkspaceFileSource(file)));
 		}
 		return new ServerRequestPack(items);
 	}
 
 	public static ServerRequestPack fromTextFragment(String textFragment, IPath path, ServerAction serverAction) {
-		ServerRequestItem item = new ServerRequestItem(serverAction, new TextFragmentServerRequestSource(textFragment, path));
+		ServerRequestItem item = new ServerRequestItem(serverAction, new TextFragmentSource(textFragment, path));
 		return new ServerRequestPack(item);
 	}
 

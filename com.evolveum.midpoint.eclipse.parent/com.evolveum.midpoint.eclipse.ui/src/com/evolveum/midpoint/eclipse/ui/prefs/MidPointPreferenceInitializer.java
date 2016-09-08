@@ -17,8 +17,9 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "objects/$T/$n.xml");
+		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILES_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT, "100");
-		store.setDefault(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD, "users,shadows,reports,reportOutputs,connectors,accessCertificationCampaigns,lookupTables,nodes");
+		store.setDefault(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD, "users,shadows,reportOutputs,connectors,accessCertificationCampaigns,nodes");
 		store.setDefault(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING, DownloadPreferencePage.VALUE_ASK);
 		
 		store.setDefault(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN, "diff/$F.$t");

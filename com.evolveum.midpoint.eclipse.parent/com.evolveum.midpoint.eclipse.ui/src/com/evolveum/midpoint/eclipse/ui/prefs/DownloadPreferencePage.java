@@ -16,6 +16,8 @@ import com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator;
 public class DownloadPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 	
 	public static final String DOWNLOADED_FILE_NAME_PATTERN = "downloadedFileNamePattern";
+	public static final String DOWNLOADED_FILES_ROOT_DIRECTORY = "downloadedFilesRootDirectory";
+	
 	public static final String DOWNLOADED_OBJECTS_LIMIT = "downloadedObjectsLimit";
 	public static final String INCLUDE_IN_DOWNLOAD = "includeInDownload";
 	public static final String EXCLUDE_FROM_DOWNLOAD = "excludeFromDownload";
@@ -43,9 +45,11 @@ public class DownloadPreferencePage extends FieldEditorPreferencePage implements
 		patternInfo.setText("Use $t for object type singular ('user'), $T plural ('users'), $n for object name, $o for OID, $s for server.");
 		patternInfo.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 		
+		addField(new ComboFieldEditor(DOWNLOADED_FILES_ROOT_DIRECTORY, "Directory considered root", MidPointPreferencePage.ROOT_DIRECTORY_OPTIONS_FOR_SELECTION, getFieldEditorParent()));
+		
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-
+		
 		addField(new StringFieldEditor(INCLUDE_IN_DOWNLOAD, "Types to download", getFieldEditorParent()));
 		addField(new StringFieldEditor(EXCLUDE_FROM_DOWNLOAD, "Types NOT to download", getFieldEditorParent()));
 		

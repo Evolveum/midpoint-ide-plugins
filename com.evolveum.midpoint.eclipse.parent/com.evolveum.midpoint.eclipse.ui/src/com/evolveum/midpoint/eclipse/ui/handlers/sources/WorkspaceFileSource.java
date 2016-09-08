@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.eclipse.ui.handlers.server;
+package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +10,11 @@ import org.eclipse.core.runtime.IPath;
 
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
-public class WorkspaceFileServerRequestSource extends ServerRequestSource {
+public class WorkspaceFileSource extends Source {
 
 	private final IFile file;			// not null
 	
-	public WorkspaceFileServerRequestSource(IFile file) {
+	public WorkspaceFileSource(IFile file) {
 		this.file = file;
 	}
 

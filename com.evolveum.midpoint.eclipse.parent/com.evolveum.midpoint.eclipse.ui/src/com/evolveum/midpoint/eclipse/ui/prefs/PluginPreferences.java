@@ -101,6 +101,10 @@ public class PluginPreferences {
 	public static String getDownloadedFileNamePattern() {
 		return store().getString(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN);
 	}
+	
+	public static String getDownloadedFilesRootDirectory() {
+		return store().getString(DownloadPreferencePage.DOWNLOADED_FILES_ROOT_DIRECTORY);
+	}
 
 	public static int getDownloadedObjectsLimit() {
 		return store().getInt(DownloadPreferencePage.DOWNLOADED_OBJECTS_LIMIT);
@@ -217,6 +221,10 @@ public class PluginPreferences {
 		} else {
 			return "unnamed";
 		}
+	}
+
+	public static void setActionFile(int actionNumber, String path) {
+		store().setValue(ActionsPreferencePage.ACTION_FILE_PREFIX + actionNumber, path);
 	}
 
 }

@@ -81,8 +81,7 @@ public class Util {
 	}
 
 	public static void processUnexpectedException(Throwable e) {
-		// TODO implement seriously
-		e.printStackTrace();
+		Console.logError("Unexpected error occurred", e);
 	}
 
 	public static IFile physicalToLogicalFile(String filename) {

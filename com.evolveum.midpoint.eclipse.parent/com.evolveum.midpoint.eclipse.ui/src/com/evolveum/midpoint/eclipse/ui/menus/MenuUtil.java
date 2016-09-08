@@ -5,14 +5,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.services.IServiceLocator;
 
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
-import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 
 public class MenuUtil {
@@ -20,7 +27,7 @@ public class MenuUtil {
 	public static void addUploadOrExecute(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		items.add(new CommandContributionItem( 
 				new CommandContributionItemParameter(
-						serviceLocator, null, FileRequestHandler.CMD_UPLOAD_OR_EXECUTE, null, 
+						serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, null, 
 						null, null, null, 
 						"Upload/execute", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
@@ -30,10 +37,10 @@ public class MenuUtil {
 		int actionNumber = PluginPreferences.getActionAfterUpload();
 		if (actionNumber != 0 && StringUtils.isNotBlank(PluginPreferences.getActionFile(actionNumber))) {
 			Map<String,String> parameters = new HashMap<>();
-			parameters.put(FileRequestHandler.PARAM_WITH_ACTION, "true");
+			parameters.put(PluginConstants.PARAM_WITH_ACTION, "true");
 			items.add(new CommandContributionItem( 
 					new CommandContributionItemParameter(
-							serviceLocator, null, FileRequestHandler.CMD_UPLOAD_OR_EXECUTE, parameters, 
+							serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
 							null, null, null, 
 							"Upload/execute with action", 
 							null, null, CommandContributionItem.STYLE_PUSH, null, true)));
@@ -52,7 +59,7 @@ public class MenuUtil {
 	public static void addComputeDifferences(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		items.add(new CommandContributionItem( 
 				new CommandContributionItemParameter(
-						serviceLocator, null, FileRequestHandler.CMD_COMPUTE_DIFFERENCE, null, 
+						serviceLocator, null, PluginConstants.CMD_COMPUTE_DIFFERENCE, null, 
 						null, null, null, 
 						"Compute differences", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
@@ -62,7 +69,7 @@ public class MenuUtil {
 		String serverName = PluginPreferences.getSelectedServerName();
 		CommandContributionItem dummy = new CommandContributionItem( 
 				new CommandContributionItemParameter(
-						serviceLocator, null, FileRequestHandler.CMD_NOOP, null, 
+						serviceLocator, null, PluginConstants.CMD_NOOP, null, 
 						null, null, null, 
 						"Selected midPoint server: " + serverName, 
 						null, null, CommandContributionItem.STYLE_PUSH, null, false)) {
@@ -79,10 +86,10 @@ public class MenuUtil {
 	public static void addExecuteAction(List<IContributionItem> items, IServiceLocator serviceLocator, int actionNumber) {
 		if (StringUtils.isNotBlank(PluginPreferences.getActionFile(actionNumber))) {
 			Map<String,String> parameters = new HashMap<>();
-			parameters.put(FileRequestHandler.PARAM_ACTION_NUMBER, String.valueOf(actionNumber));
+			parameters.put(PluginConstants.PARAM_ACTION_NUMBER, String.valueOf(actionNumber));
 			items.add(new CommandContributionItem( 
 					new CommandContributionItemParameter(
-							serviceLocator, null, FileRequestHandler.CMD_EXECUTE_ACTION, parameters, 
+							serviceLocator, null, PluginConstants.CMD_EXECUTE_ACTION, parameters, 
 							null, null, null, 
 							"Execute predefined action " + actionNumber, 
 							null, null, CommandContributionItem.STYLE_PUSH, null, true)));
@@ -116,5 +123,40 @@ public class MenuUtil {
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
+	public static void addSetAsAction(List<IContributionItem> items, IServiceLocator serviceLocator, int number) {
+		IWorkbench wb = PlatformUI.getWorkbench();
+		if (wb == null) {
+			return;
+		}
+		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+		if (win == null) {
+			return;
+		}
+		IWorkbenchPage page = win.getActivePage();
+		if (page == null) {
+			return;
+		}
+		ISelection selection = page.getSelection();
+		if (!(selection instanceof IStructuredSelection)) {
+			return;
+		}
+		IStructuredSelection ss = (IStructuredSelection) selection;
+		if (ss.size() != 1) {
+			return;
+		}
+		List<IFile> files = SelectionUtils.getXmlFiles(ss);
+		if (files.size() != 1) {
+			return;
+		}
+		   
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_ACTION_NUMBER, String.valueOf(number));
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SET_AS_ACTION, parameters, 
+						null, null, null, 
+						"Set as action " + number, 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
 
 }
