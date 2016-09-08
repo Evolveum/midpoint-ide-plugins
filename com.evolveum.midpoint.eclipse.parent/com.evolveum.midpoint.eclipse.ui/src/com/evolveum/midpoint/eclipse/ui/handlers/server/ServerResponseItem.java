@@ -186,7 +186,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 
 	private boolean conflictingFileExists() {
 		for (IFile file : getFiles()) {
-			if (file.exists()) {
+			if (file != null && file.exists()) {
 				return true;
 			}
 		}

@@ -62,7 +62,7 @@ public class PatternMatchListenerDelegate implements IPatternMatchListenerDelega
 				IFile file = entry.files.get(i);
 				String editorId = entry.editorIds.get(i);
 				int start = text.indexOf(label);
-				if (start >= 0) {
+				if (start >= 0 && file != null) {
 					console.addHyperlink(new FileLink(file, editorId, -1, -1, -1), event.getOffset() + start, label.length());					
 				}
 			}

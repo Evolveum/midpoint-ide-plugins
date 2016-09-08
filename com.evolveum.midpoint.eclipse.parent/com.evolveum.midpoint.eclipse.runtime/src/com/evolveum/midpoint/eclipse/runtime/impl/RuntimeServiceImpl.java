@@ -167,6 +167,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 				if (opts.isEmpty()) {
 					throw new IllegalStateException("None of compare options are selected.");
 				}
+				opts.add("compareOptions=ignoreOperationalItems");
 				String compareOptions = StringUtils.join(opts, "&");
 				List<String> ignore = new ArrayList<>();
 				for (String item : csr.getIgnoreItems()) {

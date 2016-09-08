@@ -25,7 +25,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 
 	public static final String OUTPUT_TYPE_LOG = "log";
 	public static final String OUTPUT_TYPE_DATA = "data.xml";
-	public static final String OUTPUT_TYPE_CONSOLE = "console";
+	public static final String OUTPUT_TYPE_CONSOLE = "console.log";
 	public static final String OUTPUT_TYPE_RESULT = "result.xml";
 
 	private String logfilename;
