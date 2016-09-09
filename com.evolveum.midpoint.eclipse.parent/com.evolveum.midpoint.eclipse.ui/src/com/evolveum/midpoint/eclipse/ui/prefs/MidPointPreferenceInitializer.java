@@ -32,6 +32,8 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE, "");
 		
 		store.setDefault(MidPointPreferencePage.SERVERS, ServerInfo.createDefaultXml());
+		
+		store.setDefault(MiscPreferencePage.GENERATED_FILE_NAME_PATTERN, "scratch/$n.xml");
 	}
 	
 }

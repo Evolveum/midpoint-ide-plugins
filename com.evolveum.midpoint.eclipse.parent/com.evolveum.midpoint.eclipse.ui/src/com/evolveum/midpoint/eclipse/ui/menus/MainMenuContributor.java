@@ -40,6 +40,7 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 
 			MenuUtil.addUploadOrExecute(items, serviceLocator);
 			MenuUtil.addUploadOrExecuteWithAction(items, serviceLocator);
+			MenuUtil.addBrowse(items, serviceLocator);
 			MenuUtil.addDownload(items, serviceLocator);
 			MenuUtil.addReloadFromServer(items, serviceLocator);
 			MenuUtil.addComputeDifferences(items, serviceLocator);		

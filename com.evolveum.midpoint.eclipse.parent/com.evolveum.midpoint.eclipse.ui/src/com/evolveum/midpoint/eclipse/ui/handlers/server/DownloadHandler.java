@@ -12,9 +12,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -34,6 +32,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.SearchObjectsServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
+import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -58,86 +57,92 @@ public class DownloadHandler extends AbstractHandler {
 				List<ObjectTypes> typesToDownload = determineTypesToDownload();
 				Console.log("Downloading object types: " + typesToDownload.stream().map(type -> type.getElementName()).collect(Collectors.toList()));
 				int limit = PluginPreferences.getDownloadedObjectsLimit();
-				int count = 0;
 				
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
-
+				
+				List<ServerObject> allObjects = new ArrayList<>();
 				monitor.beginTask("Downloading", typesToDownload.size());
-				try {
-					boolean yesToAll = false, noToAll = false;
-main:				for (ObjectTypes type : typesToDownload) {
-						if (monitor.isCanceled()) {
-							break;
-						}
-						monitor.subTask("Downloading " + type.getRestType());
-						SearchObjectsServerResponse serverResponse = runtime.getObjects(type, limit, connectionParameters);
-						
-						if (!serverResponse.isSuccess()) {
-							Console.logError("Couldn't download objects of type " + type + ": " + serverResponse.getErrorDescription(), serverResponse.getException());
-							continue;
-						}
-						
-						List<ServerObject> objects = serverResponse.getServerObjects();
-						
-						monitor.subTask("Writing " + type.getRestType());
-						for (ServerObject object : objects) {
-							if (monitor.isCanceled()) {
-								break main;
-							}
-							IFile file = prepareOutputFileForCreation(object, selected);
-							if (file.exists()) {
-								String overwrite = PluginPreferences.getOverwriteWhenDownloading();
-								if (noToAll || DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
-									Console.log("File " + file + " already exists, skipping.");
-									continue;
-								}
-								final Holder<Integer> responseHolder = new Holder<>();
-								if (DownloadPreferencePage.VALUE_ASK.equals(overwrite) && !yesToAll) {
-									Display.getDefault().syncExec(new Runnable() {
-										public void run() {
-											MessageDialog dialog = new MessageDialog(
-													null, "Confirm overwrite", null, "Are you sure to overwrite " + file + "?",
-													MessageDialog.QUESTION,
-													new String[] {"Yes", "No", "Yes to all", "No to all", "Cancel"},
-													0);
-											responseHolder.setValue(dialog.open());
-										}
-									});
-									switch (responseHolder.getValue()) {
-									case 2: yesToAll = true;		// Yes to all
-									case 0: break;					// Yes
-									case 3: noToAll = true;			// No to all
-									case 1: 						// No
-										Console.log("File " + file + " already exists, skipping.");
-										continue;
-									case 4: break main;				// Cancel
-									}
-								}
-								file.delete(true, monitor);
-							} else {
-								createParentFolders(file.getParent());
-							}
-							file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
-							Console.log("File " + file + " was successfully created.");
-							count++;
-						}
-						
-						monitor.worked(1);
+				for (ObjectTypes type : typesToDownload) {
+					if (monitor.isCanceled()) {
+						break;
 					}
-				} catch (Throwable t) {
-					Util.processUnexpectedException(t);
+					monitor.subTask("Downloading " + type.getRestType());
+					SearchObjectsServerResponse serverResponse = runtime.getObjects(type, limit, connectionParameters);
+					
+					if (!serverResponse.isSuccess()) {
+						Console.logError("Couldn't download objects of type " + type + ": " + serverResponse.getErrorDescription(), serverResponse.getException());
+					} else {
+						allObjects.addAll(serverResponse.getServerObjects());
+					}
 				}
-				Console.log("Downloaded " + count + " object(s)");
+					
+				writeFiles(allObjects, selected, monitor);
 				return Status.OK_STATUS;
 			}
+
 		};
 		job.schedule();
 		
 		return null;
 	}
 	
-	private IFile prepareOutputFileForCreation(ServerObject object, IContainer selected) {
+	public static void writeFiles(List<ServerObject> allObjects, IContainer root, IProgressMonitor monitor) {
+		monitor.beginTask("Writing files", allObjects.size());
+		boolean yesToAll = false, noToAll = false;
+		int count = 0;
+		try {
+main:		for (ServerObject object : allObjects) {
+				monitor.subTask("Writing " + object.getName());
+				if (monitor.isCanceled()) {
+					break;
+				}
+				IFile file = prepareOutputFileForCreation(object, root);
+				if (file.exists()) {
+					String overwrite = PluginPreferences.getOverwriteWhenDownloading();
+					if (noToAll || DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
+						Console.log("File " + file + " already exists, skipping.");
+						continue;
+					}
+					final Holder<Integer> responseHolder = new Holder<>();
+					if (DownloadPreferencePage.VALUE_ASK.equals(overwrite) && !yesToAll) {
+						Display.getDefault().syncExec(new Runnable() {
+							public void run() {
+								MessageDialog dialog = new MessageDialog(
+										null, "Confirm overwrite", null, "Are you sure to overwrite " + file + "?",
+										MessageDialog.QUESTION,
+										new String[] {"Yes", "No", "Yes to all", "No to all", "Cancel"},
+										0);
+								responseHolder.setValue(dialog.open());
+							}
+						});
+						switch (responseHolder.getValue()) {
+						case 2: yesToAll = true;		// Yes to all
+						case 0: break;					// Yes
+						case 3: noToAll = true;			// No to all
+						case 1: 						// No
+							Console.log("File " + file + " already exists, skipping.");
+							continue;
+						case 4: break main;				// Cancel
+						}
+					}
+					file.delete(true, monitor);
+				} else {
+					ResourceUtils.createParentFolders(file.getParent());
+				}
+				file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
+				Console.log("File " + file + " was successfully created.");
+				count++;
+				monitor.worked(1);
+			}
+		} catch (Throwable t) {
+			Util.processUnexpectedException(t);
+		}
+		Console.log("Downloaded " + count + " object(s)");
+	}
+
+	
+	private static IFile prepareOutputFileForCreation(ServerObject object, IContainer selected) {
 		IPath path = computeFilePath(object, selected);
 		System.out.println("Path = " + path);
 		if (path == null) {
@@ -147,19 +152,8 @@ main:				for (ObjectTypes type : typesToDownload) {
 	}
 
 
-	public void createParentFolders(IContainer container) throws CoreException {
-		if (!(container instanceof IFolder)) {
-			return;
-		}
-		IFolder folder = (IFolder) container;
-	    if (!folder.exists()) {
-	        createParentFolders(folder.getParent());
-	        folder.create(true, true, null);
-	    }
-	}
-
-	private IPath computeFilePath(ServerObject object, IContainer selected) {
-		IPath root = ServerResponseItem.determineRoot(selected.getFullPath(), PluginPreferences.getDownloadedFilesRootDirectory());
+	private static IPath computeFilePath(ServerObject object, IContainer selected) {
+		IPath root = ResourceUtils.determineRoot(selected.getFullPath(), PluginPreferences.getDownloadedFilesRootDirectory());
 		String pattern = PluginPreferences.getDownloadedFileNamePattern();
 		if (StringUtils.isBlank(pattern)) {
 			return null;

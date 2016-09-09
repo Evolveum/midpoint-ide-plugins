@@ -85,10 +85,10 @@ public enum ObjectTypes {
 		return null;
 	}
 
-	public static String getElementNameForXsiType(String localPart) {
+	public static ObjectTypes findByXsiType(String localPart) {
 		for (ObjectTypes type : values()) {
             if (type.typeName.equals(localPart)) {
-                return type.elementName;
+                return type;
             }
         }
         return null;	

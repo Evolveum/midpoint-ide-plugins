@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IFile;
 
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.CompareServerResponse;
+import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;
@@ -61,16 +62,16 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 	@Override
 	public void createFiles() {
 		if (response.getLocalToRemote() != null) {
-			createOutputFile(localToRemoteFile, response.getLocalToRemote());
+			ResourceUtils.createOutputFile(localToRemoteFile, response.getLocalToRemote());
 		}
 		if (response.getRemoteToLocal() != null) {
-			createOutputFile(remoteToLocalFile, response.getRemoteToLocal());
+			ResourceUtils.createOutputFile(remoteToLocalFile, response.getRemoteToLocal());
 		}
 		if (response.getLocal() != null) {
-			createOutputFile(localFile, response.getLocal());
+			ResourceUtils.createOutputFile(localFile, response.getLocal());
 		}
 		if (response.getRemote() != null) {
-			createOutputFile(remoteFile, response.getRemote());
+			ResourceUtils.createOutputFile(remoteFile, response.getRemote());
 		}
 	}
 

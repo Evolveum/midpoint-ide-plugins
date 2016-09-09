@@ -25,6 +25,7 @@ public class PluginPreferences {
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
 	public static final String DONWLOAD_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.download";
 	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
+	public static final String MISC_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.misc";
 
 	public static ConnectionParameters getConnectionParameters() {
 		ServerInfo s = getSelectedServer();
@@ -96,7 +97,10 @@ public class PluginPreferences {
 	public static String getShowComparisonResultMessageBox() {
 		return store().getString(MidPointPreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX);
 	}
-	
+
+	public static String getGeneratedFileNamePattern() {
+		return store().getString(MiscPreferencePage.GENERATED_FILE_NAME_PATTERN);
+	}
 
 	public static String getDownloadedFileNamePattern() {
 		return store().getString(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN);

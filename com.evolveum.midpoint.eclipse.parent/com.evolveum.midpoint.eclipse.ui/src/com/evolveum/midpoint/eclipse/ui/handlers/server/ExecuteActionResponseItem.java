@@ -17,6 +17,7 @@ import org.eclipse.ui.ide.IDE;
 
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;
@@ -88,10 +89,10 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 
 	@Override
 	public void createFiles() {
-		createOutputFile(opResultFile, response.getOperationResult());
-		createOutputFile(consoleFile, response.getConsoleOutput());
-		createOutputFile(dataFile, response.getDataOutput());
-		createOutputFile(logFile, getLogFileFragment(logfilename, logPosition));
+		ResourceUtils.createOutputFile(opResultFile, response.getOperationResult());
+		ResourceUtils.createOutputFile(consoleFile, response.getConsoleOutput());
+		ResourceUtils.createOutputFile(dataFile, response.getDataOutput());
+		ResourceUtils.createOutputFile(logFile, getLogFileFragment(logfilename, logPosition));
 	}
 	
 	private byte[] getLogFileFragment(String logfilename, long logPosition) {

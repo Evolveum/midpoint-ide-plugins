@@ -4,12 +4,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -27,11 +31,13 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
+import com.evolveum.midpoint.eclipse.runtime.api.QueryInterpretation;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.CompareServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
@@ -49,6 +55,17 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class RuntimeServiceImpl implements RuntimeService {
 	
+	public static final QName Q_QUERY = new QName(Constants.QUERY_NS, "query");
+	public static final QName Q_FILTER = new QName(Constants.QUERY_NS, "filter");
+	public static final QName Q_IN_OID = new QName(Constants.QUERY_NS, "inOid");
+	public static final QName Q_VALUE = new QName(Constants.QUERY_NS, "value");
+	public static final QName Q_OR = new QName(Constants.QUERY_NS, "or");
+	public static final QName Q_AND = new QName(Constants.QUERY_NS, "and");
+	public static final QName Q_SUBSTRING = new QName(Constants.QUERY_NS, "substring");
+	public static final QName Q_MATCHING = new QName(Constants.QUERY_NS, "matching");
+	public static final QName Q_PATH = new QName(Constants.QUERY_NS, "path");
+	public static final QName Q_TYPE = new QName(Constants.QUERY_NS, "type");
+
 	public static final String REST = "/ws/rest";
 
 	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
@@ -247,6 +264,12 @@ public class RuntimeServiceImpl implements RuntimeService {
 	private SearchObjectsServerResponse executeQuery(ObjectTypes type, String query, ConnectionParameters connectionParameters) {
 
 		SearchObjectsServerResponse resp = new SearchObjectsServerResponse();
+		
+		if (query == null) {
+			resp.setStatusCode(200);
+			resp.setReasonPhrase("No query, no objects");
+			return resp;
+		}
 
 		try {
 			HttpClient client = createClient(connectionParameters);
@@ -275,12 +298,15 @@ public class RuntimeServiceImpl implements RuntimeService {
 				Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
 				List<Element> objectElements = DOMUtil.getChildElements(root, new QName(Constants.API_TYPES_NS, "object"));
 				for (Element objectElement : objectElements) {
-					fixObjectName(objectElement);
+					ObjectTypes realType = determineObjectType(objectElement);
+					if (realType != null) {
+						fixObjectName(objectElement, realType);
+					}
 					DOMUtil.fixNamespaceDeclarations(objectElement);
 					String xml = DOMUtil.serializeDOMToString(objectElement);
 					Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
 					String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
-					ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, type, xml);
+					ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, realType != null ? realType : type, xml);
 					objects.add(object);
 				}
 			}
@@ -291,17 +317,20 @@ public class RuntimeServiceImpl implements RuntimeService {
 		}
 		return resp;
 	}
-
-	public static void fixObjectName(Element objectElement) {
+	
+	public static ObjectTypes determineObjectType(Element objectElement) {
 		QName xsitype = DOMUtil.resolveXsiType(objectElement);
 		if (xsitype == null) {
+			return null;
+		}
+		return ObjectTypes.findByXsiType(xsitype.getLocalPart());
+	}
+
+	public static void fixObjectName(Element objectElement, ObjectTypes type) {
+		if (type == null) {
 			return;
 		}
-		String elementName = ObjectTypes.getElementNameForXsiType(xsitype.getLocalPart());
-		if (elementName == null) {
-			return;
-		}
-		objectElement.getOwnerDocument().renameNode(objectElement, Constants.COMMON_NS, elementName);
+		objectElement.getOwnerDocument().renameNode(objectElement, Constants.COMMON_NS, type.getElementName());
 		DOMUtil.removeXsiType(objectElement);
 	}
 
@@ -350,6 +379,111 @@ public class RuntimeServiceImpl implements RuntimeService {
 	@Override
 	public SearchObjectsServerResponse getObject(String oid, ConnectionParameters connectionParameters) {
 		return executeQuery(ObjectTypes.OBJECT, "<query><filter><inOid><value>"+oid+"</value></inOid></filter></query>", connectionParameters);
+	}
+
+	@Override
+	public SearchObjectsServerResponse getList(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, ConnectionParameters connectionParameters) {
+		if (query == null) {
+			query = "";
+		}
+		
+		ObjectTypes realType = ObjectTypes.OBJECT;
+		if (!CollectionUtils.isEmpty(types)) {
+			if (types.size() == 1) {
+				realType = types.iterator().next();
+			} else if (interpretation == QueryInterpretation.XML_QUERY) {
+				throw new IllegalArgumentException("XML Query is not compatible with more than one type");
+			}
+		}
+		
+		String realQuery;
+		switch (interpretation) {
+		case XML_QUERY:
+			realQuery = query;			// TODO include limit
+			break;
+		case OIDS:
+			realQuery = oidsQuery(getLines(query), limit);
+			break;
+		case NAMES:
+			realQuery = namesQuery(types, getLines(query), limit);
+			break;
+		default:
+			realQuery = namesOrOidsQuery(types, getLines(query), limit);
+		}
+		System.out.println("Query: " + realQuery);
+		return executeQuery(realType, realQuery, connectionParameters);
+	}
+	
+	private String namesOrOidsQuery(Collection<ObjectTypes> types, List<String> lines, int limit) {
+		return namesOidsQueryInternal(types, lines, lines, limit);
+	}
+
+	private String namesQuery(Collection<ObjectTypes> types, List<String> names, int limit) {
+		return namesOidsQueryInternal(types, names, Collections.emptyList(), limit);
+	}
+	
+	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, int limit) {
+		Document doc = DOMUtil.getDocument(Q_QUERY);
+		Element query = doc.getDocumentElement();
+		
+		boolean typesClauseRequired = !CollectionUtils.isEmpty(types) && types.size() > 1;
+		boolean dataClauseRequired = !names.isEmpty() || !oids.isEmpty();
+		
+		if (typesClauseRequired || dataClauseRequired) {
+			Element filter = DOMUtil.createSubElement(query, Q_FILTER);
+
+			Element dataClauseParent;
+			if (typesClauseRequired) {
+				Element and = DOMUtil.createSubElement(filter, Q_AND);
+				Element or1 = DOMUtil.createSubElement(and, Q_OR);
+				for (ObjectTypes type : types) {
+					Element type1 = DOMUtil.createSubElement(or1, Q_TYPE);
+					Element type2 = DOMUtil.createSubElement(type1, Q_TYPE);
+					DOMUtil.setQNameValue(type2, new QName(Constants.COMMON_NS, type.getTypeName()));
+				}
+				dataClauseParent = and;
+			} else {
+				dataClauseParent = filter;
+			}
+
+			if (dataClauseRequired) {
+				Element or = DOMUtil.createSubElement(dataClauseParent, Q_OR);
+				for (String name : names) {
+					Element substring = DOMUtil.createSubElement(or, Q_SUBSTRING);
+					DOMUtil.createSubElement(substring, Q_MATCHING).setTextContent("polyStringNorm");
+					DOMUtil.createSubElement(substring, Q_PATH).setTextContent("name");			
+					DOMUtil.createSubElement(substring, Q_VALUE).setTextContent(name);
+				}
+				if (!oids.isEmpty()) {
+					Element inOid = DOMUtil.createSubElement(or, Q_IN_OID);	
+					for (String oid : oids) {
+						DOMUtil.createSubElement(inOid, Q_VALUE).setTextContent(oid);
+					}
+				}
+			}
+		}
+		// TODO limit
+		return DOMUtil.serializeDOMToString(doc);	
+	}
+
+	private String oidsQuery(List<String> oids, int limit) {
+		return namesOidsQueryInternal(null, Collections.emptyList(), oids, limit);
+	}
+
+	private static List<String> getLines(String text) {
+		List<String> rv = new ArrayList<>();
+		StringReader sr = new StringReader(text);
+		try {
+			for (String line : IOUtils.readLines(sr)) {
+				if (StringUtils.isNotBlank(line)) {
+					rv.add(line);
+				}
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		IOUtils.closeQuietly(sr);
+		return rv;
 	}
 	
 }

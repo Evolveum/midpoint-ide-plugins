@@ -9,10 +9,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.services.IServiceLocator;
@@ -45,6 +41,15 @@ public class MenuUtil {
 							"Upload/execute with action", 
 							null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 		}
+	}
+
+	public static void addBrowse(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_BROWSE, null, 
+						null, null, null, 
+						"Browse server objects", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
 	public static void addDownload(List<IContributionItem> items, IServiceLocator serviceLocator) {
@@ -153,19 +158,7 @@ public class MenuUtil {
 	}
 
 	public static List<IFile> getSelectedXmlFiles() {
-		IWorkbench wb = PlatformUI.getWorkbench();
-		if (wb == null) {
-			return null;
-		}
-		IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-		if (win == null) {
-			return null;
-		}
-		IWorkbenchPage page = win.getActivePage();
-		if (page == null) {
-			return null;
-		}
-		ISelection selection = page.getSelection();
+		ISelection selection = SelectionUtils.getWorkbenchSelection();
 		if (!(selection instanceof IStructuredSelection)) {
 			return null;
 		}
