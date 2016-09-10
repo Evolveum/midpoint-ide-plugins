@@ -92,6 +92,11 @@ public class SelectionUtils {
 		return wb.getActiveWorkbenchWindow();
 	}
 	
+	public static IWorkbenchPage getActivePage() {
+		IWorkbenchWindow win = getActiveWindow();
+		return win != null ? win.getActivePage() : null;
+	}
+	
 	public static ISelectionService getSelectionServiceFromActiveWindow() {
 		IWorkbenchWindow win = getActiveWindow();
 		return win != null ? win.getSelectionService() : null;
@@ -105,16 +110,24 @@ public class SelectionUtils {
 		return getResourceFromSelection(ss.getSelection());
 	}
 
-	// FIXME might or might not work...
-//	public static IResource getSelectedResource() {
-//        ISelectionService ss = getSelectionServiceFromActiveWindow();
-//        
-//        IResource res = getResourceFromSelection(ss.getSelection("org.eclipse.ui.navigator.ProjectExplorer"));
-//        if (res != null) {
-//        	return res;
-//        }
-//        return getResourceFromSelection(ss.getSelection("org.eclipse.ui.views.ResourceNavigator"));
-//	}
+	public static IProject guessSelectedProjectFromExplorerOrNavigator() {
+        ISelectionService ss = getSelectionServiceFromActiveWindow();
+        
+        IResource resExplorer = getResourceFromSelection(ss.getSelection("org.eclipse.ui.navigator.ProjectExplorer"));
+        IResource resNavigator = getResourceFromSelection(ss.getSelection("org.eclipse.ui.views.ResourceNavigator"));
+        IProject projExplorer = resExplorer != null ? resExplorer.getProject() : null;
+        IProject projNavigator = resNavigator != null ? resNavigator.getProject() : null;
+        if (projExplorer == null) {
+        	return projNavigator;
+        } else if (projNavigator == null) {
+        	return projExplorer;
+        } else if (projExplorer.equals(projNavigator)) {
+        	return projExplorer;
+        } else {
+        	System.out.println("Conflict: " + projExplorer + " vs " + projNavigator);
+        	return null;
+        }
+	}
 
 	public static IResource getResourceFromSelection(ISelection sel) {
 		Object selectedObject = sel;

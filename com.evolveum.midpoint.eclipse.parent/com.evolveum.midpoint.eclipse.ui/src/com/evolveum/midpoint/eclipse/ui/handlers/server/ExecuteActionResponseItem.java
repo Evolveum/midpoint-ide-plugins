@@ -172,7 +172,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		List<IFile> files = Arrays.asList(logFile, dataFile, consoleFile, opResultFile);
 		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(), null, null, null);
 				//FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId());
-		String counterString = formatResponseCounter(responseCounter);
+		String counterString = formatActionCounter(responseCounter);
 
 		HyperlinksRegistry.getInstance().registerEntry(counterString, labels, files, editorIds);
 		return getResultLine() + " [see " + StringUtils.join(labels, "; ") + "] (#" + counterString + ")";

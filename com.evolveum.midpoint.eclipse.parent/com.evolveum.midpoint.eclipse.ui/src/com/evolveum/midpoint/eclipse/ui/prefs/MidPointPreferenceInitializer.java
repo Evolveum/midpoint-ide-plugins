@@ -13,7 +13,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		store.setDefault(MidPointPreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX, MidPointPreferencePage.VALUE_ALWAYS);
 		
-		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN, "runs/$f.$n.$t");
+		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN, "scratch/runs/$f.$n.$t");
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "objects/$T/$n.xml");
@@ -22,7 +22,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(DownloadPreferencePage.EXCLUDE_FROM_DOWNLOAD, "users,shadows,reportOutputs,connectors,accessCertificationCampaigns,nodes");
 		store.setDefault(DownloadPreferencePage.OVERWRITE_WHEN_DOWNLOADING, DownloadPreferencePage.VALUE_ASK);
 		
-		store.setDefault(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN, "diff/$F.$t");
+		store.setDefault(ComparePreferencePage.COMPARE_RESULT_FILE_NAME_PATTERN, "scratch/diff/$F.$t");
 		store.setDefault(ComparePreferencePage.COMPARE_RESULT_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
 		store.setDefault(ComparePreferencePage.COMPARE_SHOW_LOCAL_TO_REMOTE, "true");
 		store.setDefault(ComparePreferencePage.COMPARE_SHOW_REMOTE_TO_LOCAL, "true");
@@ -33,7 +33,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		
 		store.setDefault(MidPointPreferencePage.SERVERS, ServerInfo.createDefaultXml());
 		
-		store.setDefault(MiscPreferencePage.GENERATED_FILE_NAME_PATTERN, "scratch/$n.xml");
+		store.setDefault(MiscPreferencePage.GENERATED_FILE_NAME_PATTERN, "scratch/gen/$n.xml");
 	}
 	
 }

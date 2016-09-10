@@ -256,12 +256,12 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 
 	@Override
-	public SearchObjectsServerResponse getObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) {
+	public SearchObjectsServerResponse downloadObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) {
 		String query = "<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>";
-		return executeQuery(type, query, connectionParameters);
+		return executeQuery(type, query, false, connectionParameters);
 	}
 	
-	private SearchObjectsServerResponse executeQuery(ObjectTypes type, String query, ConnectionParameters connectionParameters) {
+	private SearchObjectsServerResponse executeQuery(ObjectTypes type, String query, boolean shortData, ConnectionParameters connectionParameters) {
 
 		SearchObjectsServerResponse resp = new SearchObjectsServerResponse();
 		
@@ -346,7 +346,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid);
 			
 			if (StringUtils.isNotBlank(oid)) {
-				return getObject(oid, connectionParameters);
+				return downloadObject(oid, connectionParameters);
 			}
 			
 			Element nameElement = DOMUtil.getChildElement(rootElement, "name");
@@ -369,7 +369,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 							+ "</filter>"
 						+ "</query>";
 			
-			return executeQuery(type, query, connectionParameters);
+			return executeQuery(type, query, false, connectionParameters);
 
 		} catch (Throwable t) {
 			return new ServerResponse(t);
@@ -377,12 +377,20 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 
 	@Override
-	public SearchObjectsServerResponse getObject(String oid, ConnectionParameters connectionParameters) {
-		return executeQuery(ObjectTypes.OBJECT, "<query><filter><inOid><value>"+oid+"</value></inOid></filter></query>", connectionParameters);
+	public SearchObjectsServerResponse downloadObject(String oid, ConnectionParameters connectionParameters) {
+		return executeQuery(ObjectTypes.OBJECT, "<query><filter><inOid><value>"+oid+"</value></inOid></filter></query>", false, connectionParameters);
+	}
+	
+	
+
+	@Override
+	public SearchObjectsServerResponse downloadObjects(List<String> oids, ConnectionParameters connectionParameters) {
+		String query = oidsQuery(oids, null);
+		return executeQuery(ObjectTypes.OBJECT, query, false, connectionParameters);
 	}
 
 	@Override
-	public SearchObjectsServerResponse getList(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, ConnectionParameters connectionParameters) {
+	public SearchObjectsServerResponse listObjects(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, ConnectionParameters connectionParameters) {
 		if (query == null) {
 			query = "";
 		}
@@ -411,7 +419,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			realQuery = namesOrOidsQuery(types, getLines(query), limit);
 		}
 		System.out.println("Query: " + realQuery);
-		return executeQuery(realType, realQuery, connectionParameters);
+		return executeQuery(realType, realQuery, true, connectionParameters);
 	}
 	
 	private String namesOrOidsQuery(Collection<ObjectTypes> types, List<String> lines, int limit) {
@@ -422,7 +430,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		return namesOidsQueryInternal(types, names, Collections.emptyList(), limit);
 	}
 	
-	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, int limit) {
+	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, Integer limit) {
 		Document doc = DOMUtil.getDocument(Q_QUERY);
 		Element query = doc.getDocumentElement();
 		
@@ -466,7 +474,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		return DOMUtil.serializeDOMToString(doc);	
 	}
 
-	private String oidsQuery(List<String> oids, int limit) {
+	private String oidsQuery(List<String> oids, Integer limit) {
 		return namesOidsQueryInternal(null, Collections.emptyList(), oids, limit);
 	}
 

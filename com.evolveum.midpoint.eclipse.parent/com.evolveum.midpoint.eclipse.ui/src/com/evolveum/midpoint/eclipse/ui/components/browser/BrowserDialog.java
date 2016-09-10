@@ -1,15 +1,22 @@
 package com.evolveum.midpoint.eclipse.ui.components.browser;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -18,10 +25,16 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -38,10 +51,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
@@ -50,6 +62,9 @@ import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.SearchObjectsServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
+import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerResponseItem;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -89,9 +104,47 @@ public class BrowserDialog extends TitleAreaDialog {
 	
 	private String initialText;
 	private Label lblResult;
+	private Text txtOffset;
+	private Button btnConvertToXml;
 
+	private IWorkbenchPage page;
+	
+	private List<Generator> generators = Arrays.asList(
+			new RefGenerator("targetRef", ObjectTypes.OBJECT),
+			new RefGenerator("resourceRef", ObjectTypes.RESOURCE),
+			new RefGenerator("linkRef", ObjectTypes.SHADOW),
+			new ConnectorRefGenerator(),
+			new RefGenerator("parentOrgRef", ObjectTypes.ORG),
+			new RefGenerator("ownerRef", ObjectTypes.ORG),
+			new AssignmentGenerator()
+			
+			/*
+			 * 		comboWhatToGenerate.add("Reference (targetRef)");
+		comboWhatToGenerate.add("Reference (resourceRef)");
+		comboWhatToGenerate.add("Reference (linkRef)");
+		comboWhatToGenerate.add("Reference (connectorRef)");
+		comboWhatToGenerate.add("Reference (targetRef)");
+		comboWhatToGenerate.add("Assignment");
+		comboWhatToGenerate.add("Query returning these objects");
+		comboWhatToGenerate.add("Bulk action: enable");
+		comboWhatToGenerate.add("Bulk action: disable");
+		comboWhatToGenerate.add("Bulk action: modify");
+		comboWhatToGenerate.add("Bulk action: recompute");
+		comboWhatToGenerate.add("Bulk action: delete");
+		comboWhatToGenerate.add("Task: recompute");		
+		comboWhatToGenerate.add("Task: modify");
+		comboWhatToGenerate.add("Task: delete");
+
+			 */
+			);
+	
 	public BrowserDialog(Shell parentShell, ISelection selection) {
 		super(parentShell);
+		page = SelectionUtils.getActivePage();
+		System.out.println("Page = " + page);
+		
+		setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+		setBlockOnOpen(false);
 		if (selection instanceof ITextSelection) {
 			String t = ((ITextSelection) selection).getText();
 			if (t != null) {
@@ -102,12 +155,20 @@ public class BrowserDialog extends TitleAreaDialog {
 					initialText = t;
 				}
 			}
-		} else {
-			List<IFile> files = SelectionUtils.getXmlFiles(selection);
-			if (!files.isEmpty()) {
-				initialProject = files.get(0).getProject();
-			}
 		}
+		initialProject = getInitialProject(selection);
+	}
+
+	private IProject getInitialProject(ISelection selection) {
+		List<IFile> files = SelectionUtils.getXmlFiles(selection);
+		if (!files.isEmpty()) {
+			return files.get(0).getProject();
+		}
+		IResource resource = SelectionUtils.getResourceFromActiveWindow();
+		if (resource != null) {
+			return resource.getProject();
+		}
+		return SelectionUtils.guessSelectedProjectFromExplorerOrNavigator();
 	}
 
 	@Override
@@ -137,60 +198,42 @@ public class BrowserDialog extends TitleAreaDialog {
 
 	private void createNameOrOid(Composite container) {
 		Composite c = new Composite(container, SWT.NONE);
-		//c.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
-		c.setLayoutData(new GridData(SWT.BEGINNING, SWT.FILL, true, true, 1, 1));
+		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		c.setLayout(new GridLayout(1, false));
 
 		Label label = new Label(c, SWT.NONE);
 		label.setText("Names or OIDs (one per line); or an XML query");
+		label.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false));
+//		label.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
 		
-		GridData gd1 = new GridData();
-		gd1.grabExcessHorizontalSpace = true;
-		gd1.minimumWidth = 150;
-		gd1.widthHint = 300;
-		gd1.heightHint = 200;
-		//gd1.minimumHeight = 50;
-		
+		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+
 		txtQuery = new Text(c, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		txtQuery.setLayoutData(gd1);
+		txtQuery.setLayoutData(gd2);
 		if (initialText != null) {
 			txtQuery.setText(initialText);
 		}
+
 	}
 	
 	private void createObjectTypes(Composite container) {
 		
 		Composite c = new Composite(container, SWT.NONE);
-		c.setLayoutData(new GridData(SWT.BEGINNING, SWT.FILL, true, true, 1, 1));
+		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		c.setLayout(new GridLayout(1, false));
 		
 		Label label = new Label(c, SWT.NONE);
 		label.setText("Object types");
 
-//		GridData gd1 = new GridData();
-//		gd1.grabExcessHorizontalSpace = true;
-//		gd1.horizontalAlignment = GridData.FILL;
-//		label.setLayoutData(gd1);
-
-		GridData gd2 = new GridData();
-		gd2.grabExcessHorizontalSpace = true;
-		gd2.minimumWidth = 150;
-		gd2.widthHint = 300;
-		gd2.heightHint = 200;
-		//gd2.minimumHeight = 50;
-
-//		GridData gd2 = new GridData();
-//		gd2.grabExcessHorizontalSpace = true;
-//		gd2.horizontalAlignment = GridData.FILL;
-//		gd2.horizontalSpan = 1;
-//		gd2.verticalSpan = ROWS_FOR_TYPES-1;
-//		gd2.heightHint = 200;
-//		gd2.minimumHeight = 100;
+		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd2.heightHint = 150;
 
 		listTypes = new ListViewer(c, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		listTypes.setContentProvider(new ArrayContentProvider());
 		listTypes.setLabelProvider(new ObjectTypesListLabelProvider());
-		listTypes.setInput(ObjectTypes.values());
+		ObjectTypes[] types = ObjectTypes.values();
+		Arrays.sort(types, ObjectTypes.getDisplayNameComparator());
+		listTypes.setInput(types);
 		listTypes.getControl().setLayoutData(gd2);
 	}
 	
@@ -199,7 +242,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		//c.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
 		
 		Group group1 = new Group(container, SWT.SHADOW_IN);
-		group1.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, true, 2, 1));
+		group1.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
 
 		group1.setText("How to interpret object specification");
 		group1.setLayout(new RowLayout(SWT.HORIZONTAL));
@@ -218,21 +261,20 @@ public class BrowserDialog extends TitleAreaDialog {
 		} else {
 			btnNamesAndOids.setSelection(true);
 		}
-		
 	}
 
 	private void createSearchButton(Composite container) {
 		
 		Composite c = new Composite(container, SWT.NONE);
 		//c.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
-		c.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, true, 2, 1));
-		c.setLayout(new GridLayout(3, false));
+		c.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
+		c.setLayout(new GridLayout(10, false));
 		
-		Label l2 = new Label(c, SWT.NONE);
-		l2.setText("Max # of objects to show");
+		Label l1 = new Label(c, SWT.NONE);
+		l1.setText("Max # of objects to show");
 		
 		txtLimit = new Text(c, SWT.BORDER);
-		txtLimit.setLayoutData(new GridData(100, SWT.DEFAULT));
+		txtLimit.setLayoutData(new GridData(60, SWT.DEFAULT));
 		txtLimit.setText("1000");
 		txtLimit.addListener(SWT.Verify, new Listener() {
 			public void handleEvent(Event e) {
@@ -247,9 +289,28 @@ public class BrowserDialog extends TitleAreaDialog {
 			}
 		});
 
+		Label l2 = new Label(c, SWT.NONE);
+		l2.setText("Start at #");
+		
+		txtOffset = new Text(c, SWT.BORDER);
+		txtOffset.setLayoutData(new GridData(60, SWT.DEFAULT));
+		txtOffset.setText("0");
+		txtOffset.addListener(SWT.Verify, new Listener() {
+			public void handleEvent(Event e) {
+				try {
+					int i = Integer.parseInt(e.text);
+					if (i < 0) {
+						e.doit = false;
+					}
+				} catch (NumberFormatException ex) {
+					e.doit = false;
+				}
+			}
+		});
+
 		btnSearch = new Button(c, SWT.NONE);
 		btnSearch.setText("Search");
-		btnSearch.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, true, false, 1, 1));
+		btnSearch.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
 		btnSearch.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -258,6 +319,20 @@ public class BrowserDialog extends TitleAreaDialog {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				searchPerformed();
+			}
+		});
+		
+		btnConvertToXml = new Button(c, SWT.NONE);
+		btnConvertToXml.setText("Convert to XML query");
+		btnConvertToXml.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
+		btnConvertToXml.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				 
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				
 			}
 		});
 		
@@ -291,12 +366,12 @@ public class BrowserDialog extends TitleAreaDialog {
 				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
 
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
-				SearchObjectsServerResponse response = runtime.getList(types, query, interpretation, limit, connectionParameters);
+				SearchObjectsServerResponse response = runtime.listObjects(types, query, interpretation, limit, connectionParameters);
 				if (response.isSuccess()) {
 					if (response.getServerObjects().isEmpty()) {
 						Util.showInformation("No objects", "There are no objects satisfying these criteria.");
 					}
-					LinkedHashMap<ObjectTypes,List<ServerObject>> map = createObjectMap(response.getServerObjects());
+					Map<ObjectTypes,List<ServerObject>> map = createObjectMap(response.getServerObjects());
 					Display.getDefault().syncExec(new Runnable() {
 						public void run() {
 							treeResults.setInput(getTypesFromMap(map));
@@ -313,12 +388,12 @@ public class BrowserDialog extends TitleAreaDialog {
 		job.schedule();
 	}
 
-	private Object[] getTypesFromMap(LinkedHashMap<ObjectTypes, List<ServerObject>> map) {
+	private Object[] getTypesFromMap(Map<ObjectTypes, List<ServerObject>> map) {
 		return map.entrySet().toArray();
 	}
 
-	protected LinkedHashMap<ObjectTypes, List<ServerObject>> createObjectMap(List<ServerObject> serverObjects) {
-		LinkedHashMap<ObjectTypes, List<ServerObject>> rv = new LinkedHashMap<>();
+	protected TreeMap<ObjectTypes, List<ServerObject>> createObjectMap(List<ServerObject> serverObjects) {
+		TreeMap<ObjectTypes, List<ServerObject>> rv = new TreeMap<>(ObjectTypes.getDisplayNameComparator());
 		for (ServerObject object : serverObjects) {
 			List<ServerObject> forType = rv.get(object.getType());
 			if (forType == null) {
@@ -331,26 +406,20 @@ public class BrowserDialog extends TitleAreaDialog {
 	}
 
 	private void createResult(Composite container) {
-		GridData gd1 = new GridData();
 		lblResult = new Label(container, SWT.NONE);
 		lblResult.setText(createResultText(null));
-		gd1.horizontalSpan = 2;
-		gd1.grabExcessHorizontalSpace = true;
-		gd1.horizontalAlignment = GridData.FILL;
-		lblResult.setLayoutData(gd1);
+		lblResult.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
 
-		GridData gd2 = new GridData();
-		gd2.grabExcessHorizontalSpace = true;
-		gd2.horizontalAlignment = GridData.FILL;
-		gd2.horizontalSpan = 2;
-		gd2.verticalSpan = 1;
+		GridData gd2 = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
 		gd2.heightHint = 150;
+		//gd2.heightHint = 150;
 		//gd2.minimumHeight = 50;
 
 		treeResults = new TreeViewer(container, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL );
 		treeResults.setLabelProvider(new ServerObjectLabelProvider());
 		treeResults.setContentProvider(new ServerObjectContentProvider());
 		treeResults.getControl().setLayoutData(gd2);
+		treeResults.addSelectionChangedListener(new ButtonsSelectionChangedListener());
 	}
 
 	public String createResultText(Integer count) {
@@ -365,7 +434,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		Composite combos = new Composite(box, SWT.NONE);
 		combos.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 1, 1));
 		combos.setLayout(new GridLayout(2, false));
-//		combos.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_CYAN));
 		
 		Label labelUseProject = new Label(combos, SWT.NONE);
 		labelUseProject.setText("Store objects in project");
@@ -379,26 +447,16 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (initialProject != null) {
 			comboUseProject.setText(initialProject.getName());
 		}
+		comboUseProject.addModifyListener(new ButtonsModifyListener());
 
 		Label labelGen = new Label(combos, SWT.NONE);
 		labelGen.setText("Generate");
 		
 		comboWhatToGenerate = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
-		comboWhatToGenerate.add("Reference (targetRef)");
-		comboWhatToGenerate.add("Reference (resourceRef)");
-		comboWhatToGenerate.add("Reference (linkRef)");
-		comboWhatToGenerate.add("Reference (connectorRef)");
-		comboWhatToGenerate.add("Reference (targetRef)");
-		comboWhatToGenerate.add("Assignment");
-		comboWhatToGenerate.add("Query returning these objects");
-		comboWhatToGenerate.add("Bulk action: enable");
-		comboWhatToGenerate.add("Bulk action: disable");
-		comboWhatToGenerate.add("Bulk action: modify");
-		comboWhatToGenerate.add("Bulk action: recompute");
-		comboWhatToGenerate.add("Bulk action: delete");
-		comboWhatToGenerate.add("Task: recompute");		
-		comboWhatToGenerate.add("Task: modify");
-		comboWhatToGenerate.add("Task: delete");
+		for (Generator g : generators) {
+			comboWhatToGenerate.add(g.getLabel());
+		}
+		comboWhatToGenerate.addModifyListener(new ButtonsModifyListener());
 		
 		// flags
 		
@@ -408,7 +466,8 @@ public class BrowserDialog extends TitleAreaDialog {
 		flags.setLayout(new GridLayout(2, false));
 		
 		btnSymbolicReferences = new Button(flags, SWT.CHECK);
-		new Label(flags, SWT.NONE).setText("Use symbolic references (by name or connector type)");
+		new Label(flags, SWT.NONE).setText("Use symbolic references (by name or connector type) (not impl. yet)");
+		btnSymbolicReferences.setEnabled(false);
 
 		btnWrapActions = new Button(flags, SWT.CHECK);
 		Label lblWrapActions = new Label(flags, SWT.NONE);
@@ -416,7 +475,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		btnUseOriginalQuery = new Button(flags, SWT.CHECK);
 		Label lblUseOriginalQuery = new Label(flags, SWT.NONE);
-		lblUseOriginalQuery.setText("Use original query when generating artefact");
+		lblUseOriginalQuery.setText("Use original query when generating actions/tasks");
 	}
 	
 	@Override
@@ -438,6 +497,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				showPerformed();
 			}
 		});
+		btnShow.setEnabled(false);
 		
 		btnDownload = createButton(parent, DOWNLOAD_ID, "Download", false);
 		btnDownload.addSelectionListener(new SelectionListener() {
@@ -450,30 +510,296 @@ public class BrowserDialog extends TitleAreaDialog {
 				downloadPerformed();
 			}
 		});
+		btnDownload.setEnabled(false);
+		
 		btnGenerate = createButton(parent, GENERATE_ID, "Generate XML", false);
+		btnGenerate.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				generatePerformed();
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				generatePerformed();
+			}
+		});
+		btnGenerate.setEnabled(false);
+		
 		btnExecute = createButton(parent, GENERATE_ID, "Execute", false);
+		btnExecute.setEnabled(false);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
+//	protected void showPerformed() {
+//		IWorkbenchWindow window = SelectionUtils.getActiveWindow();
+//		String string = "This is the text file contents";
+//		IStorage storage = new StringStorage(string);
+//		IStorageEditorInput input = new StringInput(storage);
+//		IWorkbenchPage page = window.getActivePage();
+//		if (page != null) {
+//			try {
+//				page.openEditor(input, "org.eclipse.ui.DefaultTextEditor");
+//			} catch (PartInitException e) {
+//				Util.processUnexpectedException(e);
+//			}
+//		}
+//	}
+
+	private IProject getProject() {
+		int project = comboUseProject.getSelectionIndex();
+		return project < 0 ? null : projects.get(project);
+	}
+	
 	protected void showPerformed() {
-		IWorkbenchWindow window = SelectionUtils.getActiveWindow();
-		String string = "This is the text file contents";
-		IStorage storage = new StringStorage(string);
-		IStorageEditorInput input = new StringInput(storage);
-		IWorkbenchPage page = window.getActivePage();
-		if (page != null) {
-			try {
-				page.openEditor(input, "org.eclipse.ui.DefaultTextEditor");
-			} catch (PartInitException e) {
-				Util.processUnexpectedException(e);
+		IProject project = getProject();
+		if (project == null) {
+			return;
+		}
+		List<String> selectedOids = getSelectedOids();
+		if (selectedOids.size() != 1) {
+			return;
+		}
+		Job job = new Job("Downloading from midPoint") {
+			protected IStatus run(IProgressMonitor monitor) {
+				RuntimeService runtime = RuntimeActivator.getRuntimeService();
+				SearchObjectsServerResponse serverResponse = runtime.downloadObjects(selectedOids, PluginPreferences.getConnectionParameters());
+				if (!serverResponse.isSuccess()) {
+					Console.logError("Couldn't download selected object: " + serverResponse.getErrorDescription(), serverResponse.getException());
+				} else {
+					List<IFile> files = writeFiles(serverResponse.getServerObjects(), project, "toShow", monitor);
+					if (!files.isEmpty()) {
+						openFileInEditor(files.get(0));
+					}
+				}
+				return Status.OK_STATUS;
 			}
+		};
+		job.schedule();
+	}
+
+	protected void generatePerformed() {
+		IProject project = getProject();
+		if (project == null) {
+			return;
+		}
+		List<ServerObject> selectedObjects = getSelectedObjects();
+		if (selectedObjects.size() == 0) {
+			return;
+		}
+		int genIndex = comboWhatToGenerate.getSelectionIndex();
+		if (genIndex < 0) {
+			return;
+		}
+		Generator generator = generators.get(genIndex);
+		Job job = new Job("Generating XML") {
+			protected IStatus run(IProgressMonitor monitor) {
+				String content = generator.generate(selectedObjects);
+				if (content == null) {
+					return Status.OK_STATUS;
+				}
+				IFile file = writeFile(content, project, "toShow", monitor);
+				if (file != null) {
+					openFileInEditor(file);
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
+		
+	}
+
+	protected void openFileInEditor(IFile file) {
+		if (page != null) {
+			Display.getDefault().syncExec(new Runnable() {
+				public void run() {
+					try {
+						IDE.openEditor(page, file);
+					} catch (PartInitException e) {
+						Util.processUnexpectedException(e);
+					}					
+				}
+			});
+		} else {
+			Console.logError("No active page...");
 		}
 	}
 
 	protected void downloadPerformed() {
-		IResource resource = SelectionUtils.getResourceFromActiveWindow();
-		Util.showAndLogWarning("Hi", "Resource: " + resource);
-		
+		int project = comboUseProject.getSelectionIndex();
+		if (project < 0) {
+//			MessageDialog.openInformation(getShell(), "No project selected", "Please select a project where downloaded objects should be stored.");
+			return;
+		}
+		List<String> selectedOids = getSelectedOids();
+		if (selectedOids.isEmpty()) {
+//			MessageDialog.openInformation(getShell(), "No objects selected", "Please select object(s) to download.");
+			return;
+		}
+		Job job = new Job("Downloading from midPoint") {
+			protected IStatus run(IProgressMonitor monitor) {
+				RuntimeService runtime = RuntimeActivator.getRuntimeService();
+				SearchObjectsServerResponse serverResponse = runtime.downloadObjects(selectedOids, PluginPreferences.getConnectionParameters());
+				if (!serverResponse.isSuccess()) {
+					Console.logError("Couldn't download selected objects: " + serverResponse.getErrorDescription(), serverResponse.getException());
+				} else {
+					DownloadHandler.writeFiles(serverResponse.getServerObjects(), projects.get(project), monitor);
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
 	}
+
+	protected List<String> getSelectedOids() {
+		List<String> rv = new ArrayList<>(); 
+		ITreeSelection ts = treeResults.getStructuredSelection();
+		if (ts == null || ts.getPaths() == null) {
+			return rv;
+		}
+		for (TreePath path : ts.getPaths()) {
+			System.out.println("Processing path: " + path);
+			Object o = path.getLastSegment();
+			if (o instanceof ServerObject) {
+				rv.add(((ServerObject) o).getOid());
+			} else if (o instanceof Map.Entry) {
+				Map.Entry<ObjectTypes,List<ServerObject>> entry = (Map.Entry<ObjectTypes,List<ServerObject>>) o;
+				for (ServerObject object : entry.getValue()) {
+					rv.add(object.getOid());
+				}
+			}
+		}
+		System.out.println("Result: " + rv);
+		return rv;
+	}
+
+	protected List<ServerObject> getSelectedObjects() {
+		List<ServerObject> rv = new ArrayList<>(); 
+		ITreeSelection ts = treeResults.getStructuredSelection();
+		if (ts == null || ts.getPaths() == null) {
+			return rv;
+		}
+		for (TreePath path : ts.getPaths()) {
+			System.out.println("Processing path: " + path);
+			Object o = path.getLastSegment();
+			if (o instanceof ServerObject) {
+				rv.add((ServerObject) o);
+			} else if (o instanceof Map.Entry) {
+				Map.Entry<ObjectTypes,List<ServerObject>> entry = (Map.Entry<ObjectTypes,List<ServerObject>>) o;
+				rv.addAll(entry.getValue());
+			}
+		}
+		return rv;
+	}
+
+	protected void buttonsSelectionChanged() {
+		List<String> oids = getSelectedOids();
+		boolean haveProject = comboUseProject.getSelectionIndex() >= 0;
+		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
+		
+		btnShow.setEnabled(oids.size() == 1 && haveProject);
+		btnDownload.setEnabled(!oids.isEmpty() && haveProject);
+		btnGenerate.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0);
+		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
+	}
+	
+	class ButtonsSelectionChangedListener implements ISelectionChangedListener {
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+			buttonsSelectionChanged();
+		}
+	}
+	class ButtonsModifyListener implements ModifyListener {
+		@Override
+		public void modifyText(ModifyEvent e) {
+			buttonsSelectionChanged();		
+		}
+	}
+	
+	public static List<IFile> writeFiles(List<ServerObject> allObjects, IProject project, String type, IProgressMonitor monitor) {
+		List<IFile> rv = new ArrayList<>();
+		monitor.beginTask("Writing files", allObjects.size());
+		int count = 0;
+		try {
+			for (ServerObject object : allObjects) {
+				monitor.subTask("Writing " + object.getName());
+				if (monitor.isCanceled()) {
+					break;
+				}
+				IFile file = prepareOutputFileForCreation(project, type);
+				if (file.exists()) {
+					file.delete(true, monitor);
+				} else {
+					ResourceUtils.createParentFolders(file.getParent());
+				}
+				file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
+				Console.log("File " + file + " was successfully created.");
+				rv.add(file);
+				count++;
+				monitor.worked(1);
+			}
+		} catch (Throwable t) {
+			Util.processUnexpectedException(t);
+		}
+		Console.log("Created " + count + " object(s)");
+		return rv;
+	}
+	
+	public static IFile writeFile(String contents, IProject project, String type, IProgressMonitor monitor) {
+		try {
+			IFile file = prepareOutputFileForCreation(project, type);
+			if (file.exists()) {
+				file.delete(true, monitor);
+			} else {
+				ResourceUtils.createParentFolders(file.getParent());
+			}
+			file.create(new ByteArrayInputStream(contents.getBytes("utf-8")), true, monitor);
+			Console.log("File " + file + " was successfully created.");
+			return file;
+		} catch (Throwable t) {
+			Util.processUnexpectedException(t);
+			return null;
+		}
+	}
+	
+	private static IFile prepareOutputFileForCreation(IContainer selected, String type) {
+		IPath path = computeFilePath(selected, type);
+		System.out.println("Path = " + path);
+		if (path == null) {
+			return null;
+		}
+		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+	}
+
+
+	private static IPath computeFilePath(IContainer root, String type) {
+		String pattern = PluginPreferences.getGeneratedFileNamePattern();
+		if (StringUtils.isBlank(pattern)) {
+			return null;
+		}
+		
+		String patternResolved = pattern
+				.replace("$n", DownloadHandler.fixComponent(ServerResponseItem.formatActionCounter(getAndIncrementGenCount())))
+				.replace("$t", DownloadHandler.fixComponent(type))
+				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName()));
+		
+		System.out.println("pattern = " + pattern + ", resolvedPattern = " + patternResolved);
+		 
+		Path patternResolvedPath = new Path(patternResolved);
+		IPath rv;
+		if (patternResolvedPath.isAbsolute()) {
+			rv = patternResolvedPath;
+		} else {
+			rv = root.getFullPath().append(patternResolvedPath);
+		}
+		System.out.println("Final result = " + rv);
+		return rv;
+	}
+	
+	public static int getAndIncrementGenCount() {
+		int genCount = PluginPreferences.store().getInt("genCount");
+		PluginPreferences.store().setValue("genCount", genCount+1);
+		return genCount;
+	}
+
 }
 

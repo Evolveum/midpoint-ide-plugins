@@ -169,7 +169,7 @@ public class PluginPreferences {
 		return rv;
 	}
 
-	private static IPreferenceStore store() {
+	public static IPreferenceStore store() {
 		return EclipseActivator.getInstance().getPreferenceStore();
 	}
 	

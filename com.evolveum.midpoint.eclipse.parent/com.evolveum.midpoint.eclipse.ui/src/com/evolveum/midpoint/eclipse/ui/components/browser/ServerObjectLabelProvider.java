@@ -15,7 +15,7 @@ public class ServerObjectLabelProvider extends LabelProvider {
 			return o.getName() + " (" + o.getOid() + ")";
 		} else if (element instanceof Map.Entry) {
 			Map.Entry<ObjectTypes,List<ServerObject>> entry = (Map.Entry<ObjectTypes,List<ServerObject>>) element;
-			return entry.getKey() + ": " + entry.getValue().size() + " object(s)";
+			return entry.getKey().getDisplayName() + ": " + entry.getValue().size() + " object(s)";
 		} else if (element instanceof ObjectTypes) {
 			return ((ObjectTypes) element).getElementName();
 		} else {

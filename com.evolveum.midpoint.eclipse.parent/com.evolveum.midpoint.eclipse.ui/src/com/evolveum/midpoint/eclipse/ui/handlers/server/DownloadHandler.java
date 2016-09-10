@@ -68,7 +68,7 @@ public class DownloadHandler extends AbstractHandler {
 						break;
 					}
 					monitor.subTask("Downloading " + type.getRestType());
-					SearchObjectsServerResponse serverResponse = runtime.getObjects(type, limit, connectionParameters);
+					SearchObjectsServerResponse serverResponse = runtime.downloadObjects(type, limit, connectionParameters);
 					
 					if (!serverResponse.isSuccess()) {
 						Console.logError("Couldn't download objects of type " + type + ": " + serverResponse.getErrorDescription(), serverResponse.getException());

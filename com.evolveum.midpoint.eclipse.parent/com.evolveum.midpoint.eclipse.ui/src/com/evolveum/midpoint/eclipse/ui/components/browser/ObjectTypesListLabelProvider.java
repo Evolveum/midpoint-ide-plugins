@@ -12,6 +12,6 @@ public class ObjectTypesListLabelProvider extends LabelProvider {
 
 	public String getText(Object element) {
 		ObjectTypes type = (ObjectTypes) element;
-		return type.getElementName();
+		return type.getDisplayName();
 	}
 }
