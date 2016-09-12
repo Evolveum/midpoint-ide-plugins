@@ -33,7 +33,7 @@ public class RefGenerator extends Generator {
 	}
 
 	@Override
-	public String generate(List<ServerObject> objects) {
+	public String generate(List<ServerObject> objects, GeneratorOptions options) {
 		if (objects.isEmpty()) {
 			return null;
 		}
@@ -42,9 +42,16 @@ public class RefGenerator extends Generator {
 		for (ServerObject object : objects) {
 			if (isApplicableFor(object.getType())) {
 				Element refRoot = DOMUtil.createSubElement(root, new QName(Constants.COMMON_NS, refName, "c"));
-				refRoot.setAttribute("oid", object.getOid());
 				DOMUtil.setQNameAttribute(refRoot, "type", object.getType().getTypeQName());
-				DOMUtil.createComment(refRoot, " " + object.getName() + " ");
+				if (options.isSymbolicReferences()) {
+					Element filter = DOMUtil.createSubElement(refRoot, new QName(Constants.COMMON_NS, "filter", "c"));
+					Element equal = DOMUtil.createSubElement(filter, new QName(Constants.QUERY_NS, "equal", "q"));
+					DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "path", "q")).setTextContent(getSymbolicRefItemName(object));
+					DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "value", "q")).setTextContent(getSymbolicRefItemValue(object));
+				} else {
+					refRoot.setAttribute("oid", object.getOid());
+					DOMUtil.createComment(refRoot, " " + object.getName() + " ");
+				}
 			} else {
 				DOMUtil.createComment(root, " " + getLabel() + " is not applicable for object " + object.getName() + " of type " + object.getType().getTypeName() + " ");
 			}
@@ -52,8 +59,23 @@ public class RefGenerator extends Generator {
 		return DOMUtil.serializeDOMToString(doc);
 	}
 
+	protected String getSymbolicRefItemValue(ServerObject object) {
+		return object.getName();
+	}
+
+	protected String getSymbolicRefItemName(ServerObject object) {
+		return "name";
+	}
+
 	private boolean isApplicableFor(ObjectTypes type) {
 		return applicableFor.isAssignableFrom(type);
 	}
+
+	@Override
+	public boolean supportsSymbolicReferences() {
+		return true;
+	}
+	
+	
 
 }

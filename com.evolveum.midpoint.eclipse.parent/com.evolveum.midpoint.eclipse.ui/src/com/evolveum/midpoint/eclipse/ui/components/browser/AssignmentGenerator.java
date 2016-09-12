@@ -25,7 +25,7 @@ public class AssignmentGenerator extends Generator {
 	}
 
 	@Override
-	public String generate(List<ServerObject> objects) {
+	public String generate(List<ServerObject> objects, GeneratorOptions options) {
 		if (objects.isEmpty()) {
 			return null;
 		}

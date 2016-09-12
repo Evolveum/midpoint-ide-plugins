@@ -38,7 +38,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -47,12 +46,12 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
@@ -78,7 +77,8 @@ public class BrowserDialog extends TitleAreaDialog {
 	private static final int DOWNLOAD_ID = IDialogConstants.CLIENT_ID+2;
 	private static final int GENERATE_ID = IDialogConstants.CLIENT_ID+3;
 	
-	private static final int INITIAL_HEIGHT = 156;
+	private static final int INITIAL_QUERY_HEIGHT = 156;
+	private static final int INITIAL_RESULTS_HEIGHT = 156;
 	
 	private Text txtQuery;
 	private ListViewer listTypes;
@@ -91,6 +91,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	private Button btnQuery;
 
 	private TreeViewer treeResults;
+	private Integer objectCount;
 	
 	private Button btnSearch;
 	private Button btnShow;
@@ -205,7 +206,8 @@ public class BrowserDialog extends TitleAreaDialog {
 		createSearchButton(container);
 		createResult(container);
 		createOptions(container);
-		updateSearchButtons();
+		computeSearchBoxItemsEnablement();
+		computeOptionsEnablement();
 		
 		return area;
 	}
@@ -240,7 +242,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		label.setText("Object types");
 
 		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		gd2.heightHint = INITIAL_HEIGHT;
+		gd2.heightHint = INITIAL_QUERY_HEIGHT;
 
 		listTypes = new ListViewer(c, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		listTypes.setContentProvider(new ArrayContentProvider());
@@ -272,12 +274,12 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnQuery.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				updateSearchButtons();
+				computeSearchBoxItemsEnablement();
 			}
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				updateSearchButtons();
+				computeSearchBoxItemsEnablement();
 			}
 		});
 		
@@ -414,8 +416,9 @@ public class BrowserDialog extends TitleAreaDialog {
 					Map<ObjectTypes,List<ServerObject>> map = createObjectMap(response.getServerObjects());
 					Display.getDefault().syncExec(new Runnable() {
 						public void run() {
+							objectCount = response.getServerObjects().size();
 							treeResults.setInput(getTypesFromMap(map));
-							lblResult.setText(createResultText(response.getServerObjects().size()));
+							lblResult.setText(createResultText(objectCount, 0));
 						}
 					});
 				} else {
@@ -464,23 +467,60 @@ public class BrowserDialog extends TitleAreaDialog {
 
 	private void createResult(Composite container) {
 		lblResult = new Label(container, SWT.NONE);
-		lblResult.setText(createResultText(null));
-		lblResult.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
+		lblResult.setText(createResultText(null, null));
+		lblResult.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, false, false, 2, 1));
 
 		GridData gd2 = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
-		gd2.heightHint = INITIAL_HEIGHT;
-		//gd2.heightHint = 150;
-		//gd2.minimumHeight = 50;
+		gd2.heightHint = INITIAL_RESULTS_HEIGHT;
 
-		treeResults = new TreeViewer(container, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL );
+		treeResults = new TreeViewer(container, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL );
+		Tree tree = treeResults.getTree();
+		tree.setHeaderVisible(true);
+		
+		TreeColumn cName = new TreeColumn(tree, SWT.LEFT);
+		tree.setLinesVisible(true);
+		cName.setAlignment(SWT.LEFT);
+		cName.setText("Name");
+		cName.setWidth(300);
+		
+		TreeColumn cDisplayName = new TreeColumn(tree, SWT.LEFT);
+		cDisplayName.setAlignment(SWT.LEFT);
+		cDisplayName.setText("Display name");
+		cDisplayName.setWidth(200);
+		
+		TreeColumn cSubType = new TreeColumn(tree, SWT.LEFT);
+		cSubType.setAlignment(SWT.LEFT);
+		cSubType.setText("Subtype");
+		cSubType.setWidth(150);
+
+		TreeColumn cOid = new TreeColumn(tree, SWT.LEFT);
+		cOid.setAlignment(SWT.LEFT);
+		cOid.setText("OID");
+		cOid.setWidth(300);
+		
 		treeResults.setLabelProvider(new ServerObjectLabelProvider());
 		treeResults.setContentProvider(new ServerObjectContentProvider());
 		treeResults.getControl().setLayoutData(gd2);
-		treeResults.addSelectionChangedListener(new ActionButtonsRelatedSelectionChangedListener());
+		treeResults.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				actionButtonsRelatedSelectionChanged();
+				lblResult.setText(createResultText(objectCount, getSelectedOids().size()));
+			}
+
+		});
 	}
 
-	public String createResultText(Integer count) {
-		return "Result:" + (count != null ? " " + count + " object(s)" : "");
+	public String createResultText(Integer count, Integer selected) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Result:");
+		if (count != null) {
+			sb.append(" ").append(count).append(" objects(s)");
+			if (selected != null) {
+				sb.append(", ").append(selected).append(" selected");
+			}
+		}
+		return sb.toString();
 	}
 	
 	private void createOptions(Composite container) {
@@ -538,7 +578,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		comboExecution.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				txtBatchSize.setEnabled(comboExecution.getSelectionIndex() == 2);
+				computeTxtBatchSizeIsEnabled();
 			}
 		});
 		
@@ -556,8 +596,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		flags.setLayout(new GridLayout(2, false));
 		
 		btnSymbolicReferences = new Button(flags, SWT.CHECK);
-		new Label(flags, SWT.NONE).setText("Use symbolic references (by name or connector type) (not impl. yet)");
-		btnSymbolicReferences.setEnabled(false);
+		new Label(flags, SWT.NONE).setText("Use symbolic references (by name or connector type)");
 
 		btnWrapActions = new Button(flags, SWT.CHECK);
 		Label lblWrapActions = new Label(flags, SWT.NONE);
@@ -696,10 +735,17 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (genIndex < 0) {
 			return;
 		}
+		GeneratorOptions options = new GeneratorOptions();
+		options.setSymbolicReferences(btnSymbolicReferences.getSelection());
+		options.setWrapActions(btnWrapActions.getSelection());
+		options.setCreateSuspended(btnCreateSuspended.getSelection());
+		options.setRaw(btnCreateRaw.getSelection());
+		options.setDryRun(btnCreateDryRun.getSelection());
+
 		Generator generator = generators.get(genIndex);
 		Job job = new Job("Generating XML") {
 			protected IStatus run(IProgressMonitor monitor) {
-				String content = generator.generate(selectedObjects);
+				String content = generator.generate(selectedObjects, options);
 				if (content == null) {
 					return Status.OK_STATUS;
 				}
@@ -808,22 +854,53 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
 	}
 	
-	public void updateSearchButtons() {
+	public void computeTxtBatchSizeIsEnabled() {
+		txtBatchSize.setEnabled(comboExecution.getSelectionIndex() == 2 && isExecutable());
+	}
+	
+	protected void computeOptionsEnablement() {
+		btnSymbolicReferences.setEnabled(getGenerator().supportsSymbolicReferences());
+		boolean isExecutable = isExecutable();
+		comboExecution.setEnabled(isExecutable);
+		computeTxtBatchSizeIsEnabled();
+		btnWrapActions.setEnabled(isBulkAction());
+		btnCreateSuspended.setEnabled(isBulkAction() && btnWrapActions.getSelection() || isTask());
+		btnCreateRaw.setEnabled(getGenerator().supportsRawOption());
+		btnCreateDryRun.setEnabled(getGenerator().supportsRawOption());
+	}
+	
+	public Generator getGenerator() {
+		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
+		return whatToGenerate >= 0 ? generators.get(whatToGenerate) : Generator.NULL_GENERATOR;
+	}
+
+	public boolean isExecutable() {
+		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
+		boolean isExecutable = whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable();
+		return isExecutable;
+	}
+	
+	public boolean isBulkAction() {
+		return false;
+	}
+	
+	public boolean isTask() {
+		return false;
+	}
+	
+	public void computeSearchBoxItemsEnablement() {
 		btnConvertToXml.setEnabled(!btnQuery.getSelection());
 		txtLimit.setEnabled(!btnQuery.getSelection());
 		txtOffset.setEnabled(!btnQuery.getSelection());
 	}
 
-	class ActionButtonsRelatedSelectionChangedListener implements ISelectionChangedListener {
-		@Override
-		public void selectionChanged(SelectionChangedEvent event) {
-			actionButtonsRelatedSelectionChanged();
-		}
-	}
+//	class ActionButtonsRelatedSelectionChangedListener implements ISelectionChangedListener {
+//	}
 	class ActionButtonsRelatedModifyListener implements ModifyListener {
 		@Override
 		public void modifyText(ModifyEvent e) {
-			actionButtonsRelatedSelectionChanged();		
+			actionButtonsRelatedSelectionChanged();
+			computeOptionsEnablement();
 		}
 	}
 	

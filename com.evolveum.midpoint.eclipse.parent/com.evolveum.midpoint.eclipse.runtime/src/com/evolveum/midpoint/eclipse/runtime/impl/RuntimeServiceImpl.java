@@ -309,8 +309,26 @@ public class RuntimeServiceImpl implements RuntimeService {
 					DOMUtil.fixNamespaceDeclarations(objectElement);
 					String xml = DOMUtil.serializeDOMToString(objectElement);
 					Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
+					List<String> subTypeElementsValues = new ArrayList<>();
+					if (realType != null && realType.getSubTypeElement() != null) {
+						for (Element e : DOMUtil.getChildElements(objectElement, new QName(Constants.COMMON_NS, realType.getSubTypeElement()))) {
+							subTypeElementsValues.add(e.getTextContent());							
+						}
+					}
+					String displayName;
+					if (realType != null && realType.getDisplayNameElement() != null) {
+						Element dn = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, realType.getDisplayNameElement()));
+						displayName = dn != null ? dn.getTextContent() : null;
+					} else {
+						displayName = null;
+					}
 					String oid = DOMUtil.getAttribute(objectElement, new QName("oid"));
-					ServerObject object = new ServerObject(oid, nameElement != null ? nameElement.getTextContent() : null, realType != null ? realType : type, xml);
+					ServerObject object = new ServerObject(oid, 
+							nameElement != null ? nameElement.getTextContent() : null, 
+							realType != null ? realType : type,
+							subTypeElementsValues,
+							displayName,
+							xml);
 					objects.add(object);
 				}
 			}
