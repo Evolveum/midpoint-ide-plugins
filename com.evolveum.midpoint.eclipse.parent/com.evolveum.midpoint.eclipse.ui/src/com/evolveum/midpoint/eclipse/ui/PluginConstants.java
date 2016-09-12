@@ -10,6 +10,7 @@ public class PluginConstants {
 	public static final String CMD_EDIT_ACTIONS_PREFERENCES = "com.evolveum.midpoint.eclipse.ui.command.editActionsPreferences";
 	public static final String PARAM_WITH_ACTION = "com.evolveum.midpoint.eclipse.ui.commandParameter.withAction";
 	public static final String PARAM_ACTION_NUMBER = "com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber";
+	public static final String PARAM_SERVER_NUMBER = "com.evolveum.midpoint.eclipse.ui.commandParameter.serverNumber";
 	
 	public static final String CMD_NOOP = "com.evolveum.midpoint.eclipse.ui.command.noop";
 	public static final String CMD_UPLOAD_OR_EXECUTE = "com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute";
@@ -18,6 +19,8 @@ public class PluginConstants {
 	public static final String CMD_RELOAD_FROM_SERVER = "com.evolveum.midpoint.eclipse.ui.command.reloadFromServer";
 	public static final String CMD_SET_AS_ACTION = "com.evolveum.midpoint.eclipse.ui.command.setAsAction";
 	public static final String CMD_BROWSE = "com.evolveum.midpoint.eclipse.ui.command.browse";
+	
+	public static final String CMD_SELECT_SERVER = "com.evolveum.midpoint.eclipse.ui.command.selectServer";
 	
 	public static final String SERVER_LOG = "Server log";
 	public static final String DATA_OUTPUT = "Data output";

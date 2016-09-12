@@ -12,11 +12,6 @@ public class NullGenerator extends Generator {
 	}
 
 	@Override
-	public boolean isExecutable() {
-		return false;
-	}
-
-	@Override
 	public String generate(List<ServerObject> objects, GeneratorOptions options) {
 		return "";
 	}

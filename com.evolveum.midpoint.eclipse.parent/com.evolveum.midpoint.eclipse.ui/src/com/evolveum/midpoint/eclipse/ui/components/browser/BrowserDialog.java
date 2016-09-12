@@ -100,6 +100,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	private Button btnExecute;
 	
 	private Button btnSymbolicReferences;
+	private Button btnRunTimeResolution;
 	private Button btnWrapActions;
 	private Button btnUseOriginalQuery;
 	
@@ -121,26 +122,19 @@ public class BrowserDialog extends TitleAreaDialog {
 			new ConnectorRefGenerator(),
 			new RefGenerator("parentOrgRef", ObjectTypes.ORG),
 			new RefGenerator("ownerRef", ObjectTypes.ORG),
-			new AssignmentGenerator()
-			
-			/*
-			 * 		comboWhatToGenerate.add("Reference (targetRef)");
-		comboWhatToGenerate.add("Reference (resourceRef)");
-		comboWhatToGenerate.add("Reference (linkRef)");
-		comboWhatToGenerate.add("Reference (connectorRef)");
-		comboWhatToGenerate.add("Reference (targetRef)");
-		comboWhatToGenerate.add("Assignment");
-		comboWhatToGenerate.add("Query returning these objects");
-		comboWhatToGenerate.add("Bulk action: enable");
-		comboWhatToGenerate.add("Bulk action: disable");
-		comboWhatToGenerate.add("Bulk action: modify");
-		comboWhatToGenerate.add("Bulk action: recompute");
-		comboWhatToGenerate.add("Bulk action: delete");
-		comboWhatToGenerate.add("Task: recompute");		
-		comboWhatToGenerate.add("Task: modify");
-		comboWhatToGenerate.add("Task: delete");
-
-			 */
+			new AssignmentGenerator(),
+			new QueryGenerator(),
+			new BulkActionGenerator("log"),
+			new BulkActionGenerator("enable"),
+			new BulkActionGenerator("disable"),
+			new BulkActionGenerator("recompute"),
+			new BulkActionGenerator("delete"),
+//			new BulkActionGenerator("modify"), assign this, assign to this,
+			new BulkActionGenerator("test-resource"),			// TODO use ResourceType for searching!
+			new ModifyBulkActionGenerator()
+//			new TaskGenerator("recompute"),
+//			new TaskGenerator("delete")
+			// TODO modify
 			);
 	private Button btnExecAllByOid;
 	private Button btnExecIndividually;
@@ -285,7 +279,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		if (initialText != null && initialText.trim().startsWith("<") && initialText.trim().endsWith(">")) {
 			btnQuery.setSelection(true);
-			btnConvertToXml.setEnabled(false);
 		} else {
 			btnNamesAndOids.setSelection(true);
 		}
@@ -381,6 +374,20 @@ public class BrowserDialog extends TitleAreaDialog {
 			return rv < 0 ? 0 : rv;
 		} catch (NumberFormatException e) {
 			MessageDialog.openWarning(getShell(), "Wrong number", "Please enter a correct number for the offset.");
+			return -1;
+		}
+	}
+
+	public int getBatchSize() {
+		try {
+			int rv = Integer.parseInt(txtBatchSize.getText());
+			if (rv < 1) {
+				MessageDialog.openWarning(getShell(), "Wrong number", "Batch size has to be at least 1.");
+				return -1;
+			}
+			return rv;
+		} catch (NumberFormatException e) {
+			MessageDialog.openWarning(getShell(), "Wrong number", "Please enter a correct number for the batch size.");
 			return -1;
 		}
 	}
@@ -595,16 +602,22 @@ public class BrowserDialog extends TitleAreaDialog {
 //		flags.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
 		flags.setLayout(new GridLayout(2, false));
 		
-		btnSymbolicReferences = new Button(flags, SWT.CHECK);
-		new Label(flags, SWT.NONE).setText("Use symbolic references (by name or connector type)");
+		Composite symrefOptions = new Composite(flags, SWT.NONE);
+		symrefOptions.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
+		GridLayout symrefLayOptions = new GridLayout(4, false);
+		symrefLayOptions.marginWidth = 0;
+		symrefLayOptions.marginHeight = 0;
+		symrefOptions.setLayout(symrefLayOptions);
+		
+		btnSymbolicReferences = new Button(symrefOptions, SWT.CHECK);
+		new Label(symrefOptions, SWT.NONE).setText("Use symbolic references (by name or connector type)");
+
+		btnRunTimeResolution = new Button(symrefOptions, SWT.CHECK);
+		new Label(symrefOptions, SWT.NONE).setText("Runtime resolution");
 
 		btnWrapActions = new Button(flags, SWT.CHECK);
 		Label lblWrapActions = new Label(flags, SWT.NONE);
 		lblWrapActions.setText("Wrap created bulk actions into tasks");
-		
-//		btnUseOriginalQuery = new Button(flags, SWT.CHECK);
-//		Label lblUseOriginalQuery = new Label(flags, SWT.NONE);
-//		lblUseOriginalQuery.setText("Use original query when generating actions/tasks");
 		
 		btnCreateSuspended = new Button(flags, SWT.CHECK);
 		Label lblCreateSuspended = new Label(flags, SWT.NONE);
@@ -737,10 +750,19 @@ public class BrowserDialog extends TitleAreaDialog {
 		}
 		GeneratorOptions options = new GeneratorOptions();
 		options.setSymbolicReferences(btnSymbolicReferences.getSelection());
+		options.setSymbolicReferencesRuntime(btnRunTimeResolution.getSelection());
 		options.setWrapActions(btnWrapActions.getSelection());
 		options.setCreateSuspended(btnCreateSuspended.getSelection());
 		options.setRaw(btnCreateRaw.getSelection());
 		options.setDryRun(btnCreateDryRun.getSelection());
+		int execOption = comboExecution.getSelectionIndex();
+		switch (execOption) {
+		case 0: options.setBatchByOids(true); options.setBatchSize(selectedObjects.size()); break;
+		case 1: options.setBatchByOids(true); options.setBatchSize(1); break;
+		case 2: options.setBatchByOids(true); options.setBatchSize(getBatchSize()); break;
+		case 3: Util.showWarning("Not implemented yet", "This feature is not yet implemented."); return;
+		}
+		
 
 		Generator generator = generators.get(genIndex);
 		Job job = new Job("Generating XML") {
@@ -860,13 +882,14 @@ public class BrowserDialog extends TitleAreaDialog {
 	
 	protected void computeOptionsEnablement() {
 		btnSymbolicReferences.setEnabled(getGenerator().supportsSymbolicReferences());
+		btnRunTimeResolution.setEnabled(getGenerator().supportsSymbolicReferencesAtRuntime());
 		boolean isExecutable = isExecutable();
 		comboExecution.setEnabled(isExecutable);
 		computeTxtBatchSizeIsEnabled();
-		btnWrapActions.setEnabled(isBulkAction());
-		btnCreateSuspended.setEnabled(isBulkAction() && btnWrapActions.getSelection() || isTask());
+		btnWrapActions.setEnabled(getGenerator().supportsWrapIntoTask());
+		btnCreateSuspended.setEnabled(getGenerator().supportsWrapIntoTask() && btnWrapActions.getSelection() || getGenerator().supportsCreateSuspended());
 		btnCreateRaw.setEnabled(getGenerator().supportsRawOption());
-		btnCreateDryRun.setEnabled(getGenerator().supportsRawOption());
+		btnCreateDryRun.setEnabled(getGenerator().supportsDryRunOption());
 	}
 	
 	public Generator getGenerator() {
@@ -878,14 +901,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
 		boolean isExecutable = whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable();
 		return isExecutable;
-	}
-	
-	public boolean isBulkAction() {
-		return false;
-	}
-	
-	public boolean isTask() {
-		return false;
 	}
 	
 	public void computeSearchBoxItemsEnablement() {
@@ -991,4 +1006,5 @@ public class BrowserDialog extends TitleAreaDialog {
 	}
 
 }
+
 

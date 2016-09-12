@@ -30,17 +30,14 @@ public class PopupMenuContributor extends CompoundContributionItem implements IW
 	}
 
 	public void addPopupMenu(List<IContributionItem> items) {
+		items.add(new Separator());
+		
+		MenuUtil.addServerNameLabel(items, serviceLocator);
+
 		if (PluginPreferences.isServerSelected()) {
-			items.add(new Separator());
-			
-			MenuUtil.addServerNameLabel(items, serviceLocator);
-			 
-			MenuUtil.addUploadOrExecute(items, serviceLocator);
-			MenuUtil.addUploadOrExecuteWithAction(items, serviceLocator);
+
 			MenuUtil.addBrowse(items, serviceLocator);
-			MenuUtil.addDownload(items, serviceLocator);
-			MenuUtil.addReloadFromServer(items, serviceLocator);
-			MenuUtil.addComputeDifferences(items, serviceLocator);						
+			MenuUtil.addTransferMenu(items, serviceLocator);
 			
 			items.add(new Separator());
 		} 

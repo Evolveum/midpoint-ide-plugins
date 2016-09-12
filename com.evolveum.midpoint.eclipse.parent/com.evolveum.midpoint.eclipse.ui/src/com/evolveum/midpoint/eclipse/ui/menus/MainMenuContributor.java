@@ -25,26 +25,27 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 	@Override
 	protected IContributionItem[] getContributionItems() {
 		List<IContributionItem> items = new ArrayList<>();
-		addPopupMenu(items);
+		addMenu(items);
 		return items.toArray(new IContributionItem[0]);
 	}
 
-	public void addPopupMenu(List<IContributionItem> items) {
-		boolean serverSelected = PluginPreferences.isServerSelected();
-		System.out.println("addPopupMenu; serverSelected = " + serverSelected);
-		if (serverSelected) {
-			
-			MenuUtil.addServerNameLabel(items, serviceLocator);
+	public void addMenu(List<IContributionItem> items) {
+		MenuUtil.addServerNameLabel(items, serviceLocator);
 
+		boolean serverSelected = PluginPreferences.isServerSelected();
+		System.out.println("addMenu; serverSelected = " + serverSelected);
+		if (serverSelected) {
+
+			MenuUtil.addBrowse(items, serviceLocator);
+			
 			items.add(new Separator());
 
 			MenuUtil.addUploadOrExecute(items, serviceLocator);
 			MenuUtil.addUploadOrExecuteWithAction(items, serviceLocator);
-			MenuUtil.addBrowse(items, serviceLocator);
 			MenuUtil.addDownload(items, serviceLocator);
 			MenuUtil.addReloadFromServer(items, serviceLocator);
 			MenuUtil.addComputeDifferences(items, serviceLocator);		
-			
+			//MenuUtil.addTest(items, serviceLocator);
 			
 			List<IContributionItem> actionItems = new ArrayList<>();
 			MenuUtil.addExecuteAction(actionItems, serviceLocator, 1);
@@ -66,14 +67,14 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 			}
 			
 			items.add(new Separator());
+		}
 
-			MenuUtil.addTestConnections(items, serviceLocator);
+		MenuUtil.addTestConnections(items, serviceLocator);
 
-			items.add(new Separator());
+		items.add(new Separator());
 			
-			MenuUtil.addShowConsole(items, serviceLocator);
-			MenuUtil.addEditPreferences(items, serviceLocator);
-		} 
+		MenuUtil.addShowConsole(items, serviceLocator);
+		MenuUtil.addEditPreferences(items, serviceLocator);
 	}
 
 	@Override

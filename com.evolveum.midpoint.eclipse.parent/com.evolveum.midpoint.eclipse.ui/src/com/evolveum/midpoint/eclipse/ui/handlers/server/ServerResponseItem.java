@@ -125,7 +125,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 
 	private void removeFiles() {
 		for (IFile file : getFiles()) {
-			if (file.exists()) {
+			if (file != null && file.exists()) {
 				try {
 					file.delete(true, null);
 				} catch (CoreException e) {

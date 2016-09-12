@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.eclipse.ui.menus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.menus.CommandContributionItem;
@@ -17,6 +19,7 @@ import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 
 public class MenuUtil {
 
@@ -57,7 +60,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, DownloadHandler.CMD_DOWNLOAD, null, 
 						null, null, null, 
-						"Download", 
+						"Download (predefined objects)", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -85,19 +88,66 @@ public class MenuUtil {
 
 	public static void addServerNameLabel(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		String serverName = PluginPreferences.getSelectedServerName();
-		CommandContributionItem dummy = new CommandContributionItem( 
-				new CommandContributionItemParameter(
-						serviceLocator, null, PluginConstants.CMD_NOOP, null, 
+		if (serverName == null) {
+			serverName = "(none)";
+		}
+		MenuManager dummy = new MenuManager("Selected midPoint server: " + serverName);
+		int index = 0;
+		for (ServerInfo serverInfo : PluginPreferences.getServers()) {
+			Map<String,String> parameters = new HashMap<>();
+			parameters.put(PluginConstants.PARAM_SERVER_NUMBER, String.valueOf(index++));
+			dummy.add(new CommandContributionItem( 
+					new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SELECT_SERVER, parameters, 
 						null, null, null, 
-						"Selected midPoint server: " + serverName, 
+						"Select server " + serverInfo.getDisplayName() + (serverInfo.isSelected() ? " (selected)" : ""), 
 						null, null, CommandContributionItem.STYLE_PUSH, null, false)) {
-	
 							@Override
 							public boolean isEnabled() {
-								return false;
+								return !serverInfo.isSelected();
 							}
+			});
+		}
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_SERVER_NUMBER, "");
+		dummy.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+					serviceLocator, null, PluginConstants.CMD_SELECT_SERVER, null, 
+					null, null, null, 
+					"Select none", 
+					null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+		items.add(dummy);
+	}
+
+	public static void addTransferMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		String serverName = PluginPreferences.getSelectedServerName();
+		if (serverName == null) {
+			return;
+		}
+		MenuManager dummy = new MenuManager("Manage objects");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addUploadOrExecute(dummyItems, serviceLocator);
+		MenuUtil.addUploadOrExecuteWithAction(dummyItems, serviceLocator);
+		MenuUtil.addDownload(dummyItems, serviceLocator);
+		MenuUtil.addReloadFromServer(dummyItems, serviceLocator);
+		MenuUtil.addComputeDifferences(dummyItems, serviceLocator);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+
+	public static void addTest(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		String serverName = PluginPreferences.getSelectedServerName();
+		
+		MenuManager dummy = new MenuManager("Select server");
+		dummy.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_COMPUTE_DIFFERENCE, null, 
+						null, null, null, 
+						"Compute differences XYZ", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 			
-		};
 		items.add(dummy);
 	}
 	

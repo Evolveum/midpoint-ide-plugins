@@ -49,6 +49,10 @@ public class PluginPreferences {
 	public static List<ServerInfo> getServers() {
 		return ServersCache.getInstance().getServers();
 	}
+	
+	public static void setServers(List<ServerInfo> servers) {
+		store().setValue(MidPointPreferencePage.SERVERS, ServerInfo.toXml(servers));
+	}
 
 	public static String getActionFile(int number) {
 		IPreferenceStore store = store();

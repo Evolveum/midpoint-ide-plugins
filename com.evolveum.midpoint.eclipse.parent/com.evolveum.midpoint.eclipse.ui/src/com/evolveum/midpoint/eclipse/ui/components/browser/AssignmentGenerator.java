@@ -37,13 +37,10 @@ public class AssignmentGenerator extends Generator {
 				if (object.getType() == ObjectTypes.RESOURCE) {
 					Element construction = DOMUtil.createSubElement(aRoot, new QName(Constants.COMMON_NS, "construction", "c"));
 					Element resourceRef = DOMUtil.createSubElement(construction, new QName(Constants.COMMON_NS, "resourceRef", "c"));
-					resourceRef.setAttribute("oid", object.getOid());
-					DOMUtil.createComment(resourceRef, " " + object.getName() + " ");
+					createRefContent(resourceRef, object, options);
 				} else {
 					Element targetRef = DOMUtil.createSubElement(aRoot, new QName(Constants.COMMON_NS, "targetRef", "c"));
-					targetRef.setAttribute("oid", object.getOid());
-					DOMUtil.setQNameAttribute(targetRef, "type", object.getType().getTypeQName());
-					DOMUtil.createComment(targetRef, " " + object.getName() + " ");
+					createRefContent(targetRef, object, options);				
 				}
 			} else {
 				DOMUtil.createComment(root, " " + getLabel() + " cannot be created for object " + object.getName() + " of type " + object.getType().getTypeName() + " ");
@@ -55,5 +52,12 @@ public class AssignmentGenerator extends Generator {
 	private boolean isApplicableFor(ObjectTypes type) {
 		return ObjectTypes.ABSTRACT_ROLE.isAssignableFrom(type) || type == ObjectTypes.RESOURCE;
 	}
-
+	
+	public boolean supportsSymbolicReferences() {
+		return true;
+	}
+	
+	public boolean supportsSymbolicReferencesAtRuntime() {
+		return true;
+	}
 }

@@ -55,21 +55,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class RuntimeServiceImpl implements RuntimeService {
 	
-	public static final QName Q_QUERY = new QName(Constants.QUERY_NS, "query");
-	public static final QName Q_PAGING = new QName(Constants.QUERY_NS, "paging");
-	public static final QName Q_ORDER_BY = new QName(Constants.QUERY_NS, "orderBy");
-	public static final QName Q_OFFSET = new QName(Constants.QUERY_NS, "offset");
-	public static final QName Q_MAX_SIZE = new QName(Constants.QUERY_NS, "maxSize");
-	public static final QName Q_FILTER = new QName(Constants.QUERY_NS, "filter");
-	public static final QName Q_IN_OID = new QName(Constants.QUERY_NS, "inOid");
-	public static final QName Q_VALUE = new QName(Constants.QUERY_NS, "value");
-	public static final QName Q_OR = new QName(Constants.QUERY_NS, "or");
-	public static final QName Q_AND = new QName(Constants.QUERY_NS, "and");
-	public static final QName Q_SUBSTRING = new QName(Constants.QUERY_NS, "substring");
-	public static final QName Q_MATCHING = new QName(Constants.QUERY_NS, "matching");
-	public static final QName Q_PATH = new QName(Constants.QUERY_NS, "path");
-	public static final QName Q_TYPE = new QName(Constants.QUERY_NS, "type");
-
 	public static final String REST = "/ws/rest";
 
 	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
@@ -196,7 +181,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 					ignore.add("ignoreItems=" + item);
 				}
 				String ignoreItems = StringUtils.join(ignore, "&");
-				String url = connectionParameters.getUrl() + REST + "/comparisons?readOptions=raw&" + compareOptions + "&" + ignoreItems;
+				String url = connectionParameters.getUrl() + REST + "/rpc/compare?readOptions=raw&" + compareOptions + "&" + ignoreItems;
 				httpRequest = new HttpPost(url);
 			} else if (finalAction == ServerAction.UPLOAD) {
 				String url = connectionParameters.getUrl() + REST + "/" + restType;
@@ -208,7 +193,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 					httpRequest = new HttpPost(url + suffix);
 				}
 			} else {
-				String url = connectionParameters.getUrl() + REST + "/scriptExecutions";
+				String url = connectionParameters.getUrl() + REST + "/rpc/executeScript";
 				httpRequest = new HttpPost(url);
 			}
 
@@ -428,7 +413,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 
 	@Override
-	public String createQuery(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, int offset) {
+	public String createQuery(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, Integer limit, Integer offset) {
 		if (query == null) {
 			query = "";
 		}
@@ -458,22 +443,22 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 	
 	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, Integer limit, Integer offset) {
-		Document doc = DOMUtil.getDocument(Q_QUERY);
+		Document doc = DOMUtil.getDocument(Constants.Q_QUERY);
 		Element query = doc.getDocumentElement();
 		
 		boolean typesClauseRequired = !CollectionUtils.isEmpty(types) && types.size() > 1;
 		boolean dataClauseRequired = !names.isEmpty() || !oids.isEmpty();
 		
 		if (typesClauseRequired || dataClauseRequired) {
-			Element filter = DOMUtil.createSubElement(query, Q_FILTER);
+			Element filter = DOMUtil.createSubElement(query, Constants.Q_FILTER);
 
 			Element dataClauseParent;
 			if (typesClauseRequired) {
-				Element and = DOMUtil.createSubElement(filter, Q_AND);
-				Element or1 = DOMUtil.createSubElement(and, Q_OR);
+				Element and = DOMUtil.createSubElement(filter, Constants.Q_AND);
+				Element or1 = DOMUtil.createSubElement(and, Constants.Q_OR);
 				for (ObjectTypes type : types) {
-					Element type1 = DOMUtil.createSubElement(or1, Q_TYPE);
-					Element type2 = DOMUtil.createSubElement(type1, Q_TYPE);
+					Element type1 = DOMUtil.createSubElement(or1, Constants.Q_TYPE);
+					Element type2 = DOMUtil.createSubElement(type1, Constants.Q_TYPE);
 					DOMUtil.setQNameValue(type2, new QName(Constants.COMMON_NS, type.getTypeName()));
 				}
 				dataClauseParent = and;
@@ -482,28 +467,30 @@ public class RuntimeServiceImpl implements RuntimeService {
 			}
 
 			if (dataClauseRequired) {
-				Element or = DOMUtil.createSubElement(dataClauseParent, Q_OR);
+				Element or = DOMUtil.createSubElement(dataClauseParent, Constants.Q_OR);
 				for (String name : names) {
-					Element substring = DOMUtil.createSubElement(or, Q_SUBSTRING);
-					DOMUtil.createSubElement(substring, Q_MATCHING).setTextContent("polyStringNorm");
-					DOMUtil.createSubElement(substring, Q_PATH).setTextContent("name");			
-					DOMUtil.createSubElement(substring, Q_VALUE).setTextContent(name);
+					Element substring = DOMUtil.createSubElement(or, Constants.Q_SUBSTRING);
+					DOMUtil.createSubElement(substring, Constants.Q_MATCHING).setTextContent("polyStringNorm");
+					DOMUtil.createSubElement(substring, Constants.Q_PATH).setTextContent("name");			
+					DOMUtil.createSubElement(substring, Constants.Q_VALUE).setTextContent(name);
 				}
 				if (!oids.isEmpty()) {
-					Element inOid = DOMUtil.createSubElement(or, Q_IN_OID);	
+					Element inOid = DOMUtil.createSubElement(or, Constants.Q_IN_OID);	
 					for (String oid : oids) {
-						DOMUtil.createSubElement(inOid, Q_VALUE).setTextContent(oid);
+						DOMUtil.createSubElement(inOid, Constants.Q_VALUE).setTextContent(oid);
 					}
 				}
 			}
 		}
-		Element paging = DOMUtil.createSubElement(query, Q_PAGING);
-		DOMUtil.createSubElement(paging, Q_ORDER_BY).setTextContent("name");
-		if (offset != null) {
-			DOMUtil.createSubElement(paging, Q_OFFSET).setTextContent(String.valueOf(offset));
-		}
-		if (limit != null) {
-			DOMUtil.createSubElement(paging, Q_MAX_SIZE).setTextContent(String.valueOf(limit));
+		if (offset != null || limit != null) {
+			Element paging = DOMUtil.createSubElement(query, Constants.Q_PAGING);
+			DOMUtil.createSubElement(paging, Constants.Q_ORDER_BY).setTextContent("name");
+			if (offset != null) {
+				DOMUtil.createSubElement(paging, Constants.Q_OFFSET).setTextContent(String.valueOf(offset));
+			}
+			if (limit != null) {
+				DOMUtil.createSubElement(paging, Constants.Q_MAX_SIZE).setTextContent(String.valueOf(limit));
+			}
 		}
 		return DOMUtil.serializeDOMToString(doc);	
 	}
