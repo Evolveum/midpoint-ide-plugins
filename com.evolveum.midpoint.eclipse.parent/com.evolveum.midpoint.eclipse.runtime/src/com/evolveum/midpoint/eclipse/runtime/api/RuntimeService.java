@@ -24,5 +24,7 @@ public interface RuntimeService {
 	SearchObjectsServerResponse downloadObject(String oid, ConnectionParameters connectionParameters);
 	
 	// if interpretation==XML_QUERY, types can be at most one, and limit is ignored (TODO cleaner interface)
-	SearchObjectsServerResponse listObjects(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, ConnectionParameters connectionParameters);
+	SearchObjectsServerResponse listObjects(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, int offset, ConnectionParameters connectionParameters);
+
+	String createQuery(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, int offset);
 }

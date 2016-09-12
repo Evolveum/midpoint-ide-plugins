@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -37,6 +38,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -76,10 +78,13 @@ public class BrowserDialog extends TitleAreaDialog {
 	private static final int DOWNLOAD_ID = IDialogConstants.CLIENT_ID+2;
 	private static final int GENERATE_ID = IDialogConstants.CLIENT_ID+3;
 	
+	private static final int INITIAL_HEIGHT = 156;
+	
 	private Text txtQuery;
 	private ListViewer listTypes;
 
 	private Text txtLimit;
+	private Text txtOffset;
 	private Button btnNamesAndOids;
 	private Button btnNames;
 	private Button btnOids;
@@ -104,7 +109,6 @@ public class BrowserDialog extends TitleAreaDialog {
 	
 	private String initialText;
 	private Label lblResult;
-	private Text txtOffset;
 	private Button btnConvertToXml;
 
 	private IWorkbenchPage page;
@@ -137,6 +141,15 @@ public class BrowserDialog extends TitleAreaDialog {
 
 			 */
 			);
+	private Button btnExecAllByOid;
+	private Button btnExecIndividually;
+	private Button btnExecByN;
+	private Button btnExecAllByQuery;
+	private Combo comboExecution;
+	private Text txtBatchSize;
+	private Button btnCreateSuspended;
+	private Button btnCreateRaw;
+	private Button btnCreateDryRun;
 	
 	public BrowserDialog(Shell parentShell, ISelection selection) {
 		super(parentShell);
@@ -192,6 +205,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		createSearchButton(container);
 		createResult(container);
 		createOptions(container);
+		updateSearchButtons();
 		
 		return area;
 	}
@@ -226,7 +240,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		label.setText("Object types");
 
 		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		gd2.heightHint = 150;
+		gd2.heightHint = INITIAL_HEIGHT;
 
 		listTypes = new ListViewer(c, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		listTypes.setContentProvider(new ArrayContentProvider());
@@ -255,9 +269,21 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnOids.setText("OIDs");
 		btnQuery = new Button(group1, SWT.RADIO);
 		btnQuery.setText("XML query");
+		btnQuery.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				updateSearchButtons();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				updateSearchButtons();
+			}
+		});
 		
 		if (initialText != null && initialText.trim().startsWith("<") && initialText.trim().endsWith(">")) {
 			btnQuery.setSelection(true);
+			btnConvertToXml.setEnabled(false);
 		} else {
 			btnNamesAndOids.setSelection(true);
 		}
@@ -276,18 +302,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		txtLimit = new Text(c, SWT.BORDER);
 		txtLimit.setLayoutData(new GridData(60, SWT.DEFAULT));
 		txtLimit.setText("1000");
-		txtLimit.addListener(SWT.Verify, new Listener() {
-			public void handleEvent(Event e) {
-				try {
-					int i = Integer.parseInt(e.text);
-					if (i <= 0) {
-						e.doit = false;
-					}
-				} catch (NumberFormatException ex) {
-					e.doit = false;
-				}
-			}
-		});
 
 		Label l2 = new Label(c, SWT.NONE);
 		l2.setText("Start at #");
@@ -295,18 +309,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		txtOffset = new Text(c, SWT.BORDER);
 		txtOffset.setLayoutData(new GridData(60, SWT.DEFAULT));
 		txtOffset.setText("0");
-		txtOffset.addListener(SWT.Verify, new Listener() {
-			public void handleEvent(Event e) {
-				try {
-					int i = Integer.parseInt(e.text);
-					if (i < 0) {
-						e.doit = false;
-					}
-				} catch (NumberFormatException ex) {
-					e.doit = false;
-				}
-			}
-		});
 
 		btnSearch = new Button(c, SWT.NONE);
 		btnSearch.setText("Search");
@@ -328,35 +330,73 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnConvertToXml.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				 
+				 convertToQueryPerformed();
 			}
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				
+				convertToQueryPerformed();
 			}
 		});
+	}
+	
+	protected void convertToQueryPerformed() {
+		String query = txtQuery.getText();
+		List<ObjectTypes> types = ((IStructuredSelection)listTypes.getSelection()).toList();
+		QueryInterpretation interpretation = getInterpretation();
+		if (interpretation == null || interpretation == QueryInterpretation.XML_QUERY) {
+			return;
+		}
+		int limit = getLimit();
+		int offset = getOffset();
+		if (limit < 0 || offset < 0) {
+			return;
+		}
 		
+		RuntimeService runtime = RuntimeActivator.getRuntimeService();
+		String realQuery = runtime.createQuery(types, query, interpretation, limit, offset);
+		
+		txtQuery.setText(realQuery);
+		btnNamesAndOids.setSelection(false);
+		btnNames.setSelection(false);
+		btnOids.setSelection(false);
+		btnQuery.setSelection(true);
+		btnConvertToXml.setEnabled(false);
+	}
+
+	public int getLimit() {
+		try {
+			int rv = Integer.parseInt(txtLimit.getText());
+			return rv < 0 ? 0 : rv;
+		} catch (NumberFormatException e) {
+			MessageDialog.openWarning(getShell(), "Wrong number", "Please enter a correct number for the limit of objects.");
+			return -1;
+		}
+	}
+
+	public int getOffset() {
+		try {
+			int rv = Integer.parseInt(txtOffset.getText());
+			return rv < 0 ? 0 : rv;
+		} catch (NumberFormatException e) {
+			MessageDialog.openWarning(getShell(), "Wrong number", "Please enter a correct number for the offset.");
+			return -1;
+		}
 	}
 
 	protected void searchPerformed() {
 		String query = txtQuery.getText();
 		List<ObjectTypes> types = ((IStructuredSelection)listTypes.getSelection()).toList();
 		
-		QueryInterpretation interpretation;
-		if (btnNamesAndOids.getSelection()) {
-			interpretation = QueryInterpretation.NAMES_AND_OIDS;
-		} else if (btnNames.getSelection()) {
-			interpretation = QueryInterpretation.NAMES;
-		} else if (btnOids.getSelection()) {
-			interpretation = QueryInterpretation.OIDS;
-		} else if (btnQuery.getSelection()) {
-			interpretation = QueryInterpretation.XML_QUERY;
-		} else {
-			Console.logError("Query interpretation is not known");
+		QueryInterpretation interpretation = getInterpretation();
+		if (interpretation == null) {
 			return;
 		}
 
-		int limit = Integer.parseInt(txtLimit.getText());
+		int limit = getLimit();
+		int offset = getOffset();
+		if (limit < 0 || offset < 0) {
+			return;
+		}
 
 		Console.log("Searching for: " + query + " in " + types + " (interpretation: " + interpretation + ")");
 
@@ -366,7 +406,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
 
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
-				SearchObjectsServerResponse response = runtime.listObjects(types, query, interpretation, limit, connectionParameters);
+				SearchObjectsServerResponse response = runtime.listObjects(types, query, interpretation, limit, offset, connectionParameters);
 				if (response.isSuccess()) {
 					if (response.getServerObjects().isEmpty()) {
 						Util.showInformation("No objects", "There are no objects satisfying these criteria.");
@@ -386,6 +426,23 @@ public class BrowserDialog extends TitleAreaDialog {
 			}
 		};
 		job.schedule();
+	}
+
+	public QueryInterpretation getInterpretation() {
+		QueryInterpretation interpretation;
+		if (btnNamesAndOids.getSelection()) {
+			interpretation = QueryInterpretation.NAMES_AND_OIDS;
+		} else if (btnNames.getSelection()) {
+			interpretation = QueryInterpretation.NAMES;
+		} else if (btnOids.getSelection()) {
+			interpretation = QueryInterpretation.OIDS;
+		} else if (btnQuery.getSelection()) {
+			interpretation = QueryInterpretation.XML_QUERY;
+		} else {
+			Console.logError("Query interpretation is not known");
+			interpretation = null;
+		}
+		return interpretation;
 	}
 
 	private Object[] getTypesFromMap(Map<ObjectTypes, List<ServerObject>> map) {
@@ -411,7 +468,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		lblResult.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 2, 1));
 
 		GridData gd2 = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
-		gd2.heightHint = 150;
+		gd2.heightHint = INITIAL_HEIGHT;
 		//gd2.heightHint = 150;
 		//gd2.minimumHeight = 50;
 
@@ -419,7 +476,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		treeResults.setLabelProvider(new ServerObjectLabelProvider());
 		treeResults.setContentProvider(new ServerObjectContentProvider());
 		treeResults.getControl().setLayoutData(gd2);
-		treeResults.addSelectionChangedListener(new ButtonsSelectionChangedListener());
+		treeResults.addSelectionChangedListener(new ActionButtonsRelatedSelectionChangedListener());
 	}
 
 	public String createResultText(Integer count) {
@@ -439,6 +496,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		labelUseProject.setText("Store objects in project");
 		
 		comboUseProject = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
+		comboUseProject.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
 		projects = new ArrayList<>();
 		for (IProject p : SelectionUtils.getProjects()) {
 			projects.add(p);
@@ -447,17 +505,49 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (initialProject != null) {
 			comboUseProject.setText(initialProject.getName());
 		}
-		comboUseProject.addModifyListener(new ButtonsModifyListener());
+		comboUseProject.addModifyListener(new ActionButtonsRelatedModifyListener());
 
 		Label labelGen = new Label(combos, SWT.NONE);
 		labelGen.setText("Generate");
 		
 		comboWhatToGenerate = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
+		comboWhatToGenerate.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
 		for (Generator g : generators) {
 			comboWhatToGenerate.add(g.getLabel());
 		}
-		comboWhatToGenerate.addModifyListener(new ButtonsModifyListener());
+		comboWhatToGenerate.addModifyListener(new ActionButtonsRelatedModifyListener());
 		
+		Label labelExec = new Label(combos, SWT.NONE);
+		labelExec.setText("Execution");
+		
+		Composite execution = new Composite(combos, SWT.NONE);
+		execution.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
+		GridLayout layout = new GridLayout(3, false);
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		execution.setLayout(layout);
+		
+		comboExecution = new Combo(execution, SWT.DROP_DOWN | SWT.READ_ONLY);
+		String defVal = "By OIDs, in one batch";
+		comboExecution.add(defVal);
+		comboExecution.setText(defVal);
+		comboExecution.add("By OIDs, one after one");
+		comboExecution.add("By OIDs, in batches of N");
+		//comboExecution.add("Using original query (ignoring selection)");
+		comboExecution.add("Using original query");
+		comboExecution.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				txtBatchSize.setEnabled(comboExecution.getSelectionIndex() == 2);
+			}
+		});
+		
+		new Label(execution, SWT.NONE).setText("N = ");
+		txtBatchSize = new Text(execution, SWT.BORDER);
+		txtBatchSize.setLayoutData(new GridData(30, SWT.DEFAULT));
+		txtBatchSize.setText("100");
+		txtBatchSize.setEnabled(false);
+
 		// flags
 		
 		Composite flags = new Composite(box, SWT.NONE);
@@ -473,9 +563,25 @@ public class BrowserDialog extends TitleAreaDialog {
 		Label lblWrapActions = new Label(flags, SWT.NONE);
 		lblWrapActions.setText("Wrap created bulk actions into tasks");
 		
-		btnUseOriginalQuery = new Button(flags, SWT.CHECK);
-		Label lblUseOriginalQuery = new Label(flags, SWT.NONE);
-		lblUseOriginalQuery.setText("Use original query when generating actions/tasks");
+//		btnUseOriginalQuery = new Button(flags, SWT.CHECK);
+//		Label lblUseOriginalQuery = new Label(flags, SWT.NONE);
+//		lblUseOriginalQuery.setText("Use original query when generating actions/tasks");
+		
+		btnCreateSuspended = new Button(flags, SWT.CHECK);
+		Label lblCreateSuspended = new Label(flags, SWT.NONE);
+		lblCreateSuspended.setText("Create tasks in suspended state");
+		
+		Composite options = new Composite(flags, SWT.NONE);
+		options.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
+		GridLayout layOptions = new GridLayout(4, false);
+		layOptions.marginWidth = 0;
+		layOptions.marginHeight = 0;
+		options.setLayout(layOptions);
+		
+		btnCreateRaw = new Button(options, SWT.CHECK);
+		new Label(options, SWT.NONE).setText("Execute in raw mode");
+		btnCreateDryRun = new Button(options, SWT.CHECK);
+		new Label(options, SWT.NONE).setText("Execute in 'dry run' mode");
 	}
 	
 	@Override
@@ -690,8 +796,8 @@ public class BrowserDialog extends TitleAreaDialog {
 		}
 		return rv;
 	}
-
-	protected void buttonsSelectionChanged() {
+	
+	protected void actionButtonsRelatedSelectionChanged() {
 		List<String> oids = getSelectedOids();
 		boolean haveProject = comboUseProject.getSelectionIndex() >= 0;
 		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
@@ -702,16 +808,22 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
 	}
 	
-	class ButtonsSelectionChangedListener implements ISelectionChangedListener {
+	public void updateSearchButtons() {
+		btnConvertToXml.setEnabled(!btnQuery.getSelection());
+		txtLimit.setEnabled(!btnQuery.getSelection());
+		txtOffset.setEnabled(!btnQuery.getSelection());
+	}
+
+	class ActionButtonsRelatedSelectionChangedListener implements ISelectionChangedListener {
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
-			buttonsSelectionChanged();
+			actionButtonsRelatedSelectionChanged();
 		}
 	}
-	class ButtonsModifyListener implements ModifyListener {
+	class ActionButtonsRelatedModifyListener implements ModifyListener {
 		@Override
 		public void modifyText(ModifyEvent e) {
-			buttonsSelectionChanged();		
+			actionButtonsRelatedSelectionChanged();		
 		}
 	}
 	

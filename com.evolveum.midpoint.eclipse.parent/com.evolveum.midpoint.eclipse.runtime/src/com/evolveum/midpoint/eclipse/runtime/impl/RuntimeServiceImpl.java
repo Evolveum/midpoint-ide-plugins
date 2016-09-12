@@ -56,6 +56,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 public class RuntimeServiceImpl implements RuntimeService {
 	
 	public static final QName Q_QUERY = new QName(Constants.QUERY_NS, "query");
+	public static final QName Q_PAGING = new QName(Constants.QUERY_NS, "paging");
+	public static final QName Q_ORDER_BY = new QName(Constants.QUERY_NS, "orderBy");
+	public static final QName Q_OFFSET = new QName(Constants.QUERY_NS, "offset");
+	public static final QName Q_MAX_SIZE = new QName(Constants.QUERY_NS, "maxSize");
 	public static final QName Q_FILTER = new QName(Constants.QUERY_NS, "filter");
 	public static final QName Q_IN_OID = new QName(Constants.QUERY_NS, "inOid");
 	public static final QName Q_VALUE = new QName(Constants.QUERY_NS, "value");
@@ -385,16 +389,13 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 	@Override
 	public SearchObjectsServerResponse downloadObjects(List<String> oids, ConnectionParameters connectionParameters) {
-		String query = oidsQuery(oids, null);
+		String query = oidsQuery(oids, null, null);
 		return executeQuery(ObjectTypes.OBJECT, query, false, connectionParameters);
 	}
 
 	@Override
-	public SearchObjectsServerResponse listObjects(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, ConnectionParameters connectionParameters) {
-		if (query == null) {
-			query = "";
-		}
-		
+	public SearchObjectsServerResponse listObjects(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, int offset, ConnectionParameters connectionParameters) {
+		String realQuery = createQuery(types, query, interpretation, limit, offset);
 		ObjectTypes realType = ObjectTypes.OBJECT;
 		if (!CollectionUtils.isEmpty(types)) {
 			if (types.size() == 1) {
@@ -403,34 +404,42 @@ public class RuntimeServiceImpl implements RuntimeService {
 				throw new IllegalArgumentException("XML Query is not compatible with more than one type");
 			}
 		}
-		
-		String realQuery;
-		switch (interpretation) {
-		case XML_QUERY:
-			realQuery = query;			// TODO include limit
-			break;
-		case OIDS:
-			realQuery = oidsQuery(getLines(query), limit);
-			break;
-		case NAMES:
-			realQuery = namesQuery(types, getLines(query), limit);
-			break;
-		default:
-			realQuery = namesOrOidsQuery(types, getLines(query), limit);
-		}
+
 		System.out.println("Query: " + realQuery);
 		return executeQuery(realType, realQuery, true, connectionParameters);
 	}
+
+	@Override
+	public String createQuery(Collection<ObjectTypes> types, String query, QueryInterpretation interpretation, int limit, int offset) {
+		if (query == null) {
+			query = "";
+		}
+		String realQuery;
+		switch (interpretation) {
+		case XML_QUERY:
+			realQuery = query;
+			break;
+		case OIDS:
+			realQuery = oidsQuery(getLines(query), limit, offset);
+			break;
+		case NAMES:
+			realQuery = namesQuery(types, getLines(query), limit, offset);
+			break;
+		default:
+			realQuery = namesOrOidsQuery(types, getLines(query), limit, offset);
+		}
+		return realQuery;
+	}
 	
-	private String namesOrOidsQuery(Collection<ObjectTypes> types, List<String> lines, int limit) {
-		return namesOidsQueryInternal(types, lines, lines, limit);
+	private String namesOrOidsQuery(Collection<ObjectTypes> types, List<String> lines, int limit, int offset) {
+		return namesOidsQueryInternal(types, lines, lines, limit, offset);
 	}
 
-	private String namesQuery(Collection<ObjectTypes> types, List<String> names, int limit) {
-		return namesOidsQueryInternal(types, names, Collections.emptyList(), limit);
+	private String namesQuery(Collection<ObjectTypes> types, List<String> names, int limit, int offset) {
+		return namesOidsQueryInternal(types, names, Collections.emptyList(), limit, offset);
 	}
 	
-	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, Integer limit) {
+	private String namesOidsQueryInternal(Collection<ObjectTypes> types, List<String> names, List<String> oids, Integer limit, Integer offset) {
 		Document doc = DOMUtil.getDocument(Q_QUERY);
 		Element query = doc.getDocumentElement();
 		
@@ -470,12 +479,19 @@ public class RuntimeServiceImpl implements RuntimeService {
 				}
 			}
 		}
-		// TODO limit
+		Element paging = DOMUtil.createSubElement(query, Q_PAGING);
+		DOMUtil.createSubElement(paging, Q_ORDER_BY).setTextContent("name");
+		if (offset != null) {
+			DOMUtil.createSubElement(paging, Q_OFFSET).setTextContent(String.valueOf(offset));
+		}
+		if (limit != null) {
+			DOMUtil.createSubElement(paging, Q_MAX_SIZE).setTextContent(String.valueOf(limit));
+		}
 		return DOMUtil.serializeDOMToString(doc);	
 	}
 
-	private String oidsQuery(List<String> oids, Integer limit) {
-		return namesOidsQueryInternal(null, Collections.emptyList(), oids, limit);
+	private String oidsQuery(List<String> oids, Integer limit, Integer offset) {
+		return namesOidsQueryInternal(null, Collections.emptyList(), oids, limit, offset);
 	}
 
 	private static List<String> getLines(String text) {
