@@ -20,11 +20,7 @@ public class SetAsActionHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
 		ISelection selection = SelectionUtils.getSelection(event);
-		if (!(selection instanceof IStructuredSelection)) {
-			Util.showAndLogWarning("No files selected", "This action requires that a file is selected.");
-			return null;
-		}
-		List<IFile> files = SelectionUtils.getXmlFiles((IStructuredSelection) selection);
+		List<IFile> files = SelectionUtils.getSelectedXmlFiles(selection);
 		if (files.size() != 1) {
 			Util.showAndLogWarning("No files selected", "This action requires that exactly one file is selected.");
 			return null;

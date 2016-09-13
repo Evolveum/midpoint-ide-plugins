@@ -7,9 +7,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler.RequestedAction;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
-import com.evolveum.midpoint.eclipse.ui.handlers.sources.TextFragmentSource;
 
 public class ServerRequestPack {
 	
@@ -40,10 +40,10 @@ public class ServerRequestPack {
 		return getItemCount() == 0;
 	}
 
-
-	public static ServerRequestPack fromTextFragment(String textFragment, IPath path, RequestedAction requestedAction) {
+	@Deprecated
+	public static ServerRequestPack fromTextFragment(String textFragment, IFile file, RequestedAction requestedAction) {
 		List<ServerRequestItem> items = new ArrayList<>();
-		List<SourceObject> objects = ServerRequestItem.parseTextFragment(textFragment, path, requestedAction); 
+		List<SourceObject> objects = ServerRequestItem.parseTextFragment(textFragment, file, requestedAction); 
 		for (SourceObject object : objects) {
 			ServerAction action;
 			switch (requestedAction) {
@@ -54,6 +54,10 @@ public class ServerRequestPack {
 			items.add(new ServerRequestItem(action, object));
 		}
 		return new ServerRequestPack(items);
+	}
+
+	public static List<SourceObject> fromTextFragment(String textFragment, IFile file, boolean wholeFile) {
+		return ServerRequestItem.parseTextFragment(textFragment, file, wholeFile); 
 	}
 
 	public void add(List<ServerRequestItem> items) {
@@ -70,6 +74,7 @@ public class ServerRequestPack {
 		return new ServerRequestPack(items);
 	}
 	
+	@Deprecated
 	public static ServerRequestPack fromWorkspaceFiles(List<IFile> files, RequestedAction requestedAction) {
 		List<ServerRequestItem> items = new ArrayList<>();
 		for (IFile file : files) {
@@ -85,5 +90,13 @@ public class ServerRequestPack {
 			}
 		}
 		return new ServerRequestPack(items);
+	}
+	
+	public static List<SourceObject> fromWorkspaceFiles(List<IFile> files) {
+		List<SourceObject> items = new ArrayList<>();
+		for (IFile file : files) {
+			items.addAll(ServerRequestItem.parseWorkspaceFile(file)); 
+		}
+		return items;
 	}
 }

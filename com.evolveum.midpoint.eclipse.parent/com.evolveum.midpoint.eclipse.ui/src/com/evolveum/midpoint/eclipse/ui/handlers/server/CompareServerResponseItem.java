@@ -13,6 +13,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.resp.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;
 
 public class CompareServerResponseItem extends ServerResponseItem<CompareServerResponse> {
@@ -74,7 +75,7 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 			ResourceUtils.createOutputFile(remoteFile, response.getRemote());
 		}
 	}
-
+	
 	@Override
 	public String getConsoleLogLine(int responseCounter) {
 		String prefix = getResultLine();
@@ -159,7 +160,16 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 	
 	@Override
 	public void logResult(int responseCounter) {
-		super.logResult(responseCounter);
+		String logLine = getConsoleLogLine(responseCounter);
+		if (response.isSuccess()) {
+			if (response.noDifferences()) {
+				Console.logMinor(logLine);
+			} else {
+				Console.log(logLine);
+			}
+		} else {
+			Console.logError(logLine, response.getException());
+		}
 		if (!response.isSuccess() && response.getStatusCode() != 0 && !response.wasParsed()) {
 			logRawErrorDetails();
 		}

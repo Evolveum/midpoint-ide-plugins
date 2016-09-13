@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -13,15 +14,19 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.part.FileEditorInput;
 
 public class SelectionUtils {
 
@@ -33,6 +38,21 @@ public class SelectionUtils {
 			}
 		}
 		return files;
+	}
+	
+	public static List<IFile> getSelectedXmlFiles(ISelection selection) {
+		if (selection instanceof ITextSelection) {
+			IFile openFile = getFileInActiveEditor(selection);
+			if (openFile != null) {
+				return Collections.singletonList(openFile);
+			}
+			return new ArrayList<>();
+		}
+		if (!(selection instanceof IStructuredSelection)) {
+			return new ArrayList<>();
+		}
+		IStructuredSelection ss = (IStructuredSelection) selection;
+		return getXmlFiles(ss);
 	}
 
 	public static void addXmlFiles(List<IFile> files, IResource resource) {
@@ -62,15 +82,6 @@ public class SelectionUtils {
 		return selection;
 	}
 
-	// not null
-	public static List<IFile> getXmlFiles(ISelection selection) {
-		if (selection instanceof IStructuredSelection) {
-			return getXmlFiles((IStructuredSelection) selection);
-		} else {
-			return Collections.emptyList();
-		}
-	}
-
 	public static ISelection getWorkbenchSelection() {
 		IWorkbenchWindow win = getActiveWindow();
 		if (win == null) {
@@ -95,6 +106,11 @@ public class SelectionUtils {
 	public static IWorkbenchPage getActivePage() {
 		IWorkbenchWindow win = getActiveWindow();
 		return win != null ? win.getActivePage() : null;
+	}
+	
+	public static IEditorPart getActiveEditor() {
+		IWorkbenchPage activePage = getActivePage();
+		return activePage != null ? activePage.getActiveEditor() : null;
 	}
 	
 	public static ISelectionService getSelectionServiceFromActiveWindow() {
@@ -152,6 +168,36 @@ public class SelectionUtils {
 			}
 		}
 		return rv;
+	}
+	
+	
+	public static IFile getFileInActiveEditor(ISelection selection) {
+		if (!(selection instanceof ITextSelection)) {
+			return null;
+		}
+		String text = ((ITextSelection) selection).getText();
+		IEditorPart activeEditor = getActiveEditor();
+		if (activeEditor == null) {
+			return null;
+		}
+		IEditorInput editorInput = activeEditor.getEditorInput();
+		if (!(editorInput instanceof FileEditorInput)) {
+			return null;
+		}
+		IFile file = ((FileEditorInput) editorInput).getFile();
+		if (StringUtils.isEmpty(text)) {
+			return file;
+		}
+		IDocument doc = (IDocument)activeEditor.getAdapter(IDocument.class);
+		if (doc == null) {
+			return null;
+		}
+		String allText = doc.get();
+		if (text.equals(allText)) {
+			return file;
+		}
+		// only part of file is selected
+		return null;
 	}
 
 }

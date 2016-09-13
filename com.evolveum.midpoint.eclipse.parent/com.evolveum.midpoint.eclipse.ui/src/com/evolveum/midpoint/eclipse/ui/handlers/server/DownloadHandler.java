@@ -98,10 +98,11 @@ main:		for (ServerObject object : allObjects) {
 					break;
 				}
 				IFile file = prepareOutputFileForCreation(object, root);
+				IPath path = file.getFullPath();
 				if (file.exists()) {
 					String overwrite = PluginPreferences.getOverwriteWhenDownloading();
 					if (noToAll || DownloadPreferencePage.VALUE_NEVER.equals(overwrite)) {
-						Console.log("File " + file + " already exists, skipping.");
+						Console.logMinor("File " + path + " already exists, skipping.");
 						continue;
 					}
 					final Holder<Integer> responseHolder = new Holder<>();
@@ -109,7 +110,7 @@ main:		for (ServerObject object : allObjects) {
 						Display.getDefault().syncExec(new Runnable() {
 							public void run() {
 								MessageDialog dialog = new MessageDialog(
-										null, "Confirm overwrite", null, "Are you sure to overwrite " + file + "?",
+										null, "Confirm overwrite", null, "Are you sure to overwrite " + path + "?",
 										MessageDialog.QUESTION,
 										new String[] {"Yes", "No", "Yes to all", "No to all", "Cancel"},
 										0);
@@ -121,7 +122,7 @@ main:		for (ServerObject object : allObjects) {
 						case 0: break;					// Yes
 						case 3: noToAll = true;			// No to all
 						case 1: 						// No
-							Console.log("File " + file + " already exists, skipping.");
+							Console.logMinor("File " + path + " already exists, skipping.");
 							continue;
 						case 4: break main;				// Cancel
 						}
@@ -131,7 +132,7 @@ main:		for (ServerObject object : allObjects) {
 					ResourceUtils.createParentFolders(file.getParent());
 				}
 				file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
-				Console.log("File " + file + " was successfully created.");
+				Console.log("File " + path + " was successfully created.");
 				count++;
 				monitor.worked(1);
 			}

@@ -40,11 +40,12 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 			
 			items.add(new Separator());
 
-			MenuUtil.addUploadOrExecute(items, serviceLocator);
 			MenuUtil.addUploadOrExecuteWithAction(items, serviceLocator);
-			MenuUtil.addDownload(items, serviceLocator);
-			MenuUtil.addReloadFromServer(items, serviceLocator);
+			MenuUtil.addUploadOrExecuteWithoutAction(items, serviceLocator);
+			MenuUtil.addUploadOrExecuteStopOnError(items, serviceLocator);
 			MenuUtil.addComputeDifferences(items, serviceLocator);		
+			MenuUtil.addReloadFromServer(items, serviceLocator);
+			MenuUtil.addDownload(items, serviceLocator);
 			//MenuUtil.addTest(items, serviceLocator);
 			
 			List<IContributionItem> actionItems = new ArrayList<>();
@@ -65,6 +66,10 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 				items.add(new Separator());
 				items.addAll(setAsActionItems);
 			}
+			
+			items.add(new Separator());
+			
+			MenuUtil.addServerSideMenu(items, serviceLocator);
 			
 			items.add(new Separator());
 		}

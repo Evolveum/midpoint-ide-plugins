@@ -62,6 +62,31 @@
 			id="com.evolveum.midpoint.eclipse.ui.command.selectServer">
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.serverNumber" name="Server number"/>
 		</command>
+		<!--
+		<command name="Enable on server"
+			description="Enables selected object(s) on midPoint server"
+			id="com.evolveum.midpoint.eclipse.ui.command.enableOnServer">
+		</command>
+		<command name="Disable on server"
+			description="Disables selected object(s) on midPoint server"
+			id="com.evolveum.midpoint.eclipse.ui.command.disableOnServer">
+		</command> -->
+		<command name="Recompute on server"
+			description="Recomputes selected object(s) on midPoint server"
+			id="com.evolveum.midpoint.eclipse.ui.command.recomputeOnServer">
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.uploadFirst" name="Upload object(s) first"/>
+		</command>
+		<command name="Delete on server"
+			description="Deletes selected object(s) on midPoint server and possibly also locally"
+			id="com.evolveum.midpoint.eclipse.ui.command.deleteOnServer">
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.raw" name="In raw mode"/>
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.alsoLocally" name="Delete also local file"/>
+		</command>
+		<command name="Test resource"
+			description="Tests selected resource(s) on server"
+			id="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer">
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.uploadFirst" name="Upload object(s) first"/>
+		</command>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
@@ -90,6 +115,16 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.setAsAction" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.SelectServerHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.selectServer" />
+		<!--<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.enableOnServer" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.disableOnServer" />-->
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.recomputeOnServer" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.deleteOnServer" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer" />
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=additions">

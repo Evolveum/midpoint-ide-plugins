@@ -116,24 +116,24 @@ public class BrowserDialog extends TitleAreaDialog {
 	private IWorkbenchPage page;
 	
 	private List<Generator> generators = Arrays.asList(
+			new BulkActionGenerator("recompute"),
+			new BulkActionGenerator("enable"),
+			new BulkActionGenerator("disable"),
+			new BulkActionGenerator("delete"),
+			new ModifyBulkActionGenerator(),
+			new BulkActionGenerator("log"),
+			new BulkActionGenerator("test-resource"),			// TODO use ResourceType for searching!
+			new TaskGenerator(TaskGenerator.Action.RECOMPUTE),
+			new TaskGenerator(TaskGenerator.Action.DELETE),
+			new QueryGenerator(),
+			new AssignmentGenerator(),
 			new RefGenerator("targetRef", ObjectTypes.OBJECT),
 			new RefGenerator("resourceRef", ObjectTypes.RESOURCE),
 			new RefGenerator("linkRef", ObjectTypes.SHADOW),
 			new ConnectorRefGenerator(),
 			new RefGenerator("parentOrgRef", ObjectTypes.ORG),
-			new RefGenerator("ownerRef", ObjectTypes.ORG),
-			new AssignmentGenerator(),
-			new QueryGenerator(),
-			new BulkActionGenerator("log"),
-			new BulkActionGenerator("enable"),
-			new BulkActionGenerator("disable"),
-			new BulkActionGenerator("recompute"),
-			new BulkActionGenerator("delete"),
+			new RefGenerator("ownerRef", ObjectTypes.ORG)
 //			new BulkActionGenerator("modify"), assign this, assign to this,
-			new BulkActionGenerator("test-resource"),			// TODO use ResourceType for searching!
-			new ModifyBulkActionGenerator()
-//			new TaskGenerator("recompute"),
-//			new TaskGenerator("delete")
 			// TODO modify
 			);
 	private Button btnExecAllByOid;
@@ -168,7 +168,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	}
 
 	private IProject getInitialProject(ISelection selection) {
-		List<IFile> files = SelectionUtils.getXmlFiles(selection);
+		List<IFile> files = SelectionUtils.getSelectedXmlFiles(selection);
 		if (!files.isEmpty()) {
 			return files.get(0).getProject();
 		}

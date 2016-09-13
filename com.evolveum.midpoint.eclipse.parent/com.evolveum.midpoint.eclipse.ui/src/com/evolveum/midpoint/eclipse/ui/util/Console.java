@@ -88,6 +88,7 @@ public class Console {
 		String formatted = formatMessage(message, options);
 		switch (severity) {
 		case INFO: _plain(formatted); break;
+		case MINOR: _colored(formatted, SWT.COLOR_DARK_GRAY); break;
 		case WARN: _colored(formatted, SWT.COLOR_DARK_YELLOW); break;
 		default: _colored(formatted, exception ? SWT.COLOR_DARK_RED : SWT.COLOR_RED); break;
 		}
@@ -105,6 +106,10 @@ public class Console {
 
 	public static void log(String message) {
 		log(Severity.INFO, null, message, null);
+	}
+
+	public static void logMinor(String message) {
+		log(Severity.MINOR, null, message, null);
 	}
 
 	public static void logWarning(String message, Throwable t) {

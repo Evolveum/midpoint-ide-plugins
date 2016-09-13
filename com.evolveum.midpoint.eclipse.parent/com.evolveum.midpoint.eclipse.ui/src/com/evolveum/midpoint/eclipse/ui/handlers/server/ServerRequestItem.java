@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -56,8 +57,8 @@ public class ServerRequestItem {
 		String content = source.getContent();
 		return Expander.expand(content, PluginPreferences.getSelectedServer());
 	}
-	public IPath getSourcePath() {
-		return source.getResourcePath();
+	public IFile getSourceFile() {
+		return source.getFile();
 	}
 	public int getPredefinedActionNumber() {
 		return predefinedActionNumber;
@@ -102,19 +103,19 @@ public class ServerRequestItem {
 	private static List<SourceObject> parsePhysicalFile(String fileName, boolean executeOnly) {
 		try {
 			IFile logicalFile = Util.physicalToLogicalFile(fileName);
-			IPath logicalPath = logicalFile != null ? logicalFile.getFullPath() : null;
 			Document doc = DOMUtil.parseFile(fileName);
-			return parseDocument(doc, executeOnly, logicalPath, logicalPath != null ? logicalPath.toPortableString() : fileName);
+			return parseDocument(doc, executeOnly, logicalFile, logicalFile != null ? logicalFile.getFullPath().toPortableString() : fileName);
 		} catch (RuntimeException e) {
 			Console.logError("Couldn't parse file " + fileName, e);
 			return new ArrayList<>();
 		}
 	}
 
+	@Deprecated
 	public static List<SourceObject> parseWorkspaceFile(IFile file, RequestedAction requestedAction) {
 		try {
 			Document doc = parseWorkspaceFileToDOM(file);
-			List<SourceObject> objects = parseDocument(doc, requestedAction == RequestedAction.EXECUTE_ACTION, file.getFullPath(), file.getFullPath().toPortableString());
+			List<SourceObject> objects = parseDocument(doc, requestedAction == RequestedAction.EXECUTE_ACTION, file, file.getFullPath().toPortableString());
 			if (requestedAction == RequestedAction.COMPARE) {
 				if (objects.size() != 1 || !objects.get(0).isUploadable()) {
 					// TODO consider adding isRoot
@@ -128,12 +129,23 @@ public class ServerRequestItem {
 			return new ArrayList<>();
 		}
 	}
+	
+	public static List<SourceObject> parseWorkspaceFile(IFile file) {
+		try {
+			Document doc = parseWorkspaceFileToDOM(file);
+			return parseDocument(doc, file, file.getFullPath().toPortableString());
+		} catch (RuntimeException e) {
+			Console.logError("Couldn't parse file " + file, e);
+			return new ArrayList<>();
+		}
+	}
 
-	public static List<SourceObject> parseTextFragment(String textFragment, IPath path, RequestedAction requestedAction) {
+	@Deprecated
+	public static List<SourceObject> parseTextFragment(String textFragment, IFile file, RequestedAction requestedAction) {
 		try {
 			Document doc = DOMUtil.parseDocument(textFragment);
-			String displayName = path != null ? "text fragment from " + path.toPortableString() : "text fragment";
-			List<SourceObject> objects = parseDocument(doc, requestedAction == RequestedAction.EXECUTE_ACTION, path, displayName);
+			String displayName = file != null ? "text fragment from " + file.getFullPath().toPortableString() : "text fragment";
+			List<SourceObject> objects = parseDocument(doc, requestedAction == RequestedAction.EXECUTE_ACTION, file, displayName);
 			if (requestedAction == RequestedAction.COMPARE) {
 				if (objects.size() != 1 || !objects.get(0).isUploadable()) {
 					// TODO consider adding isRoot
@@ -143,7 +155,22 @@ public class ServerRequestItem {
 			}
 			return objects;
 		} catch (RuntimeException e) {
-			Console.logError("Couldn't parse text fragment from file " + path, e);
+			Console.logError("Couldn't parse text fragment from file " + file, e);
+			return new ArrayList<>();
+		}
+	}
+	
+	public static List<SourceObject> parseTextFragment(String textFragment, IFile file, boolean wholeFile) {
+		try {
+			Document doc = DOMUtil.parseDocument(textFragment);
+			String displayName = file != null ? "text fragment from " + file.getFullPath().toPortableString() : "text fragment";
+			List<SourceObject> rv = parseDocument(doc, file, displayName);
+			for (SourceObject so : rv) {
+				so.setWholeFile(wholeFile);
+			}
+			return rv;
+		} catch (RuntimeException e) {
+			Console.logError("Couldn't parse text fragment from file " + file, e);
 			return new ArrayList<>();
 		}
 	}
@@ -162,7 +189,8 @@ public class ServerRequestItem {
 	}
 
 
-	private static List<SourceObject> parseDocument(Document doc, boolean executeOnly, IPath logicalPath, String displayName) {
+	@Deprecated
+	private static List<SourceObject> parseDocument(Document doc, boolean executeOnly, IFile file, String displayName) {
 		List<SourceObject> rv = new ArrayList<>();
 		Element root = doc.getDocumentElement();
 		String localName = root.getLocalName();
@@ -186,12 +214,12 @@ public class ServerRequestItem {
 		for (int i = 0; i < rv.size(); i++) {
 			SourceObject o = rv.get(i);
 			o.setObjectIndex(i);
-			o.setResourcePath(logicalPath);
+			o.setFile(file);
 			String name;
 			if (displayName != null) {
 				name = displayName;
-			} else if (logicalPath != null) {
-				name = logicalPath.toPortableString();
+			} else if (file != null) {
+				name = file.getFullPath().toPortableString();
 			} else {
 				name = "(unknown source)";
 			}
@@ -203,11 +231,60 @@ public class ServerRequestItem {
 		
 		return rv;
 	}
+	
+	private static List<SourceObject> parseDocument(Document doc, IFile file, String displayName) {
+		List<SourceObject> rv = new ArrayList<>();
+		Element root = doc.getDocumentElement();
+		String localName = root.getLocalName();
+		if ("actions".equals(localName) || "objects".equals(localName)) {
+			for (Element child : DOMUtil.listChildElements(root)) {
+				DOMUtil.fixNamespaceDeclarations(child);
+				SourceObject o = parseElement(child);
+				if (o != null) {
+					o.setRoot(false);
+					rv.add(o);
+				}
+			}
+		} else {
+			SourceObject o = parseElement(root);
+			if (o != null) {
+				o.setRoot(true);
+				rv.add(o);
+			}
+		}
+		
+		for (int i = 0; i < rv.size(); i++) {
+			SourceObject o = rv.get(i);
+			o.setObjectIndex(i);
+			o.setFile(file);
+			String name;
+			if (displayName != null) {
+				name = displayName;
+			} else if (file != null) {
+				name = file.getFullPath().toPortableString();
+			} else {
+				name = "(unknown source)";
+			}
+			if (rv.size() > 1) {
+				name += " (object " + (i+1) + " of " + rv.size() + ")";
+			}
+			o.setDisplayName(name);
+		}
+		
+		if (rv.size() > 0) {
+			rv.get(rv.size()-1).setLast(true);
+		}
+		
+		return rv;
+	}
 
+
+	@Deprecated
 	private static SourceObject parseElement(Element element, boolean executeOnly) {
 		String localName = element.getLocalName();
 		boolean executable = Constants.SCRIPTING_ACTIONS.contains(localName);
-		boolean uploadable = ObjectTypes.getRestTypeForElementName(localName) != null;
+		ObjectTypes type = ObjectTypes.findByElementName(localName);
+		boolean uploadable = type != null;
 		
 		if (executeOnly && !executable) {
 			Console.logWarning("Object rooted at " + element.getNodeName() + " is not executable, skipping it.");
@@ -216,8 +293,24 @@ public class ServerRequestItem {
 			Console.logWarning("Object rooted at " + element.getNodeName() + " is not executable nor uploadable, skipping it.");
 			return null;
 		}
-		return new SourceObject(DOMUtil.serializeDOMToString(element), uploadable, executable);
+		return new SourceObject(DOMUtil.serializeDOMToString(element), type, executable);
 	}
 	
-	
+	private static SourceObject parseElement(Element element) {
+		String localName = element.getLocalName();
+		boolean executable = Constants.SCRIPTING_ACTIONS.contains(localName);
+		ObjectTypes type = ObjectTypes.findByElementName(localName);
+		
+		SourceObject o = new SourceObject(DOMUtil.serializeDOMToString(element), type, executable);
+		String oid = element.getAttribute("oid");
+		if (StringUtils.isNotBlank(oid)) {
+			o.setOid(oid);
+		}
+		Element nameElement = DOMUtil.getChildElement(element, "name");
+		if (nameElement != null) {
+			o.setName(nameElement.getTextContent());
+		}
+		return o;
+	}
+
 }

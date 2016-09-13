@@ -29,15 +29,14 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
-import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.CompareServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.NotApplicableServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
-import com.evolveum.midpoint.eclipse.ui.handlers.sources.PhysicalFileSource;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -106,6 +105,8 @@ public class FileRequestHandler extends AbstractHandler {
 		default:
 			jobTitle = "Uploading/executing";
 		}
+		
+		boolean stopOnError = "true".equals(event.getParameter(PluginConstants.PARAM_STOP_ON_ERROR));
 		
 		ServerInfo selectedServer = PluginPreferences.getSelectedServer();
 		if (selectedServer == null) {
@@ -214,6 +215,10 @@ public class FileRequestHandler extends AbstractHandler {
 							if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
 								responseCounter++;
 							}
+							
+							if (!responseItem.isSuccess()) {
+								Console.logWarning("Stopping on error (as requested).");
+							}
 						}
 					}
 					
@@ -225,16 +230,7 @@ public class FileRequestHandler extends AbstractHandler {
 						requestedAction == RequestedAction.COMPARE ? 
 								PluginPreferences.getShowComparisonResultMessageBox() : PluginPreferences.getShowUploadOrExecuteResultMessageBox();
 				
-				if (responseItems.size() == 1) {
-					ServerResponseItem<?> responseItem = responseItems.get(0);
-					if (responseItem.showResultLine(showBoxCondition)) {
-						if (responseItem.isSuccess()) {
-							Util.showInformation("Success", responseItem.getResultLine());
-						} else {
-							Util.showError("Problem", responseItem.getResultLine() + ": " + responseItem.getResponse().getErrorDescription());
-						}
-					}
-				} else {
+				{
 					boolean showBox = false;
 					int uploadOk = 0, uploadFail = 0, execOk = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
 					for (ServerResponseItem<?> responseItem : responseItems) {
@@ -366,14 +362,13 @@ public class FileRequestHandler extends AbstractHandler {
 					selectedText = doc.get();
 					IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
 					if (selectedText != null && !selectedText.trim().isEmpty()) {
-						IPath path = file != null ? file.getFullPath() : null;			// TODO what for files that are not in the workspace?
 						if (file == null) {
 							if (action == RequestedAction.COMPARE) {
 								MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 								return ServerRequestPack.EMPTY;
 							}
 						}
-						return ServerRequestPack.fromTextFragment(selectedText, path, action);
+						return ServerRequestPack.fromTextFragment(selectedText, file, action);
 					}
 				}
 			}
@@ -400,6 +395,53 @@ public class FileRequestHandler extends AbstractHandler {
 
 	public static String getTextEditorId() {
 		return "org.eclipse.ui.DefaultTextEditor";
+	}
+
+	public static List<SourceObject> getServerObjectsFromSelection(ExecutionEvent event, ISelection selection) {
+		List<SourceObject> rv = new ArrayList<>();
+		String selectedText;
+		if (selection instanceof ITextSelection) {
+			ITextSelection ts  = (ITextSelection) selection;
+			selectedText = ts.getText();
+		} else if (selection instanceof IMarkSelection) {
+			IMarkSelection ms = (IMarkSelection) selection;
+			try {
+			    selectedText = ms.getDocument().get(ms.getOffset(), ms.getLength());
+			} catch (BadLocationException e) { 
+				Util.processUnexpectedException(e);
+				return rv;
+			}
+		} else if (selection instanceof IStructuredSelection) {
+			List<IFile> files = SelectionUtils.getXmlFiles((IStructuredSelection) selection);
+			if (files.isEmpty()) {
+				MessageDialog.openWarning(null, "No files", "There are no XML files to be processed.");
+				return rv;
+			}
+			return ServerRequestPack.fromWorkspaceFiles(files);			// TODO message if empty
+		} else {
+			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be processed.");
+			return rv;
+		}
+	
+		//System.out.println("Selected text=[" + selectedText + "]");
+		if (selectedText == null || selectedText.isEmpty()) {		// note "no trim" here!
+			IEditorPart editor = HandlerUtil.getActiveEditor(event);
+			if (editor != null) {
+				IEditorInput editorInput = editor.getEditorInput();
+				IDocument doc = (IDocument)editor.getAdapter(IDocument.class);
+				if (doc != null) {
+					selectedText = doc.get();
+					IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
+					if (selectedText != null && !selectedText.trim().isEmpty()) {
+						return ServerRequestPack.fromTextFragment(selectedText, file, true);
+					}
+				}
+			}
+		}
+		if (selectedText == null || selectedText.trim().isEmpty()) {
+			return rv;
+		}
+		return ServerRequestPack.fromTextFragment(selectedText, null, false);		// TODO wholeFile	
 	}
 
 }

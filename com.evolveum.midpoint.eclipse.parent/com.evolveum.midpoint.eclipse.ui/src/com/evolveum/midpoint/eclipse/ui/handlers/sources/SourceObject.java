@@ -1,28 +1,35 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.sources;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
+
+import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 
 public class SourceObject {
 
 	private String content;						// XML content
-	private boolean uploadable;
+	private ObjectTypes type;
 	private boolean executable;
-	private IPath resourcePath;					// used to derive output file names
+	private IFile file;					// used to derive output file names (and to delete files)
 	private int objectIndex;					// object number in the resource (if applicable)
 	private String displayName;					// how to identify object in messages, logs, etc.
-	private boolean isRoot;						// is this a root element in the file?
+	private boolean root;						// is this a root element in the file?
+	private boolean last;						// is this a last one in the file?
+	private boolean wholeFile;				// covers the whole file?
+	private String oid;
+	private String name;
 	
-	public SourceObject(String content, boolean uploadable, boolean executable) {
+	public SourceObject(String content, ObjectTypes type, boolean executable) {
 		this.content = content;
-		this.uploadable = uploadable;
+		this.type = type;
 		this.executable = executable;
 	}
 	
-	public IPath getResourcePath() {
-		return resourcePath;
+	public IFile getFile() {
+		return file;
 	}
-	public void setResourcePath(IPath resourcePath) {
-		this.resourcePath = resourcePath;
+	public void setFile(IFile resourcePath) {
+		this.file = resourcePath;
 	}
 	public int getObjectIndex() {
 		return objectIndex;
@@ -44,19 +51,19 @@ public class SourceObject {
 	}
 
 	public boolean isRoot() {
-		return isRoot;
+		return root;
 	}
 
 	public void setRoot(boolean isRoot) {
-		this.isRoot = isRoot;
+		this.root = isRoot;
 	}
 
 	public boolean isUploadable() {
-		return uploadable;
+		return type != null;
 	}
 
-	public void setUploadable(boolean uploadable) {
-		this.uploadable = uploadable;
+	public ObjectTypes getType() {
+		return type;
 	}
 
 	public boolean isExecutable() {
@@ -66,7 +73,44 @@ public class SourceObject {
 	public void setExecutable(boolean executable) {
 		this.executable = executable;
 	}
+
+	public String getOid() {
+		return oid;
+	}
+
+	public void setOid(String oid) {
+		this.oid = oid;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public boolean isLast() {
+		return last;
+	}
+
+	public void setLast(boolean last) {
+		this.last = last;
+	}
+
+	public boolean isWholeFile() {
+		return wholeFile;
+	}
+
+	public void setWholeFile(boolean wholeFile) {
+		this.wholeFile = wholeFile;
+	}
+
+	public void setType(ObjectTypes type) {
+		this.type = type;
+	}
 	
 	
+
 	
 }

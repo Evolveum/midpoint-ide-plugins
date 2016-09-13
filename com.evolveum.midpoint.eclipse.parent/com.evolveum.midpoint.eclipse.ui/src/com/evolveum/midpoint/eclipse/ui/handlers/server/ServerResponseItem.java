@@ -54,7 +54,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 	}
 	
 	private IPath computeFilePath(int responseCounter, String outputType) {
-		IPath source = requestItem.getSourcePath();
+		IPath source = requestItem.getSourceFile() != null ? requestItem.getSourceFile().getFullPath() : null;
 		IPath root, rootToSource;
 		String sourceName;
 		String pattern;
@@ -149,7 +149,7 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 	public void logResult(int responseCounter) {
 		String logLine = getConsoleLogLine(responseCounter);
 		if (response.isSuccess()) {
-			Console.log(logLine);
+			Console.logMinor(logLine);
 		} else {
 			Console.logError(logLine, response.getException());
 		}

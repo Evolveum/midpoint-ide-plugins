@@ -7,6 +7,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -35,7 +36,7 @@ public class ReloadHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
 		ISelection selection = SelectionUtils.getSelection(event);
-		List<IFile> files = SelectionUtils.getXmlFiles(selection);
+		List<IFile> files = SelectionUtils.getSelectedXmlFiles(selection);
 		if (files.isEmpty()) {
 			Util.showWarning("No files selected", "There are no XML files to be processed.");
 			return null;
@@ -70,6 +71,7 @@ public class ReloadHandler extends AbstractHandler {
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				monitor.beginTask("Processing", itemCount);
 				for (IFile file : files) {
+					IPath path = file.getFullPath();
 					if (monitor.isCanceled()) {
 						break;
 					}
@@ -80,28 +82,28 @@ public class ReloadHandler extends AbstractHandler {
 						ServerResponse response = runtime.getCurrentVersionOfObject(source.resolve(), connectionParameters);
 					
 						if (response instanceof NotApplicableServerResponse) {
-							Console.logWarning("File " + file + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+							Console.logWarning("File " + path + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
 							skipped++;
 						} else {
 							SearchObjectsServerResponse searchResult = (SearchObjectsServerResponse) response;
 							if (!searchResult.isSuccess()) {
-								Console.logError("File " + file + " couldn't be reloaded: " + searchResult.getErrorDescription(), searchResult.getException());
+								Console.logError("File " + path + " couldn't be reloaded: " + searchResult.getErrorDescription(), searchResult.getException());
 								failed++;
 							} else if (searchResult.getServerObjects().isEmpty()) {
-								Console.logError("File " + file + " couldn't be reloaded: There is no such object on the server");
+								Console.logError("File " + path + " couldn't be reloaded: There is no such object on the server");
 								missing++;
 							} else if (searchResult.getServerObjects().size() > 1) {
-								Console.logWarning("File " + file + " couldn't be reloaded: There are " + searchResult.getServerObjects().size() + " applicable objects on the server");
+								Console.logWarning("File " + path + " couldn't be reloaded: There are " + searchResult.getServerObjects().size() + " applicable objects on the server");
 								ambiguous++;
 							} else {
 								String data = searchResult.getServerObjects().get(0).getXml();
 								file.setContents(IOUtils.toInputStream(data, "utf-8"), true, false, monitor);
-								Console.log("File " + file + " reloaded from server.");
+								Console.logMinor("File " + path + " reloaded from server.");
 								reloaded++;
 							}
 						}
 					} catch (Throwable t) {
-						Console.logError("File " + file + " couldn't be reloaded: " + t.getMessage(), t);
+						Console.logError("File " + path + " couldn't be reloaded: " + t.getMessage(), t);
 						failed++;
 					}
 					
@@ -117,7 +119,7 @@ public class ReloadHandler extends AbstractHandler {
 				} else {
 					severity = Severity.INFO;
 				}
-				Util.show(severity, null, "Reload result", "Reloaded files: " + reloaded + ", no longer existing: " + missing + ", ambiguous: " + ambiguous + ", skipped: " + skipped + ", failed: " + failed);
+				Util.showAndLog(severity, null, "Reload result", "Reloaded files: " + reloaded + ", no longer existing: " + missing + ", ambiguous: " + ambiguous + ", skipped: " + skipped + ", failed: " + failed);
 				return Status.OK_STATUS;
 			}
 		};
