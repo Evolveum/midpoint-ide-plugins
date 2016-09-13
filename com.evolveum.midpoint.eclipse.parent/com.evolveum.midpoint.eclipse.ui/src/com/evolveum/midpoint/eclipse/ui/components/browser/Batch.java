@@ -1,22 +1,21 @@
 package com.evolveum.midpoint.eclipse.ui.components.browser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 
 public class Batch {
 	
-	private List<ServerObject> objects;
-	private int first, last;
-
-	public Batch(List<ServerObject> objects, int first, int last) {
-		this.objects = objects.subList(first, last+1);
-		this.first = first;
-		this.last = last;
-	}
+	private List<ServerObject> objects = new ArrayList<>();
+	private int first;
 
 	public List<ServerObject> getObjects() {
 		return objects;
+	}
+	
+	public void setFirst(int first) {
+		this.first = first;
 	}
 
 	public int getFirst() {
@@ -24,11 +23,7 @@ public class Batch {
 	}
 
 	public int getLast() {
-		return last;
+		return first + objects.size() - 1;
 	}
-	
-	
-	
-	
  
 }

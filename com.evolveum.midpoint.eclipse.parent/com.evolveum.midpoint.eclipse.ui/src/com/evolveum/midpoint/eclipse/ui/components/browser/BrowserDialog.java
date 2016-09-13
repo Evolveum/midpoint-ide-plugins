@@ -118,15 +118,16 @@ public class BrowserDialog extends TitleAreaDialog {
 	private IWorkbenchPage page;
 	
 	private List<Generator> generators = Arrays.asList(
-			new BulkActionGenerator("recompute"),
-			new BulkActionGenerator("enable"),
-			new BulkActionGenerator("disable"),
-			new BulkActionGenerator("delete"),
-			new ModifyBulkActionGenerator(),
-			new BulkActionGenerator("log"),
-			new BulkActionGenerator("test-resource"),			// TODO use ResourceType for searching!
+			new BulkActionGenerator(BulkActionGenerator.Action.RECOMPUTE),
+			new BulkActionGenerator(BulkActionGenerator.Action.ENABLE),
+			new BulkActionGenerator(BulkActionGenerator.Action.DISABLE),
+			new BulkActionGenerator(BulkActionGenerator.Action.DELETE),
+			new BulkActionGenerator(BulkActionGenerator.Action.MODIFY),
+			new BulkActionGenerator(BulkActionGenerator.Action.LOG),
+			new BulkActionGenerator(BulkActionGenerator.Action.TEST_RESOURCE),
 			new TaskGenerator(TaskGenerator.Action.RECOMPUTE),
 			new TaskGenerator(TaskGenerator.Action.DELETE),
+			new TaskGenerator(TaskGenerator.Action.MODIFY),
 			new QueryGenerator(),
 			new AssignmentGenerator(),
 			new RefGenerator("targetRef", ObjectTypes.OBJECT),
@@ -135,8 +136,6 @@ public class BrowserDialog extends TitleAreaDialog {
 			new ConnectorRefGenerator(),
 			new RefGenerator("parentOrgRef", ObjectTypes.ORG),
 			new RefGenerator("ownerRef", ObjectTypes.ORG)
-//			new BulkActionGenerator("modify"), assign this, assign to this,
-			// TODO modify
 			);
 	private Button btnExecAllByOid;
 	private Button btnExecIndividually;
@@ -630,6 +629,17 @@ public class BrowserDialog extends TitleAreaDialog {
 		new Label(symrefOptions, SWT.NONE).setText("Runtime resolution");
 
 		btnWrapActions = new Button(flags, SWT.CHECK);
+		btnWrapActions.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				computeOptionsEnablement();				
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				computeOptionsEnablement();
+			}
+		});
 		Label lblWrapActions = new Label(flags, SWT.NONE);
 		lblWrapActions.setText("Wrap created bulk actions into tasks");
 		

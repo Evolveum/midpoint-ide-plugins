@@ -40,14 +40,15 @@ public class ServerActionHandler extends AbstractHandler {
 	
 	public enum Action {
 		
-		RECOMPUTE("recompute", "recomputed"), 
-		TEST_RESOURCE("test-resource", "tested"), 
-		DELETE("delete", "deleted");
+		RECOMPUTE(BulkActionGenerator.Action.RECOMPUTE, "recomputed"), 
+		TEST_RESOURCE(BulkActionGenerator.Action.TEST_RESOURCE, "tested"), 
+		DELETE(BulkActionGenerator.Action.DELETE, "deleted");
 		
-		private String bulkActionName, pastTense; 
+		private final BulkActionGenerator.Action action; 
+		private String pastTense; 
 		
-		Action(String bulkActionName, String pastTense) {
-			this.bulkActionName = bulkActionName;
+		Action(BulkActionGenerator.Action action, String pastTense) {
+			this.action = action;
 			this.pastTense = pastTense;
 		}
 
@@ -149,7 +150,7 @@ public class ServerActionHandler extends AbstractHandler {
 						}
 					}
 					
-					BulkActionGenerator gen = new BulkActionGenerator(action.bulkActionName);
+					BulkActionGenerator gen = new BulkActionGenerator(action.action);
 					String requestString = gen.generateFromSourceObject(object, genOptions);
 					System.out.println("Executing: " + requestString);
 

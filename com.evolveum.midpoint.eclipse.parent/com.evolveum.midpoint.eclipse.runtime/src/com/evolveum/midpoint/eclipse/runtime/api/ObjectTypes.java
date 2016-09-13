@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.eclipse.runtime.api;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -157,6 +158,34 @@ public enum ObjectTypes {
 				return o1.getDisplayName().compareTo(o2.getDisplayName());
 			}
 		};
+	}
+
+	public static ObjectTypes commonSuperType(ObjectTypes t1, ObjectTypes t2) {
+		if (t1 == null) {
+			return t2;
+		} 
+		if (t2 == null) {
+			return t1;
+		}
+		List<ObjectTypes> path1 = pathFromRoot(t1);
+		List<ObjectTypes> path2 = pathFromRoot(t2);
+		int i = 0;
+		while(i < path1.size() && i < path2.size() && path1.get(i) == path2.get(i)) {
+			i++;
+		}
+		ObjectTypes rv = path1.get(i-1);
+		System.out.println("commonSuperType(" + t1 + ", " + t2 + ") returns " + rv + "; path1=" + path1 + ", path2=" + path2 + ", i=" + i);
+		return rv;
+	}
+
+	private static List<ObjectTypes> pathFromRoot(ObjectTypes t) {
+		List<ObjectTypes> path = new ArrayList<>();
+		do {
+			path.add(t);
+			t = t.superType;
+		} while (t != null);
+		Collections.reverse(path);
+		return path;
 	}
 
 }

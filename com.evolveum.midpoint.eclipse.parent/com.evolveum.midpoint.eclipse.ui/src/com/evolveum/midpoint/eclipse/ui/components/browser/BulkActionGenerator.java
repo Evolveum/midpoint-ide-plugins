@@ -8,6 +8,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
+import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -15,15 +16,37 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class BulkActionGenerator extends Generator {
 	
-	private String actionName;
+	public enum Action {
+		
+		RECOMPUTE("recompute", "recompute", ObjectTypes.FOCUS, false),
+		ENABLE("enable", "enable", ObjectTypes.FOCUS, false),
+		DISABLE("disable", "disable", ObjectTypes.FOCUS, false),
+		DELETE("delete", "delete", ObjectTypes.OBJECT, true),
+		MODIFY("modify", "modify", ObjectTypes.OBJECT, true),
+		LOG("log", "log", ObjectTypes.OBJECT, false),
+		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false);
+		
+		private final String displayName, actionName;
+		private final ObjectTypes applicableTo;
+		private final boolean supportsRaw;
+		
+		private Action(String displayName, String actionName, ObjectTypes applicableTo, boolean supportsRaw) {
+			this.displayName = displayName;
+			this.actionName = actionName;
+			this.applicableTo = applicableTo;
+			this.supportsRaw = supportsRaw;
+		}
+	}
 	
-	public BulkActionGenerator(String actionName) {
-		this.actionName = actionName;
+	private Action action;
+	
+	public BulkActionGenerator(Action action) {
+		this.action = action;
 	}
 
 	@Override
 	public String getLabel() {
-		return "Bulk action: " + actionName;
+		return "Bulk action: " + action.displayName;
 	}
 
 	@Override
@@ -34,7 +57,7 @@ public class BulkActionGenerator extends Generator {
 
 		Element top = null;
 		
-		List<Batch> batches = createBatches(objects, options);
+		List<Batch> batches = createBatches(objects, options, action.applicableTo);
 		Element root;
 		if (batches.size() > 1) {
 			top = root = DOMUtil.getDocument(new QName(Constants.COMMON_NS, options.isWrapActions() ? "objects" : "actions", "c")).getDocumentElement();
@@ -48,10 +71,11 @@ public class BulkActionGenerator extends Generator {
 			if (options.isWrapActions()) {
 				if (root == null) {
 					task = DOMUtil.getDocument(new QName(Constants.COMMON_NS, "task", "c")).getDocumentElement();
+					top = task;
 				} else {
 					task = DOMUtil.createSubElement(root, new QName(Constants.COMMON_NS, "task", "c"));
 				}
-				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + actionName + " on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
+				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + action.displayName + " on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
 				Element extension = DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "extension", "c"));
 				Element executeScript = DOMUtil.createSubElement(extension, new QName(Constants.SCEXT_NS, "executeScript", "scext"));
 				batchRoot = executeScript;
@@ -59,15 +83,15 @@ public class BulkActionGenerator extends Generator {
 				batchRoot = root;
 			}
 			
-			Element pipe = root == null ? 
-					DOMUtil.getDocument(new QName(Constants.SCRIPT_NS, "pipeline", "s")).getDocumentElement() :
-					DOMUtil.createSubElement(batchRoot, new QName(Constants.SCRIPT_NS, "pipeline", "s"));
-					
-			if (top == null) {
+			Element pipe;
+			if (batchRoot == null) {
+				pipe = DOMUtil.getDocument(new QName(Constants.SCRIPT_NS, "pipeline", "s")).getDocumentElement();
 				top = pipe;
+			} else {
+				pipe = DOMUtil.createSubElement(batchRoot, new QName(Constants.SCRIPT_NS, "pipeline", "s")); 
 			}
 					
-			createOidsQuery(pipe, batch);
+			createOidsSearch(pipe, batch);
 			createAction(pipe, options);
 			
 			if (task != null) {
@@ -84,10 +108,10 @@ public class BulkActionGenerator extends Generator {
 		return DOMUtil.serializeDOMToString(top);
 	}
 
-	public void createOidsQuery(Element root, Batch batch) {
+	public void createOidsSearch(Element root, Batch batch) {
 		Element search = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
 		DOMUtil.setXsiType(search, new QName(Constants.SCRIPT_NS, "SearchExpressionType", "s"));
-		DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent("ObjectType");
+		DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(action.applicableTo.getTypeName());
 		Element filter = DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "searchFilter", "s"));
 		Element inOid = DOMUtil.createSubElement(filter, Constants.Q_IN_OID_Q);	
 		for (ServerObject o : batch.getObjects()) {
@@ -96,7 +120,7 @@ public class BulkActionGenerator extends Generator {
 		}
 	}
 
-	public void createSingleSourceObjectQuery(Element root, SourceObject object) {
+	public void createSingleSourceSearch(Element root, SourceObject object) {
 		Element search = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
 		DOMUtil.setXsiType(search, new QName(Constants.SCRIPT_NS, "SearchExpressionType", "s"));
 		DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(object.getType().getTypeName());
@@ -117,19 +141,38 @@ public class BulkActionGenerator extends Generator {
 	}
 
 	public void createAction(Element root, GeneratorOptions options) {
-		Element action = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
-		DOMUtil.setXsiType(action, new QName(Constants.SCRIPT_NS, "ActionExpressionType", "s"));
-		DOMUtil.createSubElement(action, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(actionName);
-		if (options.isRaw()) {
-			Element rawParam = DOMUtil.createSubElement(action, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+		Element actionE = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
+		DOMUtil.setXsiType(actionE, new QName(Constants.SCRIPT_NS, "ActionExpressionType", "s"));
+		DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(action.actionName);
+		if (options.isRaw() && supportsRawOption()) {
+			Element rawParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
 			DOMUtil.createSubElement(rawParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("raw");
 			DOMUtil.createSubElement(rawParam, new QName(Constants.COMMON_NS, "value", "c")).setTextContent("true");
 		}
+		if (options.isDryRun() && supportsDryRunOption()) {
+			Element rawParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(rawParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("dryRun");
+			DOMUtil.createSubElement(rawParam, new QName(Constants.COMMON_NS, "value", "c")).setTextContent("true");
+		}
+		if (action == Action.MODIFY) {
+			Element deltaParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(deltaParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("delta");
+			Element objectDelta = DOMUtil.createSubElement(deltaParam, new QName(Constants.COMMON_NS, "value", "c"));
+			DOMUtil.setXsiType(objectDelta, new QName(Constants.TYPES_NS, "ObjectDeltaType", "t"));
+			Element itemDelta = DOMUtil.createSubElement(objectDelta, new QName(Constants.TYPES_NS, "itemDelta", "t"));
+			
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "modificationType", "t")).setTextContent("add");
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "path", "t")).setTextContent("TODO (e.g. displayName)");
+			Element value = DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "value", "t"));
+			DOMUtil.setXsiType(value, DOMUtil.XSD_STRING);
+			value.setTextContent("TODO");
+		}
+		
 	}
 
 	@Override
 	public boolean supportsRawOption() {
-		return "assign".equals(actionName) || "delete".equals(actionName);
+		return action.supportsRaw;
 	}
 
 	@Override
@@ -149,7 +192,7 @@ public class BulkActionGenerator extends Generator {
 
 	public String generateFromSourceObject(SourceObject object, GeneratorOptions options) {
 		Element pipe = DOMUtil.getDocument(new QName(Constants.SCRIPT_NS, "pipeline", "s")).getDocumentElement();
-		createSingleSourceObjectQuery(pipe, object);
+		createSingleSourceSearch(pipe, object);
 		createAction(pipe, options);
 		return DOMUtil.serializeDOMToString(pipe);
 	}

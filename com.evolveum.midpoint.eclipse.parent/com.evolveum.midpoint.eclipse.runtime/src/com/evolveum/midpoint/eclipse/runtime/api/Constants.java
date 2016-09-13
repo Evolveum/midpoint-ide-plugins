@@ -21,6 +21,7 @@ public class Constants {
 	public static final QName Q_OFFSET = new QName(QUERY_NS, "offset");
 	public static final QName Q_MAX_SIZE = new QName(QUERY_NS, "maxSize");
 	public static final QName Q_FILTER = new QName(QUERY_NS, "filter");
+	public static final QName Q_FILTER_Q = new QName(QUERY_NS, "filter", "q");
 	public static final QName Q_IN_OID = new QName(QUERY_NS, "inOid");
 	public static final QName Q_IN_OID_Q = new QName(QUERY_NS, "inOid", "q");
 	public static final QName Q_EQUAL_Q = new QName(QUERY_NS, "equal", "q");

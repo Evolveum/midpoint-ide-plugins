@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
+import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -70,10 +71,21 @@ public abstract class Generator {
 	public boolean supportsCreateSuspended() {
 		return false;
 	}
-	protected List<Batch> createBatches(List<ServerObject> objects, GeneratorOptions options) {
+	protected List<Batch> createBatches(List<ServerObject> objects, GeneratorOptions options, ObjectTypes applicableTo) {
 		List<Batch> rv = new ArrayList<Batch>();
-		for (int start = 0; start < objects.size(); start += options.getBatchSize()) {
-			rv.add(new Batch(objects, start, Math.min(start+options.getBatchSize(), objects.size()) - 1)); 
+		Batch current = null;
+		int index = 0;
+		for (ServerObject object : objects) {
+			if (!applicableTo.isAssignableFrom(object.getType())) {
+				continue;
+			}
+			if (current == null || current.getObjects().size() == options.getBatchSize()) {
+				current = new Batch();
+				current.setFirst(index);
+				rv.add(current);
+			}
+			current.getObjects().add(object);
+			index++;
 		}
 		return rv;
 	}
