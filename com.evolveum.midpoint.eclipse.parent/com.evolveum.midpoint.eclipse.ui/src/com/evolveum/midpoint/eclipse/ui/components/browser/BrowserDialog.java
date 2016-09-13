@@ -25,6 +25,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -245,6 +247,13 @@ public class BrowserDialog extends TitleAreaDialog {
 		Arrays.sort(types, ObjectTypes.getDisplayNameComparator());
 		listTypes.setInput(types);
 		listTypes.getControl().setLayoutData(gd2);
+		
+		listTypes.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				searchPerformed();
+			}
+		});
 	}
 	
 	private void createInterpretButtons(Composite container) {
@@ -514,7 +523,12 @@ public class BrowserDialog extends TitleAreaDialog {
 				actionButtonsRelatedSelectionChanged();
 				lblResult.setText(createResultText(objectCount, getSelectedOids().size()));
 			}
-
+		});
+		treeResults.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				showPerformed();
+			}
 		});
 	}
 
@@ -714,7 +728,7 @@ public class BrowserDialog extends TitleAreaDialog {
 			return;
 		}
 		List<String> selectedOids = getSelectedOids();
-		if (selectedOids.size() != 1) {
+		if (selectedOids.isEmpty()) {
 			return;
 		}
 		Job job = new Job("Downloading from midPoint") {
@@ -722,12 +736,17 @@ public class BrowserDialog extends TitleAreaDialog {
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				SearchObjectsServerResponse serverResponse = runtime.downloadObjects(selectedOids, PluginPreferences.getConnectionParameters());
 				if (!serverResponse.isSuccess()) {
-					Console.logError("Couldn't download selected object: " + serverResponse.getErrorDescription(), serverResponse.getException());
+					Console.logError("Couldn't download selected objects: " + serverResponse.getErrorDescription(), serverResponse.getException());
 				} else {
-					List<IFile> files = writeFiles(serverResponse.getServerObjects(), project, "toShow", monitor);
-					if (!files.isEmpty()) {
-						openFileInEditor(files.get(0));
+					String content = new ShowGenerator().generate(serverResponse.getServerObjects(), new GeneratorOptions());
+					if (content == null) {
+						return Status.OK_STATUS;
 					}
+					IFile file = writeFile(content, project, "out", monitor);
+					if (file != null) {
+						openFileInEditor(file);
+					}
+					return Status.OK_STATUS;
 				}
 				return Status.OK_STATUS;
 			}
@@ -771,7 +790,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				if (content == null) {
 					return Status.OK_STATUS;
 				}
-				IFile file = writeFile(content, project, "toShow", monitor);
+				IFile file = writeFile(content, project, "out", monitor);
 				if (file != null) {
 					openFileInEditor(file);
 				}
@@ -870,7 +889,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		boolean haveProject = comboUseProject.getSelectionIndex() >= 0;
 		int whatToGenerate = comboWhatToGenerate.getSelectionIndex();
 		
-		btnShow.setEnabled(oids.size() == 1 && haveProject);
+		btnShow.setEnabled(!oids.isEmpty() && haveProject);
 		btnDownload.setEnabled(!oids.isEmpty() && haveProject);
 		btnGenerate.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0);
 		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());

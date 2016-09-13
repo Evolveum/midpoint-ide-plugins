@@ -9,12 +9,10 @@ import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IMarkSelection;
@@ -343,12 +341,12 @@ public class FileRequestHandler extends AbstractHandler {
 		} else if (selection instanceof IStructuredSelection) {
 			List<IFile> files = SelectionUtils.getXmlFiles((IStructuredSelection) selection);
 			if (files.isEmpty()) {
-				MessageDialog.openWarning(null, "No files", "There are no XML files to be processed.");
+				Util.showWarning("No files", "There are no XML files to be processed.");
 				return ServerRequestPack.EMPTY;
 			}
 			return ServerRequestPack.fromWorkspaceFiles(files, action);
 		} else {
-			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be processed.");
+			Util.showWarning("No selection", "You have not selected any items to be processed.");
 			return ServerRequestPack.EMPTY;
 		}
 	
@@ -364,7 +362,7 @@ public class FileRequestHandler extends AbstractHandler {
 					if (selectedText != null && !selectedText.trim().isEmpty()) {
 						if (file == null) {
 							if (action == RequestedAction.COMPARE) {
-								MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
+								Util.showWarning("No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 								return ServerRequestPack.EMPTY;
 							}
 						}
@@ -374,11 +372,11 @@ public class FileRequestHandler extends AbstractHandler {
 			}
 		}
 		if (selectedText == null || selectedText.trim().isEmpty()) {
-			MessageDialog.openWarning(null, "No selection", "There is no content to be uploaded or executed.");
+			Util.showWarning("No selection", "There is no content to be uploaded or executed.");
 			return ServerRequestPack.EMPTY;
 		}
 		if (action == RequestedAction.COMPARE) {
-			MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
+			Util.showWarning("No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 			return ServerRequestPack.EMPTY;
 		}
 		return ServerRequestPack.fromTextFragment(selectedText, null, action);
@@ -414,12 +412,12 @@ public class FileRequestHandler extends AbstractHandler {
 		} else if (selection instanceof IStructuredSelection) {
 			List<IFile> files = SelectionUtils.getXmlFiles((IStructuredSelection) selection);
 			if (files.isEmpty()) {
-				MessageDialog.openWarning(null, "No files", "There are no XML files to be processed.");
+				Util.showWarning("No files", "There are no XML files to be processed.");
 				return rv;
 			}
 			return ServerRequestPack.fromWorkspaceFiles(files);			// TODO message if empty
 		} else {
-			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be processed.");
+			Util.showWarning("No selection", "You have not selected any items to be processed.");
 			return rv;
 		}
 	
