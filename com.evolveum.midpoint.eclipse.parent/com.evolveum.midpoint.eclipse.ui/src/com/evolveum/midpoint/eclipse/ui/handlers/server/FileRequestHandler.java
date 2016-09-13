@@ -72,35 +72,7 @@ public class FileRequestHandler extends AbstractHandler {
 			throw new IllegalArgumentException("Unsupported command id: " + cmd.getId());
 		}
 		
-		ServerRequestPack requestPack;
-		switch (action) {
-		case EXECUTE_ACTION:
-			requestPack = createRequestForPredefinedAction(Integer.valueOf(event.getParameter(PluginConstants.PARAM_ACTION_NUMBER)));
-			break;
-		case COMPARE:
-			requestPack = FileRequestHandler.createRequestPackFromSelection(event, action);
-			break;
-		case UPLOAD_OR_EXECUTE:
-			requestPack = FileRequestHandler.createRequestPackFromSelection(event, action);
-			break;
-		case UPLOAD_OR_EXECUTE_WITH_ACTION:
-			requestPack = FileRequestHandler.createRequestPackFromSelection(event, action);
-			if (requestPack.isEmpty()) {
-				return null;
-			}
-			int  actionAfterUpload = PluginPreferences.getActionAfterUpload();
-			if (actionAfterUpload != 0) {
-				requestPack.add(createRequestForPredefinedAction(actionAfterUpload).getItems());
-			}
-			break;
-		default:
-			throw new AssertionError();
-		}
-		
-		System.out.println("Server request pack: " + requestPack);
-		if (!requestPack.isEmpty()) {
-			executeServerRequest(action, requestPack);
-		}
+		executeServerRequest(event, action);
 		return null;
 	}
 
@@ -110,14 +82,18 @@ public class FileRequestHandler extends AbstractHandler {
 			Util.showAndLogWarning("No file for action", "Action #" + actionNumber + " has no file defined.");
 			return ServerRequestPack.EMPTY;
 		} else if (!new File(fileName).exists()) {
-			Util.showAndLogWarning("No file for action", "File for action #" + actionNumber + "(" + fileName + ") does not exist or is not readable.");
+			Util.showAndLogWarning("No file for action", "File for action #" + actionNumber + " (" + fileName + ") does not exist or is not readable.");
 			return ServerRequestPack.EMPTY;
 		} else {
-			return new ServerRequestPack(new ServerRequestItem(ServerAction.EXECUTE, new PhysicalFileSource(fileName), actionNumber));
+			ServerRequestPack pack = ServerRequestPack.fromPhysicalActionFile(fileName, actionNumber);
+			if (pack.isEmpty()) {
+				Util.showAndLogWarning("No executable content", "No executable content in file for action #" + actionNumber + " (" + fileName + ")");
+			}
+			return pack;
 		}
 	}
 
-	private void executeServerRequest(RequestedAction requestedAction, ServerRequestPack requestItem) {
+	private void executeServerRequest(ExecutionEvent event, RequestedAction requestedAction) {
 		
 		String logfilename = PluginPreferences.getLogfile();
 		
@@ -140,13 +116,42 @@ public class FileRequestHandler extends AbstractHandler {
 			return;		// message was logged
 		}
 		
+		ISelection selection = SelectionUtils.getSelection(event);
+		
 		Job job = new Job(jobTitle) {
 			protected IStatus run(IProgressMonitor monitor) {
 				
-				final int itemCount = requestItem.getItemCount();
+				ServerRequestPack requestPack;
+				switch (requestedAction) {
+				case EXECUTE_ACTION:
+					requestPack = createRequestForPredefinedAction(Integer.valueOf(event.getParameter(PluginConstants.PARAM_ACTION_NUMBER)));
+					break;
+				case COMPARE:
+					requestPack = FileRequestHandler.createRequestPackFromSelection(event, requestedAction, selection);
+					break;
+				case UPLOAD_OR_EXECUTE:
+					requestPack = FileRequestHandler.createRequestPackFromSelection(event, requestedAction, selection);
+					break;
+				case UPLOAD_OR_EXECUTE_WITH_ACTION:
+					requestPack = FileRequestHandler.createRequestPackFromSelection(event, requestedAction, selection);
+					if (requestPack.isEmpty()) {
+						return Status.OK_STATUS;
+					}
+					int actionAfterUpload = PluginPreferences.getActionAfterUpload();
+					if (actionAfterUpload != 0) {
+						requestPack.add(createRequestForPredefinedAction(actionAfterUpload).getItems());
+					}
+					break;
+				default:
+					throw new AssertionError();
+				}
+				
+				System.out.println("Server request pack: " + requestPack);
+
+				final int itemCount = requestPack.getItemCount();
 				if (itemCount == 0) {
 					// shouldn't get here
-					return null;
+					return Status.OK_STATUS;
 				}
 				
 				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
@@ -158,7 +163,7 @@ public class FileRequestHandler extends AbstractHandler {
 				
 				RuntimeService runtime = RuntimeActivator.getRuntimeService();
 				monitor.beginTask("Processing", itemCount);
-				for (ServerRequestItem item : requestItem.getItems()) {
+				for (ServerRequestItem item : requestPack.getItems()) {
 					if (monitor.isCanceled()) {
 						break;
 					}
@@ -325,8 +330,7 @@ public class FileRequestHandler extends AbstractHandler {
 		
 	}
 
-	public static ServerRequestPack createRequestPackFromSelection(ExecutionEvent event, RequestedAction action) {
-		ISelection selection = SelectionUtils.getSelection(event);
+	public static ServerRequestPack createRequestPackFromSelection(ExecutionEvent event, RequestedAction action, ISelection selection) {
 		
 		String selectedText;
 		if (selection instanceof ITextSelection) {
@@ -346,7 +350,7 @@ public class FileRequestHandler extends AbstractHandler {
 				MessageDialog.openWarning(null, "No files", "There are no XML files to be processed.");
 				return ServerRequestPack.EMPTY;
 			}
-			return ServerRequestPack.fromWorkspaceFiles(files, action == RequestedAction.COMPARE ? ServerAction.COMPARE : ServerAction.UPLOAD_OR_EXECUTE);
+			return ServerRequestPack.fromWorkspaceFiles(files, action);
 		} else {
 			MessageDialog.openWarning(null, "No selection", "You have not selected any items to be processed.");
 			return ServerRequestPack.EMPTY;
@@ -363,17 +367,13 @@ public class FileRequestHandler extends AbstractHandler {
 					IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
 					if (selectedText != null && !selectedText.trim().isEmpty()) {
 						IPath path = file != null ? file.getFullPath() : null;			// TODO what for files that are not in the workspace?
-						ServerAction serverAction;
-						if (file != null) {
-							serverAction = action == RequestedAction.COMPARE ? ServerAction.COMPARE : ServerAction.UPLOAD_OR_EXECUTE;
-						} else {
+						if (file == null) {
 							if (action == RequestedAction.COMPARE) {
 								MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 								return ServerRequestPack.EMPTY;
 							}
-							serverAction = ServerAction.UPLOAD_OR_EXECUTE;
 						}
-						return ServerRequestPack.fromTextFragment(selectedText, path, serverAction);
+						return ServerRequestPack.fromTextFragment(selectedText, path, action);
 					}
 				}
 			}
@@ -386,7 +386,7 @@ public class FileRequestHandler extends AbstractHandler {
 			MessageDialog.openWarning(null, "No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 			return ServerRequestPack.EMPTY;
 		}
-		return ServerRequestPack.fromTextFragment(selectedText, null, ServerAction.UPLOAD_OR_EXECUTE);
+		return ServerRequestPack.fromTextFragment(selectedText, null, action);
 	}
 
 	// TODO move somewhere

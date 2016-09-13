@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.eclipse.runtime.api;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 public class Constants {
@@ -29,4 +32,14 @@ public class Constants {
 	public static final QName Q_PATH = new QName(QUERY_NS, "path");
 	public static final QName Q_TYPE = new QName(QUERY_NS, "type");
 
+	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
+			"scriptingExpression",
+			"sequence",
+			"pipeline",
+			"search",
+			"filter",
+			"select",
+			"foreach",
+			"action"
+			);
 }

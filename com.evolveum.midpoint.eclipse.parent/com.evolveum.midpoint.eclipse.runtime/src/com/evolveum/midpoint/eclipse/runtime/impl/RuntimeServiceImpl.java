@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -57,16 +56,6 @@ public class RuntimeServiceImpl implements RuntimeService {
 	
 	public static final String REST = "/ws/rest";
 
-	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
-			"scriptingExpression",
-			"sequence",
-			"pipeline",
-			"search",
-			"filter",
-			"select",
-			"foreach",
-			"action"
-			);
 	
 	@Override
 	public TestConnectionResponse testConnection(ConnectionParameters parameters) {
@@ -112,7 +101,6 @@ public class RuntimeServiceImpl implements RuntimeService {
 		
 		String oid;
 		String restType;
-		boolean uploadable, executable;
 		
 		try {
 			Document document = DOMUtil.parseDocument(request.getData());
@@ -122,35 +110,19 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String uri = rootElement.getNamespaceURI();
 			oid = rootElement.getAttribute("oid");
 			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid);
-
 			restType = ObjectTypes.getRestTypeForElementName(localName);
-			uploadable = restType != null;
-			executable = SCRIPTING_ACTIONS.contains(localName);
-
-			ServerAction action = request.getAction();
-			if (action == ServerAction.EXECUTE && !executable) {
-				return new NotApplicableServerResponse("Unsupported root element for an action: " + localName + "; supported ones are: " + SCRIPTING_ACTIONS);
-			} else if (action == ServerAction.UPLOAD && !uploadable) {
-				return new NotApplicableServerResponse("Unknown object type to upload: " + localName);
-			} else if (!executable && !uploadable) {
-				return new NotApplicableServerResponse("Object with root element of <" + localName + "> cannot be uploaded, executed nor compared.");
-			}
 		} catch (Throwable t) {
 			return new ServerResponse(t);
 		}
 		
 		ServerResponse serverResponse; 
 
-		ServerAction finalAction;
-		if (request.getAction() == ServerAction.COMPARE) {
-			finalAction = ServerAction.COMPARE;
-			serverResponse = new CompareServerResponse();
-		} else if (uploadable) {
-			finalAction = ServerAction.UPLOAD;
-			serverResponse = new UploadServerResponse();
-		} else {
-			finalAction = ServerAction.EXECUTE;
-			serverResponse = new ExecuteActionServerResponse();
+		ServerAction finalAction = request.getAction();
+		switch (finalAction) {
+		case UPLOAD: serverResponse = new UploadServerResponse(); break;
+		case EXECUTE: serverResponse = new ExecuteActionServerResponse(); break;
+		case COMPARE: serverResponse = new CompareServerResponse(); break;
+		default: throw new IllegalArgumentException("Unknown action: " + finalAction);
 		}
 
 		try {

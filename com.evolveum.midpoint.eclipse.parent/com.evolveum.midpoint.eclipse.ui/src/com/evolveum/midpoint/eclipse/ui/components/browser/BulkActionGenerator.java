@@ -38,7 +38,7 @@ public class BulkActionGenerator extends Generator {
 			Element task = null;
 			if (options.isWrapActions()) {
 				task = DOMUtil.createSubElement(root, new QName(Constants.COMMON_NS, "task", "c"));
-				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + actionName + "on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
+				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + actionName + " on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
 				Element extension = DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "extension", "c"));
 				Element executeScript = DOMUtil.createSubElement(extension, new QName(Constants.SCEXT_NS, "executeScript", "scext"));
 				batchRoot = executeScript;

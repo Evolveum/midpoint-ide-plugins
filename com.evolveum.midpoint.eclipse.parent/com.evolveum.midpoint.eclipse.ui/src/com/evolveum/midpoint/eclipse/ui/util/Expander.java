@@ -32,7 +32,7 @@ public class Expander {
 			return null;
 		}
 
-        String patternString = "\\$\\{(\\S*)\\}";
+        String patternString = "\\$\\((\\S*)\\)";
 
         Pattern pattern = Pattern.compile(patternString);
         Matcher matcher = pattern.matcher(content);
@@ -46,8 +46,8 @@ public class Expander {
         	result.append(content.substring(lastCopied, matcher.start()));
         	String symbol = content.substring(matcher.start()+2, matcher.end()-1);
         	String replacement;
-        	if ("$".equals(symbol)) {
-        		replacement = "$";
+        	if (symbol.startsWith("$")) {
+        		replacement = symbol;
         	} else {
         		replacement = macros.getProperty(symbol);
         	}

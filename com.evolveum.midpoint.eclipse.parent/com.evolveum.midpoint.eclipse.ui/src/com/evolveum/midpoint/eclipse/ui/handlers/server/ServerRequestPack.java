@@ -7,8 +7,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler.RequestedAction;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.TextFragmentSource;
-import com.evolveum.midpoint.eclipse.ui.handlers.sources.WorkspaceFileSource;
 
 public class ServerRequestPack {
 	
@@ -39,17 +40,20 @@ public class ServerRequestPack {
 		return getItemCount() == 0;
 	}
 
-	public static ServerRequestPack fromWorkspaceFiles(List<IFile> files, ServerAction serverAction) {
+
+	public static ServerRequestPack fromTextFragment(String textFragment, IPath path, RequestedAction requestedAction) {
 		List<ServerRequestItem> items = new ArrayList<>();
-		for (IFile file : files) {
-			items.add(new ServerRequestItem(serverAction, new WorkspaceFileSource(file)));
+		List<SourceObject> objects = ServerRequestItem.parseTextFragment(textFragment, path, requestedAction); 
+		for (SourceObject object : objects) {
+			ServerAction action;
+			switch (requestedAction) {
+			case COMPARE: action = ServerAction.COMPARE; break;
+			case EXECUTE_ACTION: action = ServerAction.EXECUTE; break;
+			default: action = object.isUploadable() ? ServerAction.UPLOAD : ServerAction.EXECUTE;
+			}
+			items.add(new ServerRequestItem(action, object));
 		}
 		return new ServerRequestPack(items);
-	}
-
-	public static ServerRequestPack fromTextFragment(String textFragment, IPath path, ServerAction serverAction) {
-		ServerRequestItem item = new ServerRequestItem(serverAction, new TextFragmentSource(textFragment, path));
-		return new ServerRequestPack(item);
 	}
 
 	public void add(List<ServerRequestItem> items) {
@@ -61,4 +65,25 @@ public class ServerRequestPack {
 		return String.valueOf(items);
 	}
 
+	public static ServerRequestPack fromPhysicalActionFile(String fileName, int actionNumber) {
+		List<ServerRequestItem> items = ServerRequestItem.fromPhysicalActionFile(fileName, actionNumber);
+		return new ServerRequestPack(items);
+	}
+	
+	public static ServerRequestPack fromWorkspaceFiles(List<IFile> files, RequestedAction requestedAction) {
+		List<ServerRequestItem> items = new ArrayList<>();
+		for (IFile file : files) {
+			List<SourceObject> objects = ServerRequestItem.parseWorkspaceFile(file, requestedAction); 
+			for (SourceObject object : objects) {
+				ServerAction action;
+				switch (requestedAction) {
+				case COMPARE: action = ServerAction.COMPARE; break;
+				case EXECUTE_ACTION: action = ServerAction.EXECUTE; break;
+				default: action = object.isUploadable() ? ServerAction.UPLOAD : ServerAction.EXECUTE;
+				}
+				items.add(new ServerRequestItem(action, object));
+			}
+		}
+		return new ServerRequestPack(items);
+	}
 }
