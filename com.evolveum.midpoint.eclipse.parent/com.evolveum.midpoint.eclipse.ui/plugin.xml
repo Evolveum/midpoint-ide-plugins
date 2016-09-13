@@ -7,6 +7,7 @@
 			description="Uploads resources or executes actions on midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute">
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" name="Execute predefined action afterwards" />
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.stopOnError" name="Stop execution when error occurs" />
 		</command>
 		<command name="Browse"
 			description="Browse objects on midPoint server"
