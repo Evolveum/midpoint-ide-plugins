@@ -61,7 +61,7 @@ public class UploadServerResponseItem extends ServerResponseItem<ServerResponse>
 		if (response.isSuccess()) {
 			return "Successfully uploaded " + itemName; 
 		} else {
-			return "Failed to uploaded " + itemName;
+			return "Failed to upload " + itemName + ": " + response.getErrorDescription();
 		}
 	}
 

@@ -214,8 +214,9 @@ public class FileRequestHandler extends AbstractHandler {
 								responseCounter++;
 							}
 							
-							if (!responseItem.isSuccess()) {
+							if (stopOnError && !responseItem.isSuccess()) {
 								Console.logWarning("Stopping on error (as requested).");
+								break;
 							}
 						}
 					}

@@ -138,7 +138,7 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 				}
 			}
 		} else {
-			prefix = "Failed to compare " + itemName;
+			prefix = "Failed to compare " + itemName + ": " + response.getErrorDescription();
 		}
 		return prefix;
 	}

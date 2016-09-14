@@ -192,7 +192,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		if (response.isSuccess()) {
 			return "Successfully executed " + itemName; 
 		} else {
-			return "Failed to execute " + itemName;
+			return "Failed to execute " + itemName + ": " + response.getErrorDescription();
 		}
 	}
 

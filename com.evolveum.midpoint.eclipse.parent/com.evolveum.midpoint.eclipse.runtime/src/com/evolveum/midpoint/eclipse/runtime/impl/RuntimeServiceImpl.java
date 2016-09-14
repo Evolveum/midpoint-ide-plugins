@@ -101,17 +101,21 @@ public class RuntimeServiceImpl implements RuntimeService {
 	public ServerResponse executeServerRequest(ServerRequest request, ConnectionParameters connectionParameters) {
 		
 		String oid;
-		String restType;
+		ObjectTypes type;
+		Element rootElement;
 		
 		try {
 			Document document = DOMUtil.parseDocument(request.getData());
-			Element rootElement = document.getDocumentElement();
+			rootElement = document.getDocumentElement();
 			String nodeName = rootElement.getNodeName();
 			String localName = rootElement.getLocalName();
 			String uri = rootElement.getNamespaceURI();
 			oid = rootElement.getAttribute("oid");
 			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid);
-			restType = ObjectTypes.getRestTypeForElementName(localName);
+			type = ObjectTypes.findByElementName(localName);
+			if (request.getAction() == ServerAction.UPLOAD && type == null) {
+				throw new IllegalStateException("Unknown element " + localName);		// should be already checked
+			}
 		} catch (Throwable t) {
 			return new ServerResponse(t);
 		}
@@ -157,7 +161,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 				String url = connectionParameters.getUrl() + REST + "/rpc/compare?readOptions=raw&" + compareOptions + "&" + ignoreItems;
 				httpRequest = new HttpPost(url);
 			} else if (finalAction == ServerAction.UPLOAD) {
-				String url = connectionParameters.getUrl() + REST + "/" + restType;
+				String url = connectionParameters.getUrl() + REST + "/" + type.getRestType();
 				String suffix = "?options=raw";
 
 				if (oid != null && !oid.isEmpty()) {
@@ -208,6 +212,38 @@ public class RuntimeServiceImpl implements RuntimeService {
 			
 			serverResponse.setStatusCode(statusLine.getStatusCode());
 			serverResponse.setReasonPhrase(statusLine.getReasonPhrase());
+			
+			if (serverResponse instanceof UploadServerResponse && statusLine.getStatusCode() == 409) {
+				UploadServerResponse usr = (UploadServerResponse) serverResponse;
+				Element objectNameE = DOMUtil.getChildElement(rootElement, "name");
+				String objectName = objectNameE != null ? objectNameE.getTextContent() : null;
+				System.out.println("Conflict detected; downloading conflicting object(s) for name '" + objectName + "' in " + type);
+				if (StringUtils.isEmpty(objectName)) {
+					usr.setErrorDescription("Conflict detected, but couldn't search for conflicting object as the name is not known.");
+				} else {
+					SearchObjectsServerResponse objects = listObjects(Collections.singletonList(type), objectName, QueryInterpretation.NAMES, 1000, 0, connectionParameters);
+					System.out.println("Search success: " + objects.isSuccess() + ", count: " + objects.getServerObjects().size());
+					if (!objects.isSuccess()) {
+						usr.setErrorDescription("Conflict detected, but couldn't search for conflicting objects: " + objects.getErrorDescription());
+					} else {
+						StringBuilder sb = new StringBuilder();
+						boolean first = true;
+						for (ServerObject so : objects.getServerObjects()) {
+							if (!first) {
+								sb.append(", ");
+							} else {
+								first = false;
+							}
+							sb.append(so.getName() + " (oid " + so.getOid() + ")");
+						}
+						if (sb.length() == 0) {
+							usr.setErrorDescription("Conflict detected but no conflicting objects with the name of '" + objectName + "' could be found.");
+						} else {
+							usr.setErrorDescription("Conflict detected with: " + sb.toString());
+						}
+					}
+				}
+			}
 			
 		} catch (Throwable t) {
 			serverResponse.setException(t);
