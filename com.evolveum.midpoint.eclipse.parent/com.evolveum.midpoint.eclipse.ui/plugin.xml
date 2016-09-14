@@ -197,5 +197,16 @@
        		<enablement></enablement>
     	</consolePatternMatchListener>
  	</extension>
-  
+
+	<extension
+	  point="org.eclipse.ui.bindings">
+ 		<key
+  			sequence="M3+F1"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.browse"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+ 		<key
+  			sequence="M3+F2"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+  	</extension>  
 </plugin>
