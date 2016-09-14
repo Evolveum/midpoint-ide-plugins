@@ -47,7 +47,7 @@ public class MenuUtil {
 					new CommandContributionItemParameter(
 							serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
 							null, null, null, 
-							"Upload/execute", 
+							"&Upload/execute", 
 							null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 		}
 	}
@@ -59,7 +59,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
 						null, null, null, 
-						"Upload/execute (stop on error)", 
+						"Upload/execute (&stop on error)", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -68,7 +68,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_BROWSE, null, 
 						null, null, null, 
-						"Browse server objects", 
+						"&Browse server objects", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -77,7 +77,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, DownloadHandler.CMD_DOWNLOAD, null, 
 						null, null, null, 
-						"Bulk download of predefined objects", 
+						"&Bulk download of predefined objects", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -90,7 +90,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_RELOAD_FROM_SERVER, null, 
 						null, null, null, 
-						"Reload objects from server", 
+						"&Reload objects from server", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -99,7 +99,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_COMPUTE_DIFFERENCE, null, 
 						null, null, null, 
-						"Compute differences", 
+						"Compute &differences", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 	
@@ -286,7 +286,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_TEST_CONNECTIONS, null, 
 						null, null, null, 
-						"Test connections to servers", 
+						"&Test connections to servers", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -295,7 +295,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_SHOW_CONSOLE, null, 
 						null, null, null, 
-						"Show plugin console", 
+						"Show &plugin console", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -304,7 +304,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_EDIT_PREFERENCES, null, 
 						null, null, null, 
-						"Preferences...", 
+						"Pre&ferences...", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -320,7 +320,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_SET_AS_ACTION, parameters, 
 						null, null, null, 
-						"Set as action " + number, 
+						"Set as action &" + number, 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 	

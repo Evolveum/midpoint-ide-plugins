@@ -133,7 +133,7 @@
       			id="menu:com.evolveum.midpoint.eclipse.ui.menu.popup"/>
 		</menuContribution>
 		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-         <menu label="midPoint" mnemonic="M" id="com.evolveum.midpoint.eclipse.ui.menu.midPointMenu">
+         <menu label="&amp;midPoint" mnemonic="M" id="com.evolveum.midpoint.eclipse.ui.menu.midPointMenu">
          	<dynamic class="com.evolveum.midpoint.eclipse.ui.menus.MainMenuContributor"
       			id="menu:com.evolveum.midpoint.eclipse.ui.menu.main"/>
          </menu>
@@ -208,5 +208,23 @@
   			sequence="M3+F2"
   			commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
   			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+  		<key
+  			sequence="M3+1"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+  			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="1"/>
+  		</key>
+  		<key
+  			sequence="M3+2"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+  			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="2"/>
+  		</key>
+  		<key
+  			sequence="M3+3"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+  			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="3"/>
+  		</key>
   	</extension>  
 </plugin>
