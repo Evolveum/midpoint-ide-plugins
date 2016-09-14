@@ -314,6 +314,19 @@ public class RuntimeServiceImpl implements RuntimeService {
 						for (Element e : DOMUtil.getChildElements(objectElement, new QName(Constants.COMMON_NS, realType.getSubTypeElement()))) {
 							subTypeElementsValues.add(e.getTextContent());							
 						}
+					} else if (realType == ObjectTypes.SHADOW) {
+						Element resourceRefE = DOMUtil.getChildElement(objectElement, "resourceRef");
+						Element kindE = DOMUtil.getChildElement(objectElement, "kind");
+						Element intentE = DOMUtil.getChildElement(objectElement, "intent");
+						String resourceOid = resourceRefE != null ? resourceRefE.getAttribute("oid") : null;
+						if (resourceOid == null) {
+							resourceOid = "";
+						} else {
+							resourceOid = "..." + StringUtils.substring(resourceOid, -8);
+						}
+						String kind = kindE != null ? kindE.getTextContent() : "";
+						String intent = intentE != null ? intentE.getTextContent() : "";
+						subTypeElementsValues.add(resourceOid + "/" + kind + "/" + intent);
 					}
 					String displayName;
 					if (realType != null && realType.getDisplayNameElement() != null) {

@@ -323,7 +323,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		txtOffset.setText("0");
 
 		btnSearch = new Button(c, SWT.NONE);
-		btnSearch.setText("Search");
+		btnSearch.setText("&Search");
 		btnSearch.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
 		btnSearch.addSelectionListener(new SelectionListener() {
 			@Override
@@ -372,7 +372,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnNames.setSelection(false);
 		btnOids.setSelection(false);
 		btnQuery.setSelection(true);
-		btnConvertToXml.setEnabled(false);
+		computeSearchBoxItemsEnablement();
 	}
 
 	public int getLimit() {
@@ -681,7 +681,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		btnShow = createButton(parent, SHOW_ID, "Show", false);
+		btnShow = createButton(parent, SHOW_ID, "S&how", false);
 		btnShow.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -694,7 +694,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		btnShow.setEnabled(false);
 		
-		btnDownload = createButton(parent, DOWNLOAD_ID, "Download", false);
+		btnDownload = createButton(parent, DOWNLOAD_ID, "&Download", false);
 		btnDownload.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -707,7 +707,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		btnDownload.setEnabled(false);
 		
-		btnGenerate = createButton(parent, GENERATE_ID, "Generate XML", false);
+		btnGenerate = createButton(parent, GENERATE_ID, "&Generate XML", false);
 		btnGenerate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -720,7 +720,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		btnGenerate.setEnabled(false);
 		
-		btnExecute = createButton(parent, GENERATE_ID, "Execute", false);
+		btnExecute = createButton(parent, GENERATE_ID, "&Execute", false);
 		btnExecute.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
