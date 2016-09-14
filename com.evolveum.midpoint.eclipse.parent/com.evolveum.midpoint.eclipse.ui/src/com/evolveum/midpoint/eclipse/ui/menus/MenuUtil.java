@@ -236,7 +236,7 @@ public class MenuUtil {
 		List<IContributionItem> dummyItems = new ArrayList<>();
 		MenuUtil.addUploadOrExecuteWithAction(dummyItems, serviceLocator);
 		MenuUtil.addUploadOrExecuteWithoutAction(dummyItems, serviceLocator);
-		MenuUtil.addUploadOrExecuteStopOnError(items, serviceLocator);
+		MenuUtil.addUploadOrExecuteStopOnError(dummyItems, serviceLocator);
 		MenuUtil.addComputeDifferences(dummyItems, serviceLocator);
 		MenuUtil.addReloadFromServer(dummyItems, serviceLocator);
 		MenuUtil.addDownload(dummyItems, serviceLocator);

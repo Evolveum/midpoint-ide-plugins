@@ -123,6 +123,7 @@ public class BrowserDialog extends TitleAreaDialog {
 			new BulkActionGenerator(BulkActionGenerator.Action.DISABLE),
 			new BulkActionGenerator(BulkActionGenerator.Action.DELETE),
 			new BulkActionGenerator(BulkActionGenerator.Action.MODIFY),
+			new BulkActionGenerator(BulkActionGenerator.Action.EXECUTE_SCRIPT),
 			new BulkActionGenerator(BulkActionGenerator.Action.LOG),
 			new BulkActionGenerator(BulkActionGenerator.Action.TEST_RESOURCE),
 			new TaskGenerator(TaskGenerator.Action.RECOMPUTE),

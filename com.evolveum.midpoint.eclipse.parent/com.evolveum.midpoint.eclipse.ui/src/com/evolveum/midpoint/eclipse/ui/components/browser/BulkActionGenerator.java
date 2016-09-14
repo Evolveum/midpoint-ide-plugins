@@ -24,7 +24,8 @@ public class BulkActionGenerator extends Generator {
 		DELETE("delete", "delete", ObjectTypes.OBJECT, true),
 		MODIFY("modify", "modify", ObjectTypes.OBJECT, true),
 		LOG("log", "log", ObjectTypes.OBJECT, false),
-		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false);
+		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false),
+		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false);
 		
 		private final String displayName, actionName;
 		private final ObjectTypes applicableTo;
@@ -166,6 +167,13 @@ public class BulkActionGenerator extends Generator {
 			Element value = DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "value", "t"));
 			DOMUtil.setXsiType(value, DOMUtil.XSD_STRING);
 			value.setTextContent("TODO");
+		} else if (action == Action.EXECUTE_SCRIPT) {
+			Element scriptParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(scriptParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("script");
+			Element script = DOMUtil.createSubElement(scriptParam, new QName(Constants.COMMON_NS, "value", "c"));
+			DOMUtil.setXsiType(script, new QName(Constants.COMMON_NS, "ScriptExpressionEvaluatorType", "c"));
+			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "code", "c")).setTextContent("\n                    log.info('{}', input.asPrismObject().debugDump())");
+			DOMUtil.createComment(actionE, " <s:parameter><s:name>outputItem</s:name><c:value xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>UserType</c:value></s:parameter> ");
 		}
 		
 	}
