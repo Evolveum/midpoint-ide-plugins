@@ -259,8 +259,10 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 	@Override
 	public SearchObjectsServerResponse downloadObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) {
-		String query = "<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>";
-		return executeQuery(type, query, false, connectionParameters);
+		String realQuery = createQuery(Collections.singletonList(type), "", QueryInterpretation.NAMES, limit, 0);
+		ObjectTypes realType = type != ObjectTypes.SHADOW ? type : ObjectTypes.OBJECT;
+		System.out.println("Query: " + realQuery);
+		return executeQuery(realType, realQuery, false, connectionParameters);
 	}
 	
 	private SearchObjectsServerResponse executeQuery(ObjectTypes type, String query, boolean shortData, ConnectionParameters connectionParameters) {
@@ -276,7 +278,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		try {
 			HttpClient client = createClient(connectionParameters);
 
-			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?include=row&include=jpegPhoto";
+			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search" + (shortData ? "" : "?include=row&include=jpegPhoto");
 			HttpPost request = new HttpPost(url);
 
 			HttpEntity body = new StringEntity(query, createXmlContentType());
@@ -389,7 +391,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 							+ "</filter>"
 						+ "</query>";
 			
-			return executeQuery(type, query, false, connectionParameters);
+			return executeQuery(type, query, false, connectionParameters);			// TODO for shadows...
 
 		} catch (Throwable t) {
 			return new ServerResponse(t);
@@ -415,7 +417,10 @@ public class RuntimeServiceImpl implements RuntimeService {
 		ObjectTypes realType = ObjectTypes.OBJECT;
 		if (!CollectionUtils.isEmpty(types)) {
 			if (types.size() == 1) {
-				realType = types.iterator().next();
+				ObjectTypes firstType = types.iterator().next();
+				if (firstType != ObjectTypes.SHADOW) {
+					realType = firstType;
+				}
 			} else if (interpretation == QueryInterpretation.XML_QUERY) {
 				throw new IllegalArgumentException("XML Query is not compatible with more than one type");
 			}
@@ -459,7 +464,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		Document doc = DOMUtil.getDocument(Constants.Q_QUERY);
 		Element query = doc.getDocumentElement();
 		
-		boolean typesClauseRequired = !CollectionUtils.isEmpty(types) && types.size() > 1;
+		boolean typesClauseRequired = !CollectionUtils.isEmpty(types) && (types.size() > 1 || types.size() == 1 && types.iterator().next() == ObjectTypes.SHADOW);
 		boolean dataClauseRequired = !names.isEmpty() || !oids.isEmpty();
 		
 		if (typesClauseRequired || dataClauseRequired) {
@@ -472,7 +477,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 				for (ObjectTypes type : types) {
 					Element type1 = DOMUtil.createSubElement(or1, Constants.Q_TYPE);
 					Element type2 = DOMUtil.createSubElement(type1, Constants.Q_TYPE);
-					DOMUtil.setQNameValue(type2, new QName(Constants.COMMON_NS, type.getTypeName()));
+					DOMUtil.setQNameValue(type2, new QName(Constants.COMMON_NS, type.getTypeName(), "c"));
 				}
 				dataClauseParent = and;
 			} else {

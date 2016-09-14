@@ -129,6 +129,7 @@ public class BrowserDialog extends TitleAreaDialog {
 			new TaskGenerator(TaskGenerator.Action.RECOMPUTE),
 			new TaskGenerator(TaskGenerator.Action.DELETE),
 			new TaskGenerator(TaskGenerator.Action.MODIFY),
+			new TaskGenerator(TaskGenerator.Action.SHADOW_CHECK),
 			new QueryGenerator(),
 			new AssignmentGenerator(),
 			new RefGenerator("targetRef", ObjectTypes.OBJECT),

@@ -14,12 +14,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class TaskGenerator extends Generator {
 	
-	private static final String URI_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization";
+	private static final String URI_PREFIX_SYNC = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization";
+	private static final String URI_PREFIX_MODEL = "http://midpoint.evolveum.com/xml/ns/public/model";
 	
 	public enum Action {
-		RECOMPUTE("recompute", URI_PREFIX + "/recompute/handler-3", ObjectTypes.FOCUS, "Recomputation"), 
-		DELETE("delete", URI_PREFIX + "/delete/handler-3", ObjectTypes.OBJECT, "Utility"),
-		MODIFY("modify (execute changes)", URI_PREFIX + "/execute/handler-3", ObjectTypes.OBJECT, "ExecuteChanges");
+		RECOMPUTE("recompute", URI_PREFIX_SYNC + "/recompute/handler-3", ObjectTypes.FOCUS, "Recomputation"), 
+		DELETE("delete", URI_PREFIX_SYNC + "/delete/handler-3", ObjectTypes.OBJECT, "Utility"),
+		MODIFY("modify (execute changes)", URI_PREFIX_SYNC + "/execute/handler-3", ObjectTypes.OBJECT, "ExecuteChanges"),
+		SHADOW_CHECK("check shadow integrity", URI_PREFIX_MODEL + "/shadow-integrity-check/handler-3", ObjectTypes.SHADOW, "Utility");
 		
 		private final String displayName, handlerUri, category;
 		private final ObjectTypes applicableTo;
@@ -63,6 +65,7 @@ public class TaskGenerator extends Generator {
 			Element task = DOMUtil.createSubElement(root, new QName(Constants.COMMON_NS, "task", "c"));
 			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + action.getDisplayName() + " on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
 			Element extension = DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "extension", "c"));
+			DOMUtil.setNamespaceDeclaration(extension, "mext", Constants.MEXT_NS);
 			DOMUtil.createSubElement(extension, new QName(Constants.MEXT_NS, "objectType", "mext")).setTextContent(action.applicableTo.getTypeName());
 			Element objectQuery = DOMUtil.createSubElement(extension, new QName(Constants.MEXT_NS, "objectQuery", "mext"));
 			Element filter = DOMUtil.createSubElement(objectQuery, Constants.Q_FILTER_Q);
@@ -88,6 +91,13 @@ public class TaskGenerator extends Generator {
 				Element value = DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "value", "t"));
 				DOMUtil.setXsiType(value, DOMUtil.XSD_STRING);
 				value.setTextContent("TODO");
+			} else if (action == Action.SHADOW_CHECK) {
+				DOMUtil.createComment(extension, " <mext:fix>normalization</mext:fix> ");
+				DOMUtil.createComment(extension, " <mext:fix>uniqueness</mext:fix> ");
+				DOMUtil.createComment(extension, " <mext:fix>intents</mext:fix> ");
+				DOMUtil.createComment(extension, " <mext:fix>extraData</mext:fix> ");
+				DOMUtil.createComment(extension, " <mext:diagnose>owners</mext:diagnose> ");
+				DOMUtil.createComment(extension, " <mext:diagnose>fetch</mext:diagnose> ");
 			}
 			
 			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "taskIdentifier", "c")).setTextContent(BulkActionGenerator.generateTaskIdentifier());
