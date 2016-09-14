@@ -96,17 +96,22 @@ public class BulkActionGenerator extends Generator {
 			createAction(pipe, options);
 			
 			if (task != null) {
+				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "taskIdentifier", "c")).setTextContent(generateTaskIdentifier());
 				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "ownerRef", "c")).setAttribute("oid", "00000000-0000-0000-0000-000000000002");
 				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "executionStatus", "c")).setTextContent(
 						options.isCreateSuspended() ? "suspended" : "runnable"
 						);
-				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "category", "c")).setTextContent("BulkAction");
+				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "category", "c")).setTextContent("BulkActions");
 				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "handlerUri", "c")).setTextContent("http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3");
 				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "recurrence", "c")).setTextContent("single");
 			}
 		}
 			
 		return DOMUtil.serializeDOMToString(top);
+	}
+
+	public static String generateTaskIdentifier() {
+		return System.currentTimeMillis() + ":" + Math.round(Math.random() * 1000000000.0);
 	}
 
 	public void createOidsSearch(Element root, Batch batch) {

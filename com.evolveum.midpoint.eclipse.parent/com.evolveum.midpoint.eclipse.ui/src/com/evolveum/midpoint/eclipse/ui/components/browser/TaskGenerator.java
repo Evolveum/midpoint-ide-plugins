@@ -90,6 +90,7 @@ public class TaskGenerator extends Generator {
 				value.setTextContent("TODO");
 			}
 			
+			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "taskIdentifier", "c")).setTextContent(BulkActionGenerator.generateTaskIdentifier());
 			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "ownerRef", "c")).setAttribute("oid", "00000000-0000-0000-0000-000000000002");
 			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "executionStatus", "c")).setTextContent(
 					options.isCreateSuspended() ? "suspended" : "runnable"
