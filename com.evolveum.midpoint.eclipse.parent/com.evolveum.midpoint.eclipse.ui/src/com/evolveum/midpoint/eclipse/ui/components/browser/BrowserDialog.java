@@ -435,6 +435,10 @@ public class BrowserDialog extends TitleAreaDialog {
 							objectCount = response.getServerObjects().size();
 							treeResults.setInput(getTypesFromMap(map));
 							lblResult.setText(createResultText(objectCount, 0));
+							
+							if (map.keySet().size() == 1) {
+								treeResults.expandAll();
+							}
 						}
 					});
 				} else {
