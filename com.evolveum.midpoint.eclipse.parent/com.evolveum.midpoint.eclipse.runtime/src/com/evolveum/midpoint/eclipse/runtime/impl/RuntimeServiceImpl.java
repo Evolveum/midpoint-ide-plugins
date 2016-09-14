@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -65,7 +66,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String url = parameters.getUrl() + REST + "/users/search";
 			HttpPost request = new HttpPost(url);
 
-			HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", ContentType.APPLICATION_XML);
+			HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", createXmlContentType());
 			request.setEntity(body);
 		
 			HttpResponse response = client.execute(request);
@@ -170,7 +171,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			}
 
 			HttpClient client = createClient(connectionParameters);
-			HttpEntity body = new StringEntity(request.getData(), ContentType.APPLICATION_XML);				// TODO charset if defined in XML?
+			HttpEntity body = new StringEntity(request.getData(), createXmlContentType());				// TODO charset if defined in XML?
 			httpRequest.setEntity(body);
 
 			HttpUriRequest uriRequest = (HttpUriRequest) httpRequest;
@@ -216,6 +217,10 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 	}
 
+	public ContentType createXmlContentType() {
+		return ContentType.create("application/xml", Consts.UTF_8);
+	}
+
 	@Override
 	public SearchObjectsServerResponse downloadObjects(ObjectTypes type, int limit, ConnectionParameters connectionParameters) {
 		String query = "<query><paging><orderBy>name</orderBy><maxSize>"+limit+"</maxSize></paging></query>";
@@ -238,7 +243,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?include=row&include=jpegPhoto";
 			HttpPost request = new HttpPost(url);
 
-			HttpEntity body = new StringEntity(query, ContentType.APPLICATION_XML);
+			HttpEntity body = new StringEntity(query, createXmlContentType());
 			request.setEntity(body);
 
 			System.out.println("Requesting objects from " + url);

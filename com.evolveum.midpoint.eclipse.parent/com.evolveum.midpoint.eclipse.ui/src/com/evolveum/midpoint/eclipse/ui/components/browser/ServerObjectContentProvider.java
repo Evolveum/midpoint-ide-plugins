@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 
 public class ServerObjectContentProvider implements ITreeContentProvider {
 
@@ -45,5 +46,10 @@ public class ServerObjectContentProvider implements ITreeContentProvider {
 			return new Object[0];
 		}
 	}
+
+	public void dispose() {
+	}
 	
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	}
 }
