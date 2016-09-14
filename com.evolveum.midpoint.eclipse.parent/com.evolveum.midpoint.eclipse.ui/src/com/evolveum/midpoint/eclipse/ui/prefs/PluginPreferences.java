@@ -27,6 +27,9 @@ public class PluginPreferences {
 	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
 	public static final String MISC_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.misc";
 
+	public static final String GEN_COUNTER = "generationCounter";
+	public static final String EXEC_COUNTER = "executionCounter";
+	
 	public static ConnectionParameters getConnectionParameters() {
 		ServerInfo s = getSelectedServer();
 		if (s == null) {
@@ -233,6 +236,26 @@ public class PluginPreferences {
 
 	public static void setActionFile(int actionNumber, String path) {
 		store().setValue(ActionsPreferencePage.ACTION_FILE_PREFIX + actionNumber, path);
+	}
+
+	public static int getAndIncrementGenCounter() {
+		int c = store().getInt(GEN_COUNTER);
+		store().setValue(GEN_COUNTER, c+1);
+		return c;
+	}
+
+	public static int getAndIncrementExecCounter() {
+		int c = store().getInt(EXEC_COUNTER);
+		store().setValue(EXEC_COUNTER, c+1);
+		return c;
+	}
+	
+	public static int getExecCounter() {
+		return store().getInt(EXEC_COUNTER);
+	}
+
+	public static void setExecCounter(int value) {
+		store().setValue(EXEC_COUNTER, value);
 	}
 
 }

@@ -47,8 +47,6 @@ public class FileRequestHandler extends AbstractHandler {
 	
 	public enum RequestedAction { UPLOAD_OR_EXECUTE, UPLOAD_OR_EXECUTE_WITH_ACTION, EXECUTE_ACTION, COMPARE };
 	
-	private int responseCounter = 1;
-	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
@@ -73,7 +71,7 @@ public class FileRequestHandler extends AbstractHandler {
 		return null;
 	}
 
-	private ServerRequestPack createRequestForPredefinedAction(int actionNumber) {
+	private static ServerRequestPack createRequestForPredefinedAction(int actionNumber) {
 		String fileName = PluginPreferences.getActionFile(actionNumber);
 		if (fileName == null || fileName.isEmpty()) {
 			Util.showAndLogWarning("No file for action", "Action #" + actionNumber + " has no file defined.");
@@ -90,9 +88,7 @@ public class FileRequestHandler extends AbstractHandler {
 		}
 	}
 
-	private void executeServerRequest(ExecutionEvent event, RequestedAction requestedAction) {
-		
-		String logfilename = PluginPreferences.getLogfile();
+	public static void executeServerRequest(ExecutionEvent event, RequestedAction requestedAction) {
 		
 		String jobTitle;
 		switch (requestedAction) {
@@ -145,173 +141,7 @@ public class FileRequestHandler extends AbstractHandler {
 					throw new AssertionError();
 				}
 				
-				System.out.println("Server request pack: " + requestPack);
-
-				final int itemCount = requestPack.getItemCount();
-				if (itemCount == 0) {
-					// shouldn't get here
-					return Status.OK_STATUS;
-				}
-				
-				ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
-
-				List<ServerResponseItem<?>> responseItems = new ArrayList<>();
-				
-				int skipped = 0;
-				int skippedAloud = 0;
-				
-				RuntimeService runtime = RuntimeActivator.getRuntimeService();
-				monitor.beginTask("Processing", itemCount);
-				for (ServerRequestItem item : requestPack.getItems()) {
-					if (monitor.isCanceled()) {
-						break;
-					}
-					if (item.getDisplayName() != null) {
-						monitor.subTask(item.getDisplayName());
-					}
-					
-					long logPosition = getLogPosition(logfilename);
-					
-					ServerRequest request = item.createServerRequest();
-					if (request == null) {
-						skippedAloud++;		// hack
-						skipped++;
-					} else {
-						ServerResponse response = runtime.executeServerRequest(request, connectionParameters);
-					
-						if (response instanceof NotApplicableServerResponse) {
-							Console.logWarning("Item " + item.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
-							skipped++;
-						} else {
-							ServerResponseItem<?> responseItem;
-							if (response instanceof ExecuteActionServerResponse) {
-								responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
-							} else if (response instanceof CompareServerResponse) {
-								responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
-							} else {
-								responseItem = new UploadServerResponseItem(item, request, response);
-							}
-							responseItems.add(responseItem);
-
-							boolean ok = false;
-							for (int i = 0; i < MAX_ITERATIONS; i++) {
-								responseItem.prepareFileNames(responseCounter);
-								if (!responseItem.fileConflictsPresent()) {
-									ok = true;
-									break;
-								}
-								responseCounter++;
-							}
-							if (!ok) {
-								throw new IllegalStateException("No free file name even after "+MAX_ITERATIONS+" iterations");	// TODO
-							}
-							responseItem.createFiles();
-							responseItem.openFileIfNeeded();
-
-							responseItem.logResult(responseCounter);
-
-							if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
-								responseCounter++;
-							}
-							
-							if (stopOnError && !responseItem.isSuccess()) {
-								Console.logWarning("Stopping on error (as requested).");
-								break;
-							}
-						}
-					}
-					
-					monitor.worked(1);
-				}
-				monitor.done();
-				
-				String showBoxCondition = 
-						requestedAction == RequestedAction.COMPARE ? 
-								PluginPreferences.getShowComparisonResultMessageBox() : PluginPreferences.getShowUploadOrExecuteResultMessageBox();
-				
-				{
-					boolean showBox = false;
-					int uploadOk = 0, uploadFail = 0, execOk = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
-					for (ServerResponseItem<?> responseItem : responseItems) {
-						if (responseItem.showResultLine(showBoxCondition)) {
-							showBox = true;
-						}
-						if (responseItem instanceof UploadServerResponseItem) {
-							if (responseItem.isSuccess()) {
-								uploadOk++; 
-							} else {
-								uploadFail++;
-							}
-						} else if (responseItem instanceof ExecuteActionResponseItem) {
-							if (responseItem.isSuccess()) {
-								execOk++; 
-							} else {
-								execFail++;
-							}
-						} else {
-							CompareServerResponseItem csri = (CompareServerResponseItem) responseItem;
-							CompareServerResponse csr = csri.getResponse();
-							if (!csr.isSuccess() || csr.getRemoteExists() == null) {
-								diffFail++;
-							} else if (!csr.getRemoteExists()) {
-								diffMissing++;
-							} else if (!csr.noDifferences()) {
-								diffModified++;
-							} else {
-								diffSame++;
-							}
-						}
-					}
-					
-					boolean noItems = false;
-					String message;
-					if (requestedAction == RequestedAction.COMPARE) {
-						if (diffSame == 0 && diffModified == 0 && diffMissing == 0 && diffFail == 0) {
-							message = "No items compared.";
-							noItems = true;
-						} else {
-							StringBuilder sb = new StringBuilder();
-							sb.append("No differences: ").append(diffSame).append(", modified: ").append(diffModified).append(", not on server: ").append(diffMissing).append(", failures: ").append(diffFail).append(". ");
-							message = sb.toString();
-						}
-					} else {
-						StringBuilder sb = new StringBuilder();
-						if (uploadOk > 0 || uploadFail > 0) {
-							sb.append("Uploaded OK: ").append(uploadOk).append(", fail: ").append(uploadFail).append(". ");
-						}
-						if (execOk > 0 || execFail > 0) {
-							sb.append("Executed OK: ").append(execOk).append(", fail: ").append(execFail).append(". ");
-						}
-						if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0) {
-							sb.append("No items uploaded or executed");
-							noItems = true;
-						}
-						message = sb.toString();
-					}
-					if (skipped > 0) {
-						message += "Skipped: " + skipped + ".";
-					}
-					if (noItems) {
-						if (skippedAloud > 0) {
-							Console.logWarning("There were no items to be processed.");
-						} else {
-							Util.showAndLogWarning("No items", "There were no items to be processed.");
-						}
-					} else {
-						boolean someFailure = diffFail > 0 || uploadFail > 0 || execFail > 0;
-						if (someFailure) {
-							Console.logError(message);
-							if (showBox) {
-								Util.showError("Failure", message);
-							}
-						} else {
-							Console.log(message);
-							if (showBox) {
-								Util.showInformation("Success", message);
-							}
-						}
-					}
-				}
+				executePack(requestPack, requestedAction, stopOnError, monitor);
 				return Status.OK_STATUS;
 			}
 		};
@@ -319,7 +149,185 @@ public class FileRequestHandler extends AbstractHandler {
 		
 	}
 
-	protected long getLogPosition(String logfilename) {
+	public static void executePack(ServerRequestPack requestPack, RequestedAction requestedAction, boolean stopOnError, IProgressMonitor monitor) {
+		System.out.println("Server request pack: " + requestPack);
+
+		String logfilename = PluginPreferences.getLogfile();
+
+		final int itemCount = requestPack.getItemCount();
+		if (itemCount == 0) {
+			// shouldn't get here
+			return;
+		}
+
+		ConnectionParameters connectionParameters = PluginPreferences.getConnectionParameters();
+
+		List<ServerResponseItem<?>> responseItems = new ArrayList<>();
+
+		int skipped = 0;
+		int skippedAloud = 0;
+
+		RuntimeService runtime = RuntimeActivator.getRuntimeService();
+		monitor.beginTask("Processing", itemCount);
+		for (ServerRequestItem item : requestPack.getItems()) {
+			if (monitor.isCanceled()) {
+				break;
+			}
+			if (item.getDisplayName() != null) {
+				monitor.subTask(item.getDisplayName());
+			}
+
+			long logPosition = getLogPosition(logfilename);
+
+			ServerRequest request = item.createServerRequest();
+			if (request == null) {
+				skippedAloud++;		// hack
+				skipped++;
+			} else {
+				ServerResponse response = runtime.executeServerRequest(request, connectionParameters);
+
+				if (response instanceof NotApplicableServerResponse) {
+					Console.logWarning("Item " + item.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+					skipped++;
+				} else {
+					ServerResponseItem<?> responseItem;
+					if (response instanceof ExecuteActionServerResponse) {
+						responseItem = new ExecuteActionResponseItem(item, request, (ExecuteActionServerResponse) response, logfilename, logPosition);
+					} else if (response instanceof CompareServerResponse) {
+						responseItem = new CompareServerResponseItem(item, request, (CompareServerResponse) response);
+					} else {
+						responseItem = new UploadServerResponseItem(item, request, response);
+					}
+					responseItems.add(responseItem);
+
+					int execCounter = PluginPreferences.getExecCounter();
+					if (execCounter == 0) {
+						execCounter = 1;
+					}
+
+					boolean ok = false;
+					for (int i = 0; i < MAX_ITERATIONS; i++) {
+						responseItem.prepareFileNames(execCounter);
+						if (!responseItem.fileConflictsPresent()) {
+							ok = true;
+							break;
+						}
+						execCounter++;
+					}
+					if (!ok) {
+						throw new IllegalStateException("No free file name even after "+MAX_ITERATIONS+" iterations");	// TODO
+					}
+					responseItem.createFiles();
+					responseItem.openFileIfNeeded();
+
+					responseItem.logResult(execCounter);
+
+					if (response instanceof ExecuteActionServerResponse || response instanceof CompareServerResponse) {
+						execCounter++;
+						PluginPreferences.setExecCounter(execCounter);
+					}
+
+					if (stopOnError && !responseItem.isSuccess()) {
+						Console.logWarning("Stopping on error (as requested).");
+						break;
+					}
+				}
+			}
+
+			monitor.worked(1);
+		}
+		monitor.done();
+
+		String showBoxCondition = 
+				requestedAction == RequestedAction.COMPARE ? 
+						PluginPreferences.getShowComparisonResultMessageBox() : PluginPreferences.getShowUploadOrExecuteResultMessageBox();
+
+						{
+							boolean showBox = false;
+							int uploadOk = 0, uploadFail = 0, execOk = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
+							for (ServerResponseItem<?> responseItem : responseItems) {
+								if (responseItem.showResultLine(showBoxCondition)) {
+									showBox = true;
+								}
+								if (responseItem instanceof UploadServerResponseItem) {
+									if (responseItem.isSuccess()) {
+										uploadOk++; 
+									} else {
+										uploadFail++;
+									}
+								} else if (responseItem instanceof ExecuteActionResponseItem) {
+									if (responseItem.isSuccess()) {
+										execOk++; 
+									} else {
+										execFail++;
+									}
+								} else {
+									CompareServerResponseItem csri = (CompareServerResponseItem) responseItem;
+									CompareServerResponse csr = csri.getResponse();
+									if (!csr.isSuccess() || csr.getRemoteExists() == null) {
+										diffFail++;
+									} else if (!csr.getRemoteExists()) {
+										diffMissing++;
+									} else if (!csr.noDifferences()) {
+										diffModified++;
+									} else {
+										diffSame++;
+									}
+								}
+							}
+
+							boolean noItems = false;
+							String message;
+							if (requestedAction == RequestedAction.COMPARE) {
+								if (diffSame == 0 && diffModified == 0 && diffMissing == 0 && diffFail == 0) {
+									message = "No items compared.";
+									noItems = true;
+								} else {
+									StringBuilder sb = new StringBuilder();
+									sb.append("No differences: ").append(diffSame).append(", modified: ").append(diffModified).append(", not on server: ").append(diffMissing).append(", failures: ").append(diffFail).append(". ");
+									message = sb.toString();
+								}
+							} else {
+								StringBuilder sb = new StringBuilder();
+								if (uploadOk > 0 || uploadFail > 0) {
+									sb.append("Uploaded OK: ").append(uploadOk).append(", fail: ").append(uploadFail).append(". ");
+								}
+								if (execOk > 0 || execFail > 0) {
+									sb.append("Executed OK: ").append(execOk).append(", fail: ").append(execFail).append(". ");
+								}
+								if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0) {
+									sb.append("No items uploaded or executed");
+									noItems = true;
+								}
+								message = sb.toString();
+							}
+							if (skipped > 0) {
+								message += "Skipped: " + skipped + ".";
+							}
+							if (noItems) {
+								if (skippedAloud > 0) {
+									Console.logWarning("There were no items to be processed.");
+								} else {
+									Util.showAndLogWarning("No items", "There were no items to be processed.");
+								}
+							} else {
+								boolean someFailure = diffFail > 0 || uploadFail > 0 || execFail > 0;
+								if (someFailure) {
+									Console.logError(message);
+									if (showBox) {
+										Util.showError("Failure", message);
+									}
+								} else {
+									Console.log(message);
+									if (showBox) {
+										Util.showInformation("Success", message);
+									}
+								}
+							}
+						}
+	}
+
+	protected static long getLogPosition(String logfilename) {
 		File file = new File(logfilename);
 		return file.length();
 		

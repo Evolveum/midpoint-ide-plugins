@@ -3,6 +3,7 @@ package com.evolveum.midpoint.eclipse.ui.components.browser;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -63,12 +64,18 @@ import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.QueryInterpretation;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ConnectionParameters;
+import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.SearchObjectsServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler.RequestedAction;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerRequestItem;
+import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerRequestPack;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerResponseItem;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
@@ -714,6 +721,16 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnGenerate.setEnabled(false);
 		
 		btnExecute = createButton(parent, GENERATE_ID, "Execute", false);
+		btnExecute.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				executePerformed();
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				executePerformed();
+			}
+		});
 		btnExecute.setEnabled(false);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
@@ -783,21 +800,10 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (genIndex < 0) {
 			return;
 		}
-		GeneratorOptions options = new GeneratorOptions();
-		options.setSymbolicReferences(btnSymbolicReferences.getSelection());
-		options.setSymbolicReferencesRuntime(btnRunTimeResolution.getSelection());
-		options.setWrapActions(btnWrapActions.getSelection());
-		options.setCreateSuspended(btnCreateSuspended.getSelection());
-		options.setRaw(btnCreateRaw.getSelection());
-		options.setDryRun(btnCreateDryRun.getSelection());
-		int execOption = comboExecution.getSelectionIndex();
-		switch (execOption) {
-		case 0: options.setBatchByOids(true); options.setBatchSize(selectedObjects.size()); break;
-		case 1: options.setBatchByOids(true); options.setBatchSize(1); break;
-		case 2: options.setBatchByOids(true); options.setBatchSize(getBatchSize()); break;
-		case 3: Util.showWarning("Not implemented yet", "This feature is not yet implemented."); return;
+		GeneratorOptions options = createGeneratorOptions(selectedObjects);
+		if (!options.isBatchByOids()) {
+			return;
 		}
-		
 
 		Generator generator = generators.get(genIndex);
 		Job job = new Job("Generating XML") {
@@ -810,6 +816,74 @@ public class BrowserDialog extends TitleAreaDialog {
 				if (file != null) {
 					openFileInEditor(file);
 				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
+		
+	}
+
+	public GeneratorOptions createGeneratorOptions(List<ServerObject> selectedObjects) {
+		GeneratorOptions options = new GeneratorOptions();
+		options.setSymbolicReferences(btnSymbolicReferences.getSelection());
+		options.setSymbolicReferencesRuntime(btnRunTimeResolution.getSelection());
+		options.setWrapActions(btnWrapActions.getSelection());
+		options.setCreateSuspended(btnCreateSuspended.getSelection());
+		options.setRaw(btnCreateRaw.getSelection());
+		options.setDryRun(btnCreateDryRun.getSelection());
+		int execOption = comboExecution.getSelectionIndex();
+		switch (execOption) {
+		case 0: options.setBatchByOids(true); options.setBatchSize(selectedObjects.size()); break;
+		case 1: options.setBatchByOids(true); options.setBatchSize(1); break;
+		case 2: options.setBatchByOids(true); options.setBatchSize(getBatchSize()); break;
+		case 3: Util.showWarning("Not implemented yet", "This feature is not yet implemented"); break;
+		}
+		return options;
+	}
+
+	protected void executePerformed() {
+		IProject project = getProject();
+		if (project == null) {
+			return;
+		}
+		List<ServerObject> selectedObjects = getSelectedObjects();
+		if (selectedObjects.size() == 0) {
+			return;
+		}
+		int genIndex = comboWhatToGenerate.getSelectionIndex();
+		if (genIndex < 0) {
+			return;
+		}
+		GeneratorOptions options = createGeneratorOptions(selectedObjects);
+		if (!options.isBatchByOids()) {
+			return;
+		}
+
+		Generator generator = generators.get(genIndex);
+		Job job = new Job("Generating XML") {
+			protected IStatus run(IProgressMonitor monitor) {
+				String content = generator.generate(selectedObjects, options);
+				if (content == null) {
+					return Status.OK_STATUS;
+				}
+				IFile file = writeFile(content, project, "exec", monitor);
+				if (file == null) {
+					return Status.OK_STATUS;
+				}
+				List<SourceObject> sourceObjects = ServerRequestPack.fromWorkspaceFiles(Collections.singletonList(file));
+				if (sourceObjects.size() == 0) {
+					Util.showAndLogWarning("No objects to upload/execute", "There are no objects to be executed (huh?)");
+					return Status.OK_STATUS;
+				}
+				List<ServerRequestItem> items = new ArrayList<>();
+				for (SourceObject object : sourceObjects) {
+					if (!object.isExecutable() && !object.isUploadable()) {
+						continue;
+					}
+					items.add(new ServerRequestItem(object.isExecutable() ? ServerAction.EXECUTE : ServerAction.UPLOAD, object));					
+				}
+				ServerRequestPack requestPack = new ServerRequestPack(items);
+				FileRequestHandler.executePack(requestPack, RequestedAction.UPLOAD_OR_EXECUTE, false, monitor);
 				return Status.OK_STATUS;
 			}
 		};
@@ -1017,7 +1091,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		}
 		
 		String patternResolved = pattern
-				.replace("$n", DownloadHandler.fixComponent(ServerResponseItem.formatActionCounter(getAndIncrementGenCount())))
+				.replace("$n", DownloadHandler.fixComponent(ServerResponseItem.formatActionCounter(PluginPreferences.getAndIncrementGenCounter())))
 				.replace("$t", DownloadHandler.fixComponent(type))
 				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName()));
 		
@@ -1032,12 +1106,6 @@ public class BrowserDialog extends TitleAreaDialog {
 		}
 		System.out.println("Final result = " + rv);
 		return rv;
-	}
-	
-	public static int getAndIncrementGenCount() {
-		int genCount = PluginPreferences.store().getInt("genCount");
-		PluginPreferences.store().setValue("genCount", genCount+1);
-		return genCount;
 	}
 
 }
