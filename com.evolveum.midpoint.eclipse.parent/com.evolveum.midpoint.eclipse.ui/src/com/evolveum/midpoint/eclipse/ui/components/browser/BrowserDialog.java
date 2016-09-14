@@ -424,7 +424,7 @@ public class BrowserDialog extends TitleAreaDialog {
 			return;
 		}
 
-		Console.log("Searching for: " + query + " in " + types + " (interpretation: " + interpretation + ")");
+		Console.logMinor("Searching for: " + query + " in " + types + " (interpretation: " + interpretation + ")");
 
 		Job job = new Job("Searching for objects") {
 			protected IStatus run(IProgressMonitor monitor) {
