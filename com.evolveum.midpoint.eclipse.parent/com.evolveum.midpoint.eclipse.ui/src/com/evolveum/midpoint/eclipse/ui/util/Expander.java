@@ -8,7 +8,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 
 public class Expander {
@@ -23,13 +26,18 @@ public class Expander {
 		}
 	}
 
-	public static String expand(String content, ServerInfo server) {
-		if (server == null || StringUtils.isBlank(server.getPropertiesFile())) {
+	public static String expand(String content, SourceObject sourceObject, ServerInfo server) {
+		if (server == null) {
 			return content;
 		}
-		Properties macros = getMacros(server);
-		if (macros == null) {
-			return null;
+		Properties macros;
+		if (StringUtils.isBlank(server.getPropertiesFile())) {
+			macros = null;				// OK, no properties
+		} else {
+			macros = getMacros(server);
+			if (macros == null) {
+				return null;			// error reading file
+			}
 		}
 
         String patternString = "\\$\\((\\S*)\\)";
@@ -48,11 +56,23 @@ public class Expander {
         	String replacement;
         	if (symbol.startsWith("$")) {
         		replacement = symbol;
+        	} else if (symbol.startsWith("#")) {
+        		replacement = getPredefined(symbol, sourceObject, server);
+        		if (replacement == null) {
+            		Console.logError("No value for predefined property '" + symbol + "')");
+            	}
         	} else {
-        		replacement = macros.getProperty(symbol);
+        		if (macros == null) {
+        			Console.logError("Unable to resolve symbol " + symbol + ", because replacement property file was not specified.");
+        			replacement = null;
+        		} else {
+        			replacement = macros.getProperty(symbol);
+        			if (replacement == null) {
+        				Console.logError("No value for replacement property '" + symbol + "' in file " + server.getPropertiesFile());
+        			}
+        		}
         	}
         	if (replacement == null) {
-        		Console.logError("No value for replacement property '" + symbol + "' in file " + server.getPropertiesFile());
         		missing = true;
         	} else {
         		result.append(replacement);
@@ -69,6 +89,44 @@ public class Expander {
         System.out.println(replaced + " symbol(s) replaced.");
         System.out.println("Result: " + result);
         return result.toString();
+	}
+
+	private static String getPredefined(String symbol, SourceObject sourceObject, ServerInfo server) {
+		switch (symbol) {
+		case "#project.name":
+		{
+			IProject project = getProject(sourceObject);
+			if (project == null) {
+				return null;
+			}
+			return project.getName();
+		}
+		case "#project.dir":
+		{
+			IProject project = getProject(sourceObject);
+			if (project == null) {
+				return null;
+			}
+			IPath location = project.getLocation();
+			if (location == null) {
+				return null;
+			}
+			return location.toOSString();
+		}
+		case "#server.displayName":
+		{
+			return server != null ? server.getDisplayName() : null;
+		}
+		}
+		return null;
+	}
+
+	private static IProject getProject(SourceObject sourceObject) {
+		if (sourceObject == null || sourceObject.getFile() == null) {
+			Console.logError("No source object file.");
+			return null;
+		}
+		return sourceObject.getFile().getProject();
 	}
 
 	public static Properties getMacros(ServerInfo server) {

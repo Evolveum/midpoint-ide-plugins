@@ -55,7 +55,7 @@ public class ServerRequestItem {
 	}
 	public String getExpandedContent() {
 		String content = source.getContent();
-		return Expander.expand(content, PluginPreferences.getSelectedServer());
+		return Expander.expand(content, source, PluginPreferences.getSelectedServer());
 	}
 	public IFile getSourceFile() {
 		return source.getFile();
