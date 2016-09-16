@@ -4,13 +4,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
-import com.evolveum.midpoint.eclipse.ui.components.browser.TaskGenerator.Action;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -19,24 +17,25 @@ public class BulkActionGenerator extends Generator {
 	
 	public enum Action {
 		
-		RECOMPUTE("recompute", "recompute", ObjectTypes.FOCUS, false, false),
-		ENABLE("enable", "enable", ObjectTypes.FOCUS, false, false),
-		DISABLE("disable", "disable", ObjectTypes.FOCUS, false, false),
-		DELETE("delete", "delete", ObjectTypes.OBJECT, true, true),
-		MODIFY("modify", "modify", ObjectTypes.OBJECT, true, false),
-		LOG("log", "log", ObjectTypes.OBJECT, false, false),
-		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false),
-		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false);
+		RECOMPUTE("recompute", "recompute", ObjectTypes.FOCUS, false, true, false),
+		ENABLE("enable", "enable", ObjectTypes.FOCUS, false, true, false),
+		DISABLE("disable", "disable", ObjectTypes.FOCUS, false, true, false),
+		DELETE("delete", "delete", ObjectTypes.OBJECT, true, true, true),
+		MODIFY("modify", "modify", ObjectTypes.OBJECT, true, true, false),
+		LOG("log", "log", ObjectTypes.OBJECT, false, false, false),
+		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false, false),
+		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false, false);
 		
 		private final String displayName, actionName;
 		private final ObjectTypes applicableTo;
-		private final boolean supportsRaw, requiresConfirmation;
+		private final boolean supportsRaw, supportsDryRun, requiresConfirmation;
 		
-		private Action(String displayName, String actionName, ObjectTypes applicableTo, boolean supportsRaw, boolean requiresConfirmation) {
+		private Action(String displayName, String actionName, ObjectTypes applicableTo, boolean supportsRaw, boolean supportsDryRun, boolean requiresConfirmation) {
 			this.displayName = displayName;
 			this.actionName = actionName;
 			this.applicableTo = applicableTo;
 			this.supportsRaw = supportsRaw;
+			this.supportsDryRun = supportsDryRun;
 			this.requiresConfirmation = requiresConfirmation;
 		}
 	}
@@ -192,7 +191,7 @@ public class BulkActionGenerator extends Generator {
 
 	@Override
 	public boolean supportsDryRunOption() {
-		return false;		// only in 3.5
+		return action.supportsDryRun;
 	}
 
 	@Override
