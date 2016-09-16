@@ -375,7 +375,7 @@ public class FileRequestHandler extends AbstractHandler {
 								return ServerRequestPack.EMPTY;
 							}
 						}
-						return ServerRequestPack.fromTextFragment(selectedText, file, action);
+						return ServerRequestPack.fromTextFragment(selectedText, file, true, action);
 					}
 				}
 			}
@@ -384,11 +384,24 @@ public class FileRequestHandler extends AbstractHandler {
 			Util.showWarning("No selection", "There is no content to be uploaded or executed.");
 			return ServerRequestPack.EMPTY;
 		}
+		IEditorPart editor = HandlerUtil.getActiveEditor(event);
+		if (editor != null) {
+			IEditorInput editorInput = editor.getEditorInput();
+			IFile file = editorInput instanceof FileEditorInput ? ((FileEditorInput) editorInput).getFile() : null;
+			IDocument doc = (IDocument)editor.getAdapter(IDocument.class);
+			if (doc != null && file != null) {
+				String fileText = doc.get();
+				if (selectedText.equals(fileText)) {
+					return ServerRequestPack.fromTextFragment(selectedText, file, true, action);
+				}
+			}
+		}
+				
 		if (action == RequestedAction.COMPARE) {
 			Util.showWarning("No file", "Text selection is not supported for the 'compare' action. Please select one or more files.");
 			return ServerRequestPack.EMPTY;
 		}
-		return ServerRequestPack.fromTextFragment(selectedText, null, action);
+		return ServerRequestPack.fromTextFragment(selectedText, null, false, action);
 	}
 
 	// TODO move somewhere

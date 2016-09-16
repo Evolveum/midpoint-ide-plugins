@@ -141,10 +141,12 @@ public class ServerRequestItem {
 	}
 
 	@Deprecated
-	public static List<SourceObject> parseTextFragment(String textFragment, IFile file, RequestedAction requestedAction) {
+	public static List<SourceObject> parseTextFragment(String textFragment, IFile file, boolean wholeFile, RequestedAction requestedAction) {
+		String displayName = file != null ? 
+								"text "+ (wholeFile ? "": "fragment ") + "from " + file.getFullPath().toPortableString() : 
+								"text fragment";
 		try {
 			Document doc = DOMUtil.parseDocument(textFragment);
-			String displayName = file != null ? "text fragment from " + file.getFullPath().toPortableString() : "text fragment";
 			List<SourceObject> objects = parseDocument(doc, requestedAction == RequestedAction.EXECUTE_ACTION, file, displayName);
 			if (requestedAction == RequestedAction.COMPARE) {
 				if (objects.size() != 1 || !objects.get(0).isUploadable()) {
@@ -155,22 +157,24 @@ public class ServerRequestItem {
 			}
 			return objects;
 		} catch (RuntimeException e) {
-			Console.logError("Couldn't parse text fragment from file " + file, e);
+			Console.logError("Couldn't parse " + displayName + ": " + e.getMessage(), e);
 			return new ArrayList<>();
 		}
 	}
 	
 	public static List<SourceObject> parseTextFragment(String textFragment, IFile file, boolean wholeFile) {
+		String displayName = file != null ? 
+				"text "+ (wholeFile ? "": "fragment ") + "from " + file.getFullPath().toPortableString() : 
+				"text fragment";
 		try {
 			Document doc = DOMUtil.parseDocument(textFragment);
-			String displayName = file != null ? "text fragment from " + file.getFullPath().toPortableString() : "text fragment";
 			List<SourceObject> rv = parseDocument(doc, file, displayName);
 			for (SourceObject so : rv) {
 				so.setWholeFile(wholeFile);
 			}
 			return rv;
 		} catch (RuntimeException e) {
-			Console.logError("Couldn't parse text fragment from file " + file, e);
+			Console.logError("Couldn't parse " + displayName + ": " + e.getMessage(), e);
 			return new ArrayList<>();
 		}
 	}

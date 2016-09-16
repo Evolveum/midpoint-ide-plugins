@@ -41,9 +41,9 @@ public class ServerRequestPack {
 	}
 
 	@Deprecated
-	public static ServerRequestPack fromTextFragment(String textFragment, IFile file, RequestedAction requestedAction) {
+	public static ServerRequestPack fromTextFragment(String textFragment, IFile file, boolean wholeFile, RequestedAction requestedAction) {
 		List<ServerRequestItem> items = new ArrayList<>();
-		List<SourceObject> objects = ServerRequestItem.parseTextFragment(textFragment, file, requestedAction); 
+		List<SourceObject> objects = ServerRequestItem.parseTextFragment(textFragment, file, wholeFile, requestedAction); 
 		for (SourceObject object : objects) {
 			ServerAction action;
 			switch (requestedAction) {
