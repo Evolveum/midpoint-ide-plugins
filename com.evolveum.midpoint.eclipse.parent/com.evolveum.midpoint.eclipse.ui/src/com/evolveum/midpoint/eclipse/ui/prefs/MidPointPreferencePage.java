@@ -22,6 +22,8 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 	public static final String VALUE_WHEN_DIFFERENCES_OR_ERRORS = "whenDifferencesOrErrors";
 	public static final String VALUE_ALWAYS = "always";
 
+	public static final String VALUE_ONLY_IF_COMPLEX = "onlyIfComplex";
+
 	public final static String[][] RESULT_BOX_OPTIONS = new String[][] { 
 		{ "Always", VALUE_ALWAYS }, 
 		{ "Only when errors", VALUE_WHEN_ERRORS }, 

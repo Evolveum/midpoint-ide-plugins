@@ -81,8 +81,8 @@ public class PluginPreferences {
 		return s != null ? s.getLogFile() : null;
 	}
 	
-	public static boolean isUseMidPointLogViewer() {
-		return store().getBoolean(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
+	public static String getUseMidPointLogViewer() {
+		return store().getString(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
 	}
 	
 	public static String getActionOutputFileNamePattern() {

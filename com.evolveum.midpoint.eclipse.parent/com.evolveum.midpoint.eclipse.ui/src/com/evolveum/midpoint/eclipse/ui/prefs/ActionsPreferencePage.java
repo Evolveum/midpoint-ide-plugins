@@ -43,6 +43,12 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 
 	protected void createFieldEditors() {
 		
+		final String[][] USE_MIDPOINT_LOG_VIEWER_OPTIONS = new String[][] { 
+			{ "Never", MidPointPreferencePage.VALUE_NEVER }, 
+			{ "Only if complex", MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX }, 
+			{ "Always", MidPointPreferencePage.VALUE_ALWAYS } 
+		};
+		
 		final String[][] OPEN_AFTER_OPTIONS = new String[][] { 
 			{ "Server log", ExecuteActionResponseItem.OUTPUT_TYPE_LOG }, 
 			{ "Action data output", ExecuteActionResponseItem.OUTPUT_TYPE_DATA }, 
@@ -84,7 +90,7 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 
-		addField(new BooleanFieldEditor(USE_MIDPOINT_LOG_VIEWER, "Use midPoint log viewer to view server log fragments", getFieldEditorParent()));
+		addField(new ComboFieldEditor(USE_MIDPOINT_LOG_VIEWER, "Use midPoint log viewer to view server log fragments", USE_MIDPOINT_LOG_VIEWER_OPTIONS, getFieldEditorParent()));
 	}
 
 	public void init(IWorkbench workbench) {

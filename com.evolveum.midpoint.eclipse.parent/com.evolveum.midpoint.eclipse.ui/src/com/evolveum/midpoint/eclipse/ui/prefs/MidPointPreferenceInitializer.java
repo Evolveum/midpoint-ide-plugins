@@ -15,6 +15,7 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN, "scratch/runs/$f.$n.$t");
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
+		store.setDefault(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER, MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX);
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "objects/$T/$n.xml");
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILES_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);

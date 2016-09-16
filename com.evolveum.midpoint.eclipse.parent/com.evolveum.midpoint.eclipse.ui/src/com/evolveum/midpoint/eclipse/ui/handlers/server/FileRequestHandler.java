@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
+import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
@@ -43,7 +45,13 @@ import com.evolveum.midpoint.eclipse.ui.util.Util;
 
 public class FileRequestHandler extends AbstractHandler {
 	
+	private static final String LOGVIEWER_ID = "com.evolveum.midpoint.eclipse.logviewer.editor.LogViewerEditor";
+
+	public static final String DEFAULT_EDITOR_ID = "org.eclipse.ui.DefaultTextEditor";
+
 	private static final int MAX_ITERATIONS = 1000;
+	
+	private static final int LOG_FRAGMENT_COMPLEXITY_THRESHOLD = 100000;
 	
 	public enum RequestedAction { UPLOAD_OR_EXECUTE, UPLOAD_OR_EXECUTE_WITH_ACTION, EXECUTE_ACTION, COMPARE };
 	
@@ -405,16 +413,36 @@ public class FileRequestHandler extends AbstractHandler {
 	}
 
 	// TODO move somewhere
-	public static String getLogViewerEditorId() {
-		if (PluginPreferences.isUseMidPointLogViewer()) {
-			return "com.evolveum.midpoint.eclipse.logviewer.editor.LogViewerEditor";
-		} else {
-			return "org.eclipse.ui.DefaultTextEditor";
+	public static String getLogViewerEditorId(byte[] logFileFragment) {
+		String useLogViewer = PluginPreferences.getUseMidPointLogViewer();
+		switch(useLogViewer) {
+		case MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX:
+			if (logFileFragment == null) {
+				return DEFAULT_EDITOR_ID;
+			}
+			if (logFileFragment.length >= LOG_FRAGMENT_COMPLEXITY_THRESHOLD) {
+				return LOGVIEWER_ID;
+			}
+			String logtext;
+			try {
+				logtext = new String(logFileFragment, "utf-8");
+			} catch (UnsupportedEncodingException e) {
+				Console.logError("Couldn't retrieve text of log file fragment", e);
+				return DEFAULT_EDITOR_ID;
+			}
+			if (logtext.contains("---[") || logtext.contains("===[")) {
+				return LOGVIEWER_ID;
+			}
+			return DEFAULT_EDITOR_ID;
+		case MidPointPreferencePage.VALUE_ALWAYS:
+			return LOGVIEWER_ID;
+		default:
+			return DEFAULT_EDITOR_ID;
 		}
 	}
 
 	public static String getTextEditorId() {
-		return "org.eclipse.ui.DefaultTextEditor";
+		return DEFAULT_EDITOR_ID;
 	}
 
 	public static List<SourceObject> getServerObjectsFromSelection(ExecutionEvent event, ISelection selection) {

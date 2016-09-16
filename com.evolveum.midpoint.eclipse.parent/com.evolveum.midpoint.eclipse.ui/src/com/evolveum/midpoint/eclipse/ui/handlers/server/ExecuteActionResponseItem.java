@@ -36,6 +36,8 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 	private IFile consoleFile = null; 
 	private IFile dataFile = null;
 	private IFile logFile = null;
+	
+	private byte[] logFileFragment = null;
 
 	public ExecuteActionResponseItem(ServerRequestItem item, ServerRequest request, ExecuteActionServerResponse response, String logfilename, long logPosition) {
 		super(item, request, response);
@@ -92,7 +94,8 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		ResourceUtils.createOutputFile(opResultFile, response.getOperationResult());
 		ResourceUtils.createOutputFile(consoleFile, response.getConsoleOutput());
 		ResourceUtils.createOutputFile(dataFile, response.getDataOutput());
-		ResourceUtils.createOutputFile(logFile, getLogFileFragment(logfilename, logPosition));
+		logFileFragment = getLogFileFragment(logfilename, logPosition);
+		ResourceUtils.createOutputFile(logFile, logFileFragment);
 	}
 	
 	private byte[] getLogFileFragment(String logfilename, long logPosition) {
@@ -153,7 +156,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 					try {
 						if (isLogFile) {
-							IDE.openEditor(page, openFile, FileRequestHandler.getLogViewerEditorId());											
+							IDE.openEditor(page, openFile, FileRequestHandler.getLogViewerEditorId(logFileFragment));											
 						} else {
 							IDE.openEditor(page, openFile);
 						}
@@ -170,8 +173,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 	public String getConsoleLogLine(int responseCounter) {
 		List<String> labels = Arrays.asList("Server log", "Data output", "Console output", "Operation result");
 		List<IFile> files = Arrays.asList(logFile, dataFile, consoleFile, opResultFile);
-		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(), null, null, null);
-				//FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId(), FileRequestHandler.getTextEditorId());
+		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(logFileFragment), null, null, null);
 		String counterString = formatActionCounter(responseCounter);
 
 		HyperlinksRegistry.getInstance().registerEntry(counterString, labels, files, editorIds);
