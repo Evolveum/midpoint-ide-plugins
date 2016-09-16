@@ -133,7 +133,11 @@ public class ServerRequestItem {
 	public static List<SourceObject> parseWorkspaceFile(IFile file) {
 		try {
 			Document doc = parseWorkspaceFileToDOM(file);
-			return parseDocument(doc, file, file.getFullPath().toPortableString());
+			List<SourceObject> objects = parseDocument(doc, file, file.getFullPath().toPortableString());
+			if (objects.size() == 1) {
+				objects.get(0).setWholeFile(true);
+			}
+			return objects;
 		} catch (RuntimeException e) {
 			Console.logError("Couldn't parse file " + file, e);
 			return new ArrayList<>();

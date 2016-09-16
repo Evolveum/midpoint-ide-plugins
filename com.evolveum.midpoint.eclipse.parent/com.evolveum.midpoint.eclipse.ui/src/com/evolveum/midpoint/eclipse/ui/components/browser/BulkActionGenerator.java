@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
+import com.evolveum.midpoint.eclipse.ui.components.browser.TaskGenerator.Action;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -18,24 +19,25 @@ public class BulkActionGenerator extends Generator {
 	
 	public enum Action {
 		
-		RECOMPUTE("recompute", "recompute", ObjectTypes.FOCUS, false),
-		ENABLE("enable", "enable", ObjectTypes.FOCUS, false),
-		DISABLE("disable", "disable", ObjectTypes.FOCUS, false),
-		DELETE("delete", "delete", ObjectTypes.OBJECT, true),
-		MODIFY("modify", "modify", ObjectTypes.OBJECT, true),
-		LOG("log", "log", ObjectTypes.OBJECT, false),
-		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false),
-		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false);
+		RECOMPUTE("recompute", "recompute", ObjectTypes.FOCUS, false, false),
+		ENABLE("enable", "enable", ObjectTypes.FOCUS, false, false),
+		DISABLE("disable", "disable", ObjectTypes.FOCUS, false, false),
+		DELETE("delete", "delete", ObjectTypes.OBJECT, true, true),
+		MODIFY("modify", "modify", ObjectTypes.OBJECT, true, false),
+		LOG("log", "log", ObjectTypes.OBJECT, false, false),
+		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false),
+		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false);
 		
 		private final String displayName, actionName;
 		private final ObjectTypes applicableTo;
-		private final boolean supportsRaw;
+		private final boolean supportsRaw, requiresConfirmation;
 		
-		private Action(String displayName, String actionName, ObjectTypes applicableTo, boolean supportsRaw) {
+		private Action(String displayName, String actionName, ObjectTypes applicableTo, boolean supportsRaw, boolean requiresConfirmation) {
 			this.displayName = displayName;
 			this.actionName = actionName;
 			this.applicableTo = applicableTo;
 			this.supportsRaw = supportsRaw;
+			this.requiresConfirmation = requiresConfirmation;
 		}
 	}
 	
@@ -195,7 +197,7 @@ public class BulkActionGenerator extends Generator {
 
 	@Override
 	public boolean isExecutable() {
-		return true;
+		return action != Action.MODIFY && action != Action.EXECUTE_SCRIPT;
 	}
 
 	@Override
@@ -208,6 +210,15 @@ public class BulkActionGenerator extends Generator {
 		createSingleSourceSearch(pipe, object);
 		createAction(pipe, options);
 		return DOMUtil.serializeDOMToString(pipe);
+	}
+
+	@Override
+	protected boolean requiresExecutionConfirmation() {
+		return action.requiresConfirmation;
+	}
+	
+	public String getActionDescription() {
+		return action.displayName;
 	}
 
 }

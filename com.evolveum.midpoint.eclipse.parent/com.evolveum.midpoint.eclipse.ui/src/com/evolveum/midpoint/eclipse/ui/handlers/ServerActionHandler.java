@@ -12,7 +12,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
 
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Expander;
 import com.evolveum.midpoint.eclipse.ui.util.Severity;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
+import com.evolveum.midpoint.util.Holder;
 
 public class ServerActionHandler extends AbstractHandler {
 	
@@ -60,8 +63,6 @@ public class ServerActionHandler extends AbstractHandler {
 			default: throw new IllegalStateException("Unknown cmd: " + cmd);
 			}
 		}
-		
-	
 	}
 
 	@Override
@@ -87,6 +88,8 @@ public class ServerActionHandler extends AbstractHandler {
 		
 		Job job = new Job(jobTitle) {
 			protected IStatus run(IProgressMonitor monitor) {
+				
+				boolean alsoLocally = "true".equals(event.getParameter(PluginConstants.PARAM_ALSO_LOCALLY));
 				
 				List<SourceObject> objects = FileRequestHandler.getServerObjectsFromSelection(event, selection);
 				String cmd = event.getCommand().getId();
@@ -117,6 +120,25 @@ public class ServerActionHandler extends AbstractHandler {
 				if (objectsFiltered.isEmpty()) {
 					Util.showWarning("No objects to process", "There are no applicable objects to be " + action.pastTense + ".");
 					return Status.OK_STATUS;
+				}
+				
+				if (action == Action.DELETE) {
+					Holder<Integer> responseHolder = new Holder<>();
+					Display.getDefault().syncExec(new Runnable() {
+						public void run() {
+							MessageDialog dialog = new MessageDialog(
+									null, "Confirm delete", null, 
+									"Are you sure to delete " + objectsFiltered.size() + " object(s) on server " + selectedServer.getDisplayName() + 
+										(alsoLocally ? " and also locally" : "") + "?",
+									MessageDialog.QUESTION,
+									new String[] {"Yes", "Cancel"},
+									0);
+							responseHolder.setValue(dialog.open());
+						}
+					});
+					if (responseHolder.getValue() != 0) {
+						return Status.OK_STATUS;
+					}
 				}
 				
 				GeneratorOptions genOptions = new GeneratorOptions();
@@ -176,7 +198,7 @@ public class ServerActionHandler extends AbstractHandler {
 						}
 					}
 					
-					if (action == Action.DELETE && "true".equals(event.getParameter(PluginConstants.PARAM_ALSO_LOCALLY))) {
+					if (action == Action.DELETE && alsoLocally) {
 						if (object.isLast()) {
 							if (object.getFile() != null && object.isWholeFile()) {
 								try {

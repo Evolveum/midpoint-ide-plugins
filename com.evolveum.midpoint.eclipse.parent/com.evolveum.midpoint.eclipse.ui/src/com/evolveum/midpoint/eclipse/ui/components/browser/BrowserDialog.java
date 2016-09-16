@@ -77,6 +77,7 @@ import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerResponseItem;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
+import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
 
@@ -858,8 +859,25 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (!options.isBatchByOids()) {
 			return;
 		}
+		
+		ServerInfo selectedServer = PluginPreferences.getSelectedServer();
+		if (selectedServer == null) {
+			return;
+		}
 
 		Generator generator = generators.get(genIndex);
+		if (generator.requiresExecutionConfirmation()) {
+			MessageDialog dialog = new MessageDialog(
+					null, "Confirm action", null, 
+					"Are you sure to execute '" + generator.getActionDescription() + "' on " + selectedObjects.size() + " object(s) on server " + selectedServer.getDisplayName() + "?",
+					MessageDialog.QUESTION,
+					new String[] {"Yes", "Cancel"},
+					0);
+			if (dialog.open() != 0) {
+				return;
+			}
+		}
+		
 		Job job = new Job("Generating XML") {
 			protected IStatus run(IProgressMonitor monitor) {
 				String content = generator.generate(selectedObjects, options);
@@ -872,7 +890,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				}
 				List<SourceObject> sourceObjects = ServerRequestPack.fromWorkspaceFiles(Collections.singletonList(file));
 				if (sourceObjects.size() == 0) {
-					Util.showAndLogWarning("No objects to upload/execute", "There are no objects to be executed (huh?)");
+					Util.showAndLogWarning("No objects to upload/execute", "There are no compatible objects this action can be executed on.");
 					return Status.OK_STATUS;
 				}
 				List<ServerRequestItem> items = new ArrayList<>();

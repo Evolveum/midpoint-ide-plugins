@@ -18,19 +18,21 @@ public class TaskGenerator extends Generator {
 	private static final String URI_PREFIX_MODEL = "http://midpoint.evolveum.com/xml/ns/public/model";
 	
 	public enum Action {
-		RECOMPUTE("recompute", URI_PREFIX_SYNC + "/recompute/handler-3", ObjectTypes.FOCUS, "Recomputation"), 
-		DELETE("delete", URI_PREFIX_SYNC + "/delete/handler-3", ObjectTypes.OBJECT, "Utility"),
-		MODIFY("modify (execute changes)", URI_PREFIX_SYNC + "/execute/handler-3", ObjectTypes.OBJECT, "ExecuteChanges"),
-		SHADOW_CHECK("check shadow integrity", URI_PREFIX_MODEL + "/shadow-integrity-check/handler-3", ObjectTypes.SHADOW, "Utility");
+		RECOMPUTE("recompute", URI_PREFIX_SYNC + "/recompute/handler-3", ObjectTypes.FOCUS, "Recomputation", false), 
+		DELETE("delete", URI_PREFIX_SYNC + "/delete/handler-3", ObjectTypes.OBJECT, "Utility", true),
+		MODIFY("modify (execute changes)", URI_PREFIX_SYNC + "/execute/handler-3", ObjectTypes.OBJECT, "ExecuteChanges", false),
+		SHADOW_CHECK("check shadow integrity", URI_PREFIX_MODEL + "/shadow-integrity-check/handler-3", ObjectTypes.SHADOW, "Utility", true);
 		
 		private final String displayName, handlerUri, category;
 		private final ObjectTypes applicableTo;
+		private final boolean requiresConfirmation;
 		
-		private Action(String displayName, String handlerUri, ObjectTypes applicableTo, String category) {
+		private Action(String displayName, String handlerUri, ObjectTypes applicableTo, String category, boolean requiresConfirmation) {
 			this.displayName = displayName;
 			this.handlerUri = handlerUri;
 			this.applicableTo = applicableTo;
 			this.category = category;
+			this.requiresConfirmation = requiresConfirmation;
 		}
 		public String getDisplayName() {
 			return displayName;
@@ -133,4 +135,12 @@ public class TaskGenerator extends Generator {
 		return false;
 	}
 
+	@Override
+	protected boolean requiresExecutionConfirmation() {
+		return action.requiresConfirmation;
+	}
+	
+	public String getActionDescription() {
+		return action.displayName;
+	}
 }

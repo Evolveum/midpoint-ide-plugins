@@ -89,5 +89,12 @@ public abstract class Generator {
 		}
 		return rv;
 	}
+
+	protected boolean requiresExecutionConfirmation() {
+		return false;
+	}
 	
+	public String getActionDescription() {
+		return null;
+	}
 }
