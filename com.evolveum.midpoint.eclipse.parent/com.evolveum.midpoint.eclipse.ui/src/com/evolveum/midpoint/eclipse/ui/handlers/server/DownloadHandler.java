@@ -132,7 +132,7 @@ main:		for (ServerObject object : allObjects) {
 					ResourceUtils.createParentFolders(file.getParent());
 				}
 				file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
-				Console.log("File " + path + " was successfully created.");
+				Console.logMinor("File " + path + " was successfully created.");
 				count++;
 				monitor.worked(1);
 			}

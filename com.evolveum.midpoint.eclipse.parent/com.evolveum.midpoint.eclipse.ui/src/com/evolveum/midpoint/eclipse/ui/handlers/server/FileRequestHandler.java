@@ -407,7 +407,7 @@ public class FileRequestHandler extends AbstractHandler {
 	// TODO move somewhere
 	public static String getLogViewerEditorId() {
 		if (PluginPreferences.isUseMidPointLogViewer()) {
-			return "com.evolveum.logviewer.editor.LogViewerEditor";
+			return "com.evolveum.midpoint.eclipse.logviewer.editor.LogViewerEditor";
 		} else {
 			return "org.eclipse.ui.DefaultTextEditor";
 		}

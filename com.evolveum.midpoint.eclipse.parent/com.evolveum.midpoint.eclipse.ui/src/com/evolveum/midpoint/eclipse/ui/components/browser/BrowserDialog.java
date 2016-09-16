@@ -1045,7 +1045,7 @@ public class BrowserDialog extends TitleAreaDialog {
 					ResourceUtils.createParentFolders(file.getParent());
 				}
 				file.create(new ByteArrayInputStream(object.getXml().getBytes("utf-8")), true, monitor);
-				Console.log("File " + file + " was successfully created.");
+				Console.logMinor("File " + file.getFullPath() + " was successfully created.");
 				rv.add(file);
 				count++;
 				monitor.worked(1);
@@ -1066,7 +1066,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				ResourceUtils.createParentFolders(file.getParent());
 			}
 			file.create(new ByteArrayInputStream(contents.getBytes("utf-8")), true, monitor);
-			Console.log("File " + file + " was successfully created.");
+			Console.logMinor("File " + file.getFullPath() + " was successfully created.");
 			return file;
 		} catch (Throwable t) {
 			Util.processUnexpectedException(t);

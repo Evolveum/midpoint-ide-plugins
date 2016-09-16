@@ -1,0 +1,93 @@
+package com.evolveum.midpoint.eclipse.logviewer.config;
+
+import com.evolveum.midpoint.eclipse.logviewer.tree.ContextNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.ExecutionNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.ExpressionNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.GenericNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.MappingNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.ProjectionContextNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.ScriptNodeDefinition;
+import com.evolveum.midpoint.eclipse.logviewer.tree.SummaryNodeDefinition;
+
+public class ConfigurationTemplateHelp {
+
+	public static void writeTo(StringBuilder sb) {
+		sb.append("\n\n");
+		sb.append("# Content of the configuration/action section:\n");
+		sb.append("# ********************************************\n");
+		sb.append("#\n");
+		sb.append("# Editor configuration:\n");
+		sb.append("# =====================\n");
+		sb.append("# %skip-thread-processing - turns off parsing thread names\n");
+		sb.append("# %no-component-names/%component-names - tells not to expect/to expect component names (default: autodetect)\n");
+		sb.append("# %mark-delay <n> <severity> - if delay between two log lines is at least <n> milliseconds, marks the line as <level> (error, warning, info)\n");
+		sb.append("# %mark-error [<condition>] <severity> - mark ERROR messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
+		sb.append("# %mark-warn [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
+		sb.append("# %mark-info [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
+		sb.append("# %mark-line <condition> <severity> - mark lines fulfilling condition as <severity> (error, warning, info, none)\n");
+		sb.append("# %show-in-outline <condition> on/off - include/exclude lines fulfilling a condition in outline\n");
+		sb.append("# %outline <type> <level> - cause lines of give <type> outlined at give <level>\n");
+		sb.append("#     type = (startup, test, operation-summary, operation-context, projection-context, execution-mapping, expression, script)\n");
+		sb.append("#            (note: recommended to use approximately in this order; projection-context, execution and mapping should be\n");
+		sb.append("#             one level below operation-context)\n");
+		sb.append("# %outline custom <condition> <level> <title> - lines fulfilling condition are displayed in outline at given <level> with given <text> in outline\n");		
+		sb.append("#\n");
+		sb.append("# Examples:\n");
+		sb.append("#%outline custom containing 'Product information : http://wiki.evolveum.com/display/midPoint' 1 'STARTUP AT ${date}'\n");
+		sb.append("#%outline custom matching '.*TestUtil\\): =====\\[ (\\w+\\.\\w+) \\]======================================.*' 'TEST: ${group:1}'\n");		
+		sb.append("#\n");		
+		sb.append("# ${date} - current date/time from log line\n");
+		sb.append("# ${group:N} - content of group N from the regexp\n");
+		sb.append("#\n");
+		sb.append("# Line erasing (killing) instructions - used to permanently remove lines you don't need:\n");
+		sb.append("# ======================================================================================\n");		
+		sb.append("#\n");
+		sb.append("# %kill-line <condition>\n");
+		sb.append("# %kill-entry <condition>\n");
+		sb.append("# %kill-duplicate-entry [<condition>]\n");
+		sb.append("#\n");
+		sb.append("# e.g. %kill-entry header containing \"(com.evolveum.midpoint.provisioning.impl.ResourceManager)\"\n");
+		sb.append("#\n");
+		sb.append("#\n");
+		sb.append("# Line folding instructions - used to hide (fold) less important lines:\n");
+		sb.append("# =====================================================================\n");
+		sb.append("#\n");
+		sb.append("# %collapse-line/%expand-line <condition>\n");
+		sb.append("# %collapse-entry/%expand-entry <condition>\n");
+		sb.append("#\n");
+		sb.append("# Conditions:\n");
+		sb.append("# ===========\n");
+		sb.append("#\n");
+		sb.append("#  <item> <operator> <text>, where:\n");
+		sb.append("#    - <item> = (line, entry, header); if not present, a reasonable default is used (e.g. for line-targeted instructions, 'line' is used, etc.)\n");
+		sb.append("#                  line = current line\n");
+		sb.append("#                  entry = current (whole) entry\n");
+		sb.append("#                  header = current log entry header - i.e. its first line\n");
+		sb.append("#    - <operator> = (containing, not-containing, matching, not-matching)\n");
+		sb.append("#    - <text> = text enclosed in \"...\", '...' or [...]\n");		
+		sb.append("#\n");
+		sb.append("# e.g. %collapse-entry header containing '(com.evolveum.midpoint.provisioning.impl.ResourceManager)'\n");
+		sb.append("#\n");
+		sb.append("#\n");
+		sb.append("%mark-error containing 'ConnectorFactoryIcfImpl): Provided Icf connector path ' none\n");
+		sb.append("%mark-error containing 'No system configuration found, skipping application of initial system settings' none\n");
+		sb.append("%mark-error containing 'HHH000315: Exception executing batch [could not execute batch]' none\n");
+		sb.append("%mark-error error\n");
+		sb.append("#%mark-warn containing \"Task 'null' has no owner\" none\n");
+		sb.append("#%mark-warn warn  # beware - too loud\n");
+		sb.append("#\n");		
+		sb.append("#\n");
+		sb.append("%outline startup 10\n");
+		sb.append("%outline test 20\n");
+		sb.append("%outline test-part 25\n");
+		sb.append("%outline operation-summary 30\n");
+		sb.append("%outline operation-context 40\n");
+		sb.append("%outline projection-context 50\n");
+		sb.append("%outline execution 50\n");
+		sb.append("%outline mapping 50\n");
+		sb.append("%outline expression 70\n");
+		sb.append("%outline script 80\n");
+		sb.append("\n\n");
+	}
+
+}
