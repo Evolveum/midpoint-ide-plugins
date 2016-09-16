@@ -74,9 +74,16 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 			return null;
 		}
 		
+		String index;
+		if (!requestItem.getSource().isRoot()) {
+			index = "." + requestItem.getSource().getObjectIndex();
+		} else {
+			index = "";
+		}
+		
 		String patternResolved = pattern
-				.replace("$f", sourceName)
-				.replace("$F", rootToSource.toPortableString())
+				.replace("$f", sourceName + index)
+				.replace("$F", rootToSource.toPortableString() + index)
 				.replace(COUNTER_SYMBOL, formatActionCounter(responseCounter))
 				.replace("$t", DownloadHandler.fixComponent(outputType))
 				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName())); 

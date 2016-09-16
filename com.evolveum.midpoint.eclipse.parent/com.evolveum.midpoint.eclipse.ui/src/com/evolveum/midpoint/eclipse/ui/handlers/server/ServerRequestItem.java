@@ -66,6 +66,9 @@ public class ServerRequestItem {
 	public void setPredefinedActionNumber(int predefinedActionNumber) {
 		this.predefinedActionNumber = predefinedActionNumber;
 	}
+	public SourceObject getSource() {
+		return source;
+	}
 
 	@Override
 	public String toString() {
