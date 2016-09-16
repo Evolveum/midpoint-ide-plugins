@@ -268,6 +268,25 @@ public class MenuUtil {
 		items.add(dummy);
 	}
 
+	public static void addMiscMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		MenuManager dummy = new MenuManager("&Miscellaneous");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addGenerateOid(dummyItems, serviceLocator);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+
+	public static void addGenerateOid(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_GENERATE_OID, null, 
+						null, null, null, 
+						"Generate random &OID", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
 	public static void addExecuteAction(List<IContributionItem> items, IServiceLocator serviceLocator, int actionNumber) {
 		if (StringUtils.isNotBlank(PluginPreferences.getActionFile(actionNumber))) {
 			Map<String,String> parameters = new HashMap<>();

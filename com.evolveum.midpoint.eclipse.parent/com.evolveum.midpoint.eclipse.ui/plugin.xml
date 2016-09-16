@@ -88,6 +88,10 @@
 			id="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer">
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.uploadFirst" name="Upload object(s) first"/>
 		</command>
+		<command name="Generate random OID"
+			description="Generates a random midPoint OID"
+			id="com.evolveum.midpoint.eclipse.ui.command.generateOid">
+		</command>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
@@ -126,6 +130,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.deleteOnServer" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.GenerateOidHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.generateOid" />
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=additions">
