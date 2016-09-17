@@ -75,7 +75,7 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	public String getMessage(Element result) {
 		String msg = getElementTextContent(result, Constants.COMMON_NS, "message");
 		// brutal hack: resolving test resource messages
-		if (!(msg.equals("Test resource has failed"))) {
+		if (msg == null || !(msg.equals("Test resource has failed"))) {
 			return msg;
 		}
 		Element partialResult = DOMUtil.getChildElement(result, "partialResults");
