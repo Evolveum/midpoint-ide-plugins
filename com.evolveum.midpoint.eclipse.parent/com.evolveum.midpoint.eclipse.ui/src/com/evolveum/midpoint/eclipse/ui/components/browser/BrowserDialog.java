@@ -338,7 +338,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		
 		btnConvertToXml = new Button(c, SWT.NONE);
-		btnConvertToXml.setText("Convert to XML query");
+		btnConvertToXml.setText("&Convert to XML query");
 		btnConvertToXml.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
 		btnConvertToXml.addSelectionListener(new SelectionListener() {
 			@Override
@@ -567,7 +567,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		combos.setLayout(new GridLayout(2, false));
 		
 		Label labelUseProject = new Label(combos, SWT.NONE);
-		labelUseProject.setText("Store objects in project");
+		labelUseProject.setText("S&tore objects in project");
 		
 		comboUseProject = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comboUseProject.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -582,7 +582,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		comboUseProject.addModifyListener(new ActionButtonsRelatedModifyListener());
 
 		Label labelGen = new Label(combos, SWT.NONE);
-		labelGen.setText("Generate");
+		labelGen.setText("Ge&nerate");
 		
 		comboWhatToGenerate = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comboWhatToGenerate.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -592,7 +592,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		comboWhatToGenerate.addModifyListener(new ActionButtonsRelatedModifyListener());
 		
 		Label labelExec = new Label(combos, SWT.NONE);
-		labelExec.setText("Execution");
+		labelExec.setText("E&xecution");
 		
 		Composite execution = new Composite(combos, SWT.NONE);
 		execution.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -629,19 +629,6 @@ public class BrowserDialog extends TitleAreaDialog {
 //		flags.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
 		flags.setLayout(new GridLayout(2, false));
 		
-		Composite symrefOptions = new Composite(flags, SWT.NONE);
-		symrefOptions.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
-		GridLayout symrefLayOptions = new GridLayout(4, false);
-		symrefLayOptions.marginWidth = 0;
-		symrefLayOptions.marginHeight = 0;
-		symrefOptions.setLayout(symrefLayOptions);
-		
-		btnSymbolicReferences = new Button(symrefOptions, SWT.CHECK);
-		new Label(symrefOptions, SWT.NONE).setText("Use symbolic references (by name or connector type)");
-
-		btnRunTimeResolution = new Button(symrefOptions, SWT.CHECK);
-		new Label(symrefOptions, SWT.NONE).setText("Runtime resolution");
-
 		btnWrapActions = new Button(flags, SWT.CHECK);
 		btnWrapActions.addSelectionListener(new SelectionListener() {
 			@Override
@@ -671,7 +658,21 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnCreateRaw = new Button(options, SWT.CHECK);
 		new Label(options, SWT.NONE).setText("Execute in raw mode");
 		btnCreateDryRun = new Button(options, SWT.CHECK);
-		new Label(options, SWT.NONE).setText("Execute in 'dry run' mode");
+		new Label(options, SWT.NONE).setText("Execute in 'dry run' mode (since midPoint 3.5)");
+		
+		Composite symrefOptions = new Composite(flags, SWT.NONE);
+		symrefOptions.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
+		GridLayout symrefLayOptions = new GridLayout(4, false);
+		symrefLayOptions.marginWidth = 0;
+		symrefLayOptions.marginHeight = 0;
+		symrefOptions.setLayout(symrefLayOptions);
+		
+		btnSymbolicReferences = new Button(symrefOptions, SWT.CHECK);
+		new Label(symrefOptions, SWT.NONE).setText("Use symbolic references (by name or connector type)");
+
+		btnRunTimeResolution = new Button(symrefOptions, SWT.CHECK);
+		new Label(symrefOptions, SWT.NONE).setText("Runtime resolution");
+
 	}
 	
 	@Override

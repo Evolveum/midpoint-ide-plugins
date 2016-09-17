@@ -55,7 +55,7 @@ public class TestConnectionHandler extends AbstractHandler {
 					TestConnectionResponse response = runtime.testConnection(connectionParameters);
 					String serverName = connectionParameters.getDisplayName();
 					if (response.isSuccess()) {
-						Util.showAndLog(Severity.INFO, Util.NO_SERVER_NAME, "Test connection success [" + serverName + "]", "Connection to the server '" + serverName + "' is OK.");
+						Util.showAndLog(Severity.INFO, Util.NO_SERVER_NAME, "Test connection success [" + serverName + "]", "Connection to the server '" + serverName + "' is OK. Version: " + response.getVersion() + ", revision: " + response.getRevision());
 					} else {
 						Util.showAndLog(Severity.ERROR, Util.NO_SERVER_NAME, "Test connection error [" + serverName + "]", "Connection to the server '" + serverName + "' failed: " + response.getFailureDescription(), response.getException());
 					}
@@ -75,7 +75,7 @@ public class TestConnectionHandler extends AbstractHandler {
 					TestConnectionResponse response = runtime.testConnection(server.getConnectionParameters());
 					String serverName = server.getDisplayName();
 					if (response.isSuccess()) {
-						Console.log(Severity.MINOR, Util.NO_SERVER_NAME, "Connection to the server '"+serverName+"' is OK.");
+						Console.log(Severity.MINOR, Util.NO_SERVER_NAME, "Connection to the server '"+serverName+"' is OK. Version: " + response.getVersion() + ", revision: " + response.getRevision());
 						countOk++;
 					} else {
 						Console.log(Severity.ERROR, Util.NO_SERVER_NAME, "Connection to the server '"+serverName+"' failed: " + response.getFailureDescription(), response.getException());

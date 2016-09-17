@@ -24,6 +24,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -63,19 +64,47 @@ public class RuntimeServiceImpl implements RuntimeService {
 		
 		try {
 			HttpClient client = createClient(parameters);
-			String url = parameters.getUrl() + REST + "/users/search";
-			HttpPost request = new HttpPost(url);
+			{
+				String url = parameters.getUrl() + REST + "/nodes/current";
+				HttpGet request = new HttpGet(url);
+				HttpResponse response = client.execute(request);
+			
+				StatusLine statusLine = response.getStatusLine();
+				if (isSuccess(statusLine)) {
+					TestConnectionResponse tcr = new TestConnectionResponse(true, null, null);
+					if (response.getEntity() != null) {
+						Element root = DOMUtil.parse(response.getEntity().getContent()).getDocumentElement();
+						Element build = DOMUtil.getChildElement(root, "build");
+						if (build != null) {
+							Element version = DOMUtil.getChildElement(build, "version");
+							if (version != null) {
+								tcr.setVersion(version.getTextContent());
+							}
+							Element revision = DOMUtil.getChildElement(build, "revision");
+							if (revision != null) {
+								tcr.setRevision(revision.getTextContent());
+							}
+						}
+					}
+					return tcr;
+				}
+			}
+			
+			// old way
+			{
+				String url = parameters.getUrl() + REST + "/users";
+				HttpPost request = new HttpPost(url);
 
-			HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", createXmlContentType());
-			request.setEntity(body);
+				HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", createXmlContentType());
+				request.setEntity(body);
 		
-			HttpResponse response = client.execute(request);
-		
-			StatusLine statusLine = response.getStatusLine();
-			if (isSuccess(statusLine)) {
-				return new TestConnectionResponse(true, null, null);
-			} else {
-				return new TestConnectionResponse(false, "Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase(), null);
+				HttpResponse response = client.execute(request);
+				StatusLine statusLine = response.getStatusLine();
+				if (isSuccess(statusLine)) {
+					return new TestConnectionResponse(true, null, null);
+				} else {
+					return new TestConnectionResponse(false, "Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase(), null);
+				}
 			}
 		} catch (Throwable t) {
 			return new TestConnectionResponse(false, null, t);
