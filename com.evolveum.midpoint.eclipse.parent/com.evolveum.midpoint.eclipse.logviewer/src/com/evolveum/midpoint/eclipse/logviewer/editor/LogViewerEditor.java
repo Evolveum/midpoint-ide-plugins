@@ -18,9 +18,11 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.ResourceUtil;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -120,9 +122,20 @@ public class LogViewerEditor extends TextEditor {
 		System.out.println("init called with site=" + site + ", input=" + input);
 		try {
 			Parser parser = parseDocument(getDocumentProvider(), input);
+			boolean modified = parser.isModifiedDocument(); 
 			if (parser.isCreatedConfigSection()) {
 				System.out.println("Default config section was created, reparsing.");		// TODO eliminate duplicate parsing
 				parseDocument(getDocumentProvider(), input);
+				modified = modified || parser.isModifiedDocument();
+			}
+			if (modified) {
+				// TODO this is really questionable ... hopefully it will work (direct save fails with AssertionError)
+				System.out.println("Saving editor content after parsing.");
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().saveEditor(LogViewerEditor.this, false);
+					}
+				});
 			}
 		} catch (BadLocationException e) {
 			e.printStackTrace();
@@ -159,7 +172,7 @@ public class LogViewerEditor extends TextEditor {
 
 		Parser parser = new Parser(document, resource);
 		parser.parse();
-
+		
 		System.out.println("### FOLDING REGIONS: " + parser.getFoldingRegions().size());
 		updateFoldingStructure(parser.getFoldingRegions());
 		System.out.println("Document parsed in " + (System.currentTimeMillis()-start) + " ms");

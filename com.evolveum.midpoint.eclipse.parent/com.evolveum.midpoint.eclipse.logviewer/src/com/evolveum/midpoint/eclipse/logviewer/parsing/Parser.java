@@ -51,6 +51,7 @@ public class Parser {
 	
 	public boolean hasConfigSection = false;
 	private boolean createdConfigSection = false;
+	private boolean modifiedDocument = false;
 	
 	Map<String,ThreadInfo> discoveredThreads = new HashMap<>();
 	List<String> configuredThreads = new ArrayList<String>();
@@ -401,6 +402,8 @@ public class Parser {
 			document.set(document.get() + "\n" + s);
 		}
 		
+		modifiedDocument = change;
+		
 	}
 	
 	private boolean appendThreads(StringBuilder sb) {
@@ -549,5 +552,15 @@ public class Parser {
 			System.out.print(text);
 		}
 	}
+
+	public boolean isModifiedDocument() {
+		return modifiedDocument;
+	}
+
+	public void setModifiedDocument(boolean modifiedDocument) {
+		this.modifiedDocument = modifiedDocument;
+	}
+	
+	
 	
 }
