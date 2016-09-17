@@ -232,5 +232,9 @@
   			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
   			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber" value="3"/>
   		</key>
-  	</extension>  
+  	</extension>
+ 	<extension
+      	point="org.eclipse.ui.editors.templates">
+			<include file="templates/templates.xml"/>
+	 </extension>  
 </plugin>

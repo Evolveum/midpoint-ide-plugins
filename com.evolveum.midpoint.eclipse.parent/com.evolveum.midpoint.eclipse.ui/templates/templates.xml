@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates>
+    <!-- <template autoinsert="true" context="xml_all" deleted="false" description="d" enabled="true" name="allxml1">aaa</template>  -->
+    <template id="xmlns" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns default declaration (common-3)" enabled="true" name="xmlns">xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"</template>
+    <template id="xmlns_c" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:c declaration (common-3)" enabled="true" name="xmlns:c">xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"</template>
+    <template id="xmlns_q" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:q declaration (query-3)" enabled="true" name="xmlns:q">xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"</template>
+    <template id="xmlns_t" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:t declaration (types-3)" enabled="true" name="xmlns:t">xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"</template>
+    <template id="xmlns_ri" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:ri declaration (resource/instance-3)" enabled="true" name="xmlns:ri">xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3""</template>
+    <template id="xmlns_icfs" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:icfs declaration (icf-1/resource-schema-3)" enabled="true" name="xmlns:icfs">xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"</template>
+    <template id="xmlns_icfc" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:icfc declaration (icf-1/connector-schema-3)" enabled="true" name="xmlns:icfc">xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"</template>
+    <template id="xmlns_xsi" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:xsi declaration (XMLSchema-instance)" enabled="true" name="xmlns:xsi">xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</template>
+    <template id="xmlns_xsd" autoinsert="true" context="xml_attribute" deleted="false" description="xmlns:xsd declaration (XMLSchema)" enabled="true" name="xmlns:xsd">xmlns:xsd="http://www.w3.org/2001/XMLSchema"</template>
+    <template id="xmlns_all" autoinsert="true" context="xml_attribute" deleted="false" description="all common xmlns:* declarations" enabled="true" name="xmlns:* (commonly used) declarations">
+    	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+		xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
+    </template>
+    <template id="groovy_code" autoinsert="false" context="xml_tag" deleted="false" description="groovy code expression" enabled="true" name="groovy code">
+    	&lt;expression&gt;
+    		&lt;script&gt;
+    			&lt;code&gt;
+    				// TODO insert code here
+    			&lt;/code&gt;
+    		&lt;/script&gt;
+    	&lt;/expression&gt;
+    </template>
+    <template id="groovy_code_mapping" autoinsert="false" context="xml_tag" deleted="false" description="groovy code mapping" enabled="true" name="groovy code mapping">
+    &lt;mapping&gt;
+    	&lt;source&gt;
+    		&lt;path&gt;...&lt;/path&gt;
+    	&lt;/source&gt;
+    	&lt;expression&gt;
+    		&lt;script&gt;
+    			&lt;code&gt;
+    				// TODO insert code here
+    			&lt;/code&gt;
+    		&lt;/script&gt;
+    	&lt;/expression&gt;
+    	&lt;target&gt;
+    		&lt;path&gt;...&lt;/path&gt;
+    	&lt;/target&gt;
+    &lt;/mapping&gt;
+    </template>
+    <template id="query_by_name" autoinsert="false" context="xml_tag" deleted="false" description="query by name" enabled="true" name="query by name">
+    	&lt;q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"&gt;
+    		&lt;q:matching&gt;polyStringNorm&lt;/q:matching&gt;
+    		&lt;q:path&gt;name&lt;/q:path&gt;
+    		&lt;q:value&gt;...&lt;/q:value&gt;
+    	&lt;/q:equal&gt;
+    </template>
+    <!-- <template autoinsert="true" context="xml_tag" deleted="false" description="elem1descri" enabled="true" name="elem1">&lt;patter&gt;&lt;/patter&gt;</template>  -->
+</templates>
