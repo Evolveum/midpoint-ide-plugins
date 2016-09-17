@@ -2,15 +2,20 @@ package com.evolveum.midpoint.eclipse.ui.util;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
+import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 
@@ -61,6 +66,35 @@ public class Expander {
         		if (replacement == null) {
             		Console.logError("No value for predefined property '" + symbol + "')");
             	}
+        	} else if (symbol.startsWith("@")) {
+        		String filename = symbol.substring(1);
+        		String expanded = expand(filename, sourceObject, server);
+    			System.out.println("Filename: " + filename + ", expanded: " + expanded);
+        		if (expanded != null) {
+        			IPath path = new Path(expanded);
+        			if (!path.isAbsolute() && sourceObject.getFile() != null) {
+        				path = sourceObject.getFile().getFullPath().removeLastSegments(1).append(path);
+        				System.out.println("Path made absolute: " + path);
+        			}
+        			IFile file = ResourceUtils.getFileForLogicalPath(path);
+        			if (file == null) {
+        				Console.logError("Couldn't locate the file: " + path);
+        				replacement = null;
+        			} else {
+        				InputStream is = null;
+        				try {
+        					is = file.getContents();
+        					replacement = IOUtils.toString(is, file.getCharset());
+        				} catch (CoreException | IOException e) {
+        					Console.logError("Couldn't read from file: " + path + ": " + e.getMessage(), e);
+        					replacement = null;
+        				} finally {
+        					IOUtils.closeQuietly(is);
+        				}
+        			}
+        		} else {
+        			replacement = null;
+        		}
         	} else {
         		if (macros == null) {
         			Console.logError("Unable to resolve symbol " + symbol + ", because replacement property file was not specified.");
@@ -92,6 +126,7 @@ public class Expander {
 	}
 
 	private static String getPredefined(String symbol, SourceObject sourceObject, ServerInfo server) {
+		System.out.println("Resolving predefined symbol: " + symbol);
 		switch (symbol) {
 		case "#project.name":
 		{

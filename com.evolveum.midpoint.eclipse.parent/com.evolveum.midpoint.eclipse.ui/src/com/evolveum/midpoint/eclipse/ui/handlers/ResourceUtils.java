@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
@@ -91,6 +92,14 @@ public class ResourceUtils {
 	        createParentFolders(folder.getParent());
 	        folder.create(true, true, null);
 	    }
+	}
+
+	public static IFile getFileForPhysicalPath(IPath path) {
+		return ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(path);
+	}
+
+	public static IFile getFileForLogicalPath(IPath path) {
+		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 	}
 
 }
