@@ -30,12 +30,13 @@ import com.evolveum.midpoint.eclipse.ui.prefs.ServerInfo;
 public class MenuUtil {
 
 	public static void addUploadOrExecuteWithoutAction(List<IContributionItem> items, IServiceLocator serviceLocator) {
-		items.add(new CommandContributionItem( 
+		CommandContributionItem cci = new CommandContributionItem( 
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, null, 
 						null, null, null, 
 						"Upload/execute (no after-action)", 
-						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+						null, null, CommandContributionItem.STYLE_PUSH, null, true));
+		items.add(cci);
 	}
 
 	public static void addUploadOrExecuteWithAction(List<IContributionItem> items, IServiceLocator serviceLocator) {

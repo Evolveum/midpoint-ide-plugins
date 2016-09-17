@@ -244,7 +244,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		c.setLayout(new GridLayout(1, false));
 		
 		Label label = new Label(c, SWT.NONE);
-		label.setText("Object types");
+		label.setText("Object types (select zero, one or more)");
 
 		GridData gd2 = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gd2.heightHint = INITIAL_QUERY_HEIGHT;
@@ -277,12 +277,16 @@ public class BrowserDialog extends TitleAreaDialog {
 
 		btnNamesAndOids = new Button(group1, SWT.RADIO);
 		btnNamesAndOids.setText("Names and OIDs");
+		btnNamesAndOids.setToolTipText("Each line contains either a name (or part of a name) or an OID of an object.");
 		btnNames = new Button(group1, SWT.RADIO);
 		btnNames.setText("Names");
+		btnNames.setToolTipText("Each line contains a name (or part of a name) of an object.");
 		btnOids = new Button(group1, SWT.RADIO);
 		btnOids.setText("OIDs");
+		btnOids.setToolTipText("Each line contains an object OID.");
 		btnQuery = new Button(group1, SWT.RADIO);
 		btnQuery.setText("XML query");
+		btnQuery.setToolTipText("The window contains XML query.");
 		btnQuery.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -322,9 +326,11 @@ public class BrowserDialog extends TitleAreaDialog {
 		txtOffset = new Text(c, SWT.BORDER);
 		txtOffset.setLayoutData(new GridData(60, SWT.DEFAULT));
 		txtOffset.setText("0");
+		txtOffset.setToolTipText("Objects are counted from zero.");
 
 		btnSearch = new Button(c, SWT.NONE);
 		btnSearch.setText("&Search");
+		btnSearch.setToolTipText("Executes a search with given criteria.");
 		btnSearch.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
 		btnSearch.addSelectionListener(new SelectionListener() {
 			@Override
@@ -339,6 +345,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		btnConvertToXml = new Button(c, SWT.NONE);
 		btnConvertToXml.setText("&Convert to XML query");
+		btnConvertToXml.setToolTipText("Converts criteria specified by name/OID list into XML query; e.g. to be further fine-tuned manually.");
 		btnConvertToXml.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 1));
 		btnConvertToXml.addSelectionListener(new SelectionListener() {
 			@Override
@@ -568,6 +575,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		Label labelUseProject = new Label(combos, SWT.NONE);
 		labelUseProject.setText("S&tore objects in project");
+		labelUseProject.setToolTipText("You need to specify in which project should be the resulting or temporary files stored.");
 		
 		comboUseProject = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comboUseProject.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -583,6 +591,7 @@ public class BrowserDialog extends TitleAreaDialog {
 
 		Label labelGen = new Label(combos, SWT.NONE);
 		labelGen.setText("Ge&nerate");
+		labelGen.setToolTipText("Specify what actions, task, or other artefacts to generate (or execute).");
 		
 		comboWhatToGenerate = new Combo(combos, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comboWhatToGenerate.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -593,6 +602,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		Label labelExec = new Label(combos, SWT.NONE);
 		labelExec.setText("E&xecution");
+		labelExec.setToolTipText("For executable items you can specify in how big batches they should be executed.");
 		
 		Composite execution = new Composite(combos, SWT.NONE);
 		execution.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false));
@@ -609,6 +619,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		comboExecution.add("By OIDs, in batches of N");
 		//comboExecution.add("Using original query (ignoring selection)");
 		comboExecution.add("Using original query");
+		comboExecution.setToolTipText("'By OIDs' means the query will refer to selected objects' OIDs. 'Using original query' means that the selection will be ignored, and the original query will be used instead.");
 		comboExecution.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -643,10 +654,12 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		Label lblWrapActions = new Label(flags, SWT.NONE);
 		lblWrapActions.setText("Wrap created bulk actions into tasks");
+		lblWrapActions.setToolTipText("Should be bulk actions wrapped into tasks in order to be executed asynchronously?");
 		
 		btnCreateSuspended = new Button(flags, SWT.CHECK);
 		Label lblCreateSuspended = new Label(flags, SWT.NONE);
 		lblCreateSuspended.setText("Create tasks in suspended state");
+		lblCreateSuspended.setToolTipText("Should be tasks created in suspended state in order to be started manually (typically from midPoint GUI)?");
 		
 		Composite options = new Composite(flags, SWT.NONE);
 		options.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
@@ -656,9 +669,13 @@ public class BrowserDialog extends TitleAreaDialog {
 		options.setLayout(layOptions);
 		
 		btnCreateRaw = new Button(options, SWT.CHECK);
-		new Label(options, SWT.NONE).setText("Execute in raw mode");
+		Label lblCreateRaw = new Label(options, SWT.NONE);
+		lblCreateRaw.setText("Execute in raw mode");
+		lblCreateRaw.setToolTipText("Should be bulk actions that modify objects executed in raw mode?");
 		btnCreateDryRun = new Button(options, SWT.CHECK);
-		new Label(options, SWT.NONE).setText("Execute in 'dry run' mode (since midPoint 3.5)");
+		Label lblCreateDryRun = new Label(options, SWT.NONE);
+		lblCreateDryRun.setText("Execute in 'dry run' mode (since midPoint 3.5)");
+		lblCreateDryRun.setToolTipText("Should be bulk actions that modify objects executed in dry run mode, i.e. doing 'preview changes' instead of 'execute'? Note this is supported only since 3.5. For earlier versions the regular execution is carried out.");
 		
 		Composite symrefOptions = new Composite(flags, SWT.NONE);
 		symrefOptions.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 2, 1));
@@ -668,11 +685,14 @@ public class BrowserDialog extends TitleAreaDialog {
 		symrefOptions.setLayout(symrefLayOptions);
 		
 		btnSymbolicReferences = new Button(symrefOptions, SWT.CHECK);
-		new Label(symrefOptions, SWT.NONE).setText("Use symbolic references (by name or connector type)");
+		Label lblSymbolicReferences = new Label(symrefOptions, SWT.NONE);
+		lblSymbolicReferences.setText("Use symbolic references (by name or connector type)");
+		lblSymbolicReferences.setToolTipText("Should references be created using object query that refers to referenced object name (or connector type in case of connectorRefs)?");
 
 		btnRunTimeResolution = new Button(symrefOptions, SWT.CHECK);
-		new Label(symrefOptions, SWT.NONE).setText("Runtime resolution");
-
+		Label lblRunTimeResolution = new Label(symrefOptions, SWT.NONE);
+		lblRunTimeResolution.setText("Runtime resolution");
+		lblRunTimeResolution.setToolTipText("Should references be resolved at runtime? Currently supported only for assignments and targetRefs.");
 	}
 	
 	@Override
@@ -694,6 +714,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				showPerformed();
 			}
 		});
+		btnShow.setToolTipText("Downloads the object(s) into temporary files and opens them in a separate editor window.");
 		btnShow.setEnabled(false);
 		
 		btnDownload = createButton(parent, DOWNLOAD_ID, "&Download", false);
@@ -707,6 +728,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				downloadPerformed();
 			}
 		});
+		btnDownload.setToolTipText("Downloads the object(s) into standard download location; typically into 'objects' folder.");
 		btnDownload.setEnabled(false);
 		
 		btnGenerate = createButton(parent, GENERATE_ID, "&Generate XML", false);
@@ -720,6 +742,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				generatePerformed();
 			}
 		});
+		btnGenerate.setToolTipText("Generates the specified artefacts, e.g. bulk actions, tasks, or object references.");
 		btnGenerate.setEnabled(false);
 		
 		btnExecute = createButton(parent, GENERATE_ID, "&Execute", false);
@@ -733,6 +756,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				executePerformed();
 			}
 		});
+		btnExecute.setToolTipText("Generates and executes specified items, e.g. bulk actions or tasks.");
 		btnExecute.setEnabled(false);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
