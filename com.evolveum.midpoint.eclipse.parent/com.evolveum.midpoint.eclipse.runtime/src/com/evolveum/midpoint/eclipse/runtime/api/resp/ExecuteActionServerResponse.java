@@ -65,11 +65,30 @@ public class ExecuteActionServerResponse extends ServerResponse {
 			Element result = (Element) resultList.item(0);
 			DOMUtil.fixNamespaceDeclarations(result);
 			operationResultStatus = getElementTextContent(result, Constants.COMMON_NS, "status");
-			operationResultMessage = getElementTextContent(result, Constants.COMMON_NS, "message");
+			operationResultMessage = getMessage(result);
 			operationResult = DOMUtil.serializeDOMToString(result);
 		}
 		
 		wasParsed = true;
+	}
+
+	public String getMessage(Element result) {
+		String msg = getElementTextContent(result, Constants.COMMON_NS, "message");
+		// brutal hack: resolving test resource messages
+		if (!(msg.equals("Test resource has failed"))) {
+			return msg;
+		}
+		Element partialResult = DOMUtil.getChildElement(result, "partialResults");
+		if (partialResult != null) {
+			String msg2 = getMessage(partialResult);
+			if (StringUtils.isNotBlank(msg2)) {
+				return msg2;
+			} else {
+				return msg;			// should not occur
+			}
+		} else {
+			return msg;				// should not occur
+		}
 	}
 
 	public boolean wasParsed() {
