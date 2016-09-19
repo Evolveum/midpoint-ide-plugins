@@ -12,7 +12,6 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -73,7 +72,6 @@ import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler.RequestedAction;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerRequestItem;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerRequestPack;
-import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerResponseItem;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
@@ -175,19 +173,7 @@ public class BrowserDialog extends TitleAreaDialog {
 				}
 			}
 		}
-		initialProject = getInitialProject(selection);
-	}
-
-	private IProject getInitialProject(ISelection selection) {
-		List<IFile> files = SelectionUtils.getSelectedXmlFiles(selection);
-		if (!files.isEmpty()) {
-			return files.get(0).getProject();
-		}
-		IResource resource = SelectionUtils.getResourceFromActiveWindow();
-		if (resource != null) {
-			return resource.getProject();
-		}
-		return SelectionUtils.guessSelectedProjectFromExplorerOrNavigator();
+		initialProject = SelectionUtils.guessSelectedProject(selection, "*");
 	}
 
 	@Override
@@ -1134,9 +1120,9 @@ public class BrowserDialog extends TitleAreaDialog {
 		}
 		
 		String patternResolved = pattern
-				.replace("$n", DownloadHandler.fixComponent(ServerResponseItem.formatActionCounter(PluginPreferences.getAndIncrementGenCounter())))
-				.replace("$t", DownloadHandler.fixComponent(type))
-				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName()));
+				.replace("$n", ResourceUtils.fixComponent(ResourceUtils.formatActionCounter(PluginPreferences.getAndIncrementGenCounter())))
+				.replace("$t", ResourceUtils.fixComponent(type))
+				.replace("$s", ResourceUtils.fixComponent(PluginPreferences.getSelectedServerShortName()));
 		
 		System.out.println("pattern = " + pattern + ", resolvedPattern = " + patternResolved);
 		 

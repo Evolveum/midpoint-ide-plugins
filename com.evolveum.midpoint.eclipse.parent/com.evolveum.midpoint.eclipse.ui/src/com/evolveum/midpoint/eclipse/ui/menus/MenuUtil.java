@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.ui.IEditorInput;
@@ -21,6 +22,7 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.services.IServiceLocator;
 
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
+import com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.DownloadHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.ServerRequestPack;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
@@ -60,7 +62,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
 						null, null, null, 
-						"Upload/execute (&stop on error)", 
+						"Upload/execute (stop on &error)", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -247,12 +249,24 @@ public class MenuUtil {
 		items.add(dummy);
 	}
 
+	public static void addSetAsActionMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		MenuManager dummy = new MenuManager("Set as action");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addSetAsAction(dummyItems, serviceLocator, 1);
+		MenuUtil.addSetAsAction(dummyItems, serviceLocator, 2);
+		MenuUtil.addSetAsAction(dummyItems, serviceLocator, 3);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+
 	public static void addServerSideMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		String serverName = PluginPreferences.getSelectedServerName();
 		if (serverName == null) {
 			return;
 		}
-		MenuManager dummy = new MenuManager("Server-side actions");
+		MenuManager dummy = new MenuManager("&Server-side actions");
 		List<IContributionItem> dummyItems = new ArrayList<>();
 //		MenuUtil.addEnableOnServer(dummyItems, serviceLocator);
 //		MenuUtil.addDisableOnServer(dummyItems, serviceLocator);
@@ -315,7 +329,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_SHOW_CONSOLE, null, 
 						null, null, null, 
-						"Show &plugin console", 
+						"Show plugin &console", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -324,7 +338,7 @@ public class MenuUtil {
 				new CommandContributionItemParameter(
 						serviceLocator, null, PluginConstants.CMD_EDIT_PREFERENCES, null, 
 						null, null, null, 
-						"Pre&ferences...", 
+						"&Preferences...", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
@@ -343,6 +357,168 @@ public class MenuUtil {
 						"Set as action &" + number, 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
+
+	public static void addServerLogMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		if (!PluginPreferences.isServerSelected()) {
+			return;
+		}
+		
+		MenuManager dummy = new MenuManager("Server &log");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addShowLogInConsoleMenu(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInViewerMenu(dummyItems, serviceLocator);
+		MenuUtil.addMarkCurrentPosition(dummyItems, serviceLocator);
+		MenuUtil.addClearServerLog(dummyItems, serviceLocator);
+//		dummyItems.add(new Separator());
+//		MenuUtil.addModelLogMenu(dummyItems, serviceLocator);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
 	
+	public static void addShowLogInConsoleMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		MenuManager dummy = new MenuManager("Show log in &console");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addShowLogInConsoleFromStart(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInConsoleBackN(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInConsoleFromMark(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInConsoleFromNow(dummyItems, serviceLocator);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+
+	public static void addShowLogInViewerMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		MenuManager dummy = new MenuManager("Show log in &viewer");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addShowLogInViewerFromStart(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInViewerBackN(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInViewerFromMark(dummyItems, serviceLocator);
+		MenuUtil.addShowLogInViewerFromConsole(dummyItems, serviceLocator);
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+
+	public static void addMarkCurrentPosition(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_MARK_CURRENT_LOG_POSITION, null, 
+						null, null, null, 
+						"&Mark current log position", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static void addShowLogInConsoleFromStart(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_START);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_CONSOLE, parameters, 
+						null, null, null, 
+						"Show &whole log", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+	
+	public static void addShowLogInConsoleBackN(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_BACK_N);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_CONSOLE, parameters, 
+						null, null, null, 
+						"Show &last " + PluginPreferences.getLogGoBackN() + " KB", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static void addShowLogInConsoleFromMark(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_MARK);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_CONSOLE, parameters, 
+						null, null, null, 
+						"Show from &mark", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, false)) {
+			@Override
+			public boolean isEnabled() {
+				return ServerLogHandler.getCurrentMark() != null;
+			}
+		});
+	}
+	
+	public static void addShowLogInConsoleFromNow(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_NOW);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_CONSOLE, parameters, 
+						null, null, null, 
+						"Show from &now", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static void addShowLogInViewerFromStart(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_START);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_EDITOR, parameters, 
+						null, null, null, 
+						"Show &whole log", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+	
+	public static void addShowLogInViewerBackN(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_BACK_N);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_EDITOR, parameters, 
+						null, null, null, 
+						"Show &last " + PluginPreferences.getLogGoBackN() + " KB", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+
+	public static void addShowLogInViewerFromMark(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_MARK);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_EDITOR, parameters, 
+						null, null, null, 
+						"Show from &mark", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, false)) {
+							@Override
+							public boolean isEnabled() {
+								return ServerLogHandler.getCurrentMark() != null;
+							}
+		});
+	}
+	
+	public static void addShowLogInViewerFromConsole(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_FROM, PluginConstants.VALUE_CONSOLE);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SHOW_LOG_IN_EDITOR, parameters, 
+						null, null, null, 
+						"Copy from &console", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static void addClearServerLog(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_CLEAR_SERVER_LOG, parameters, 
+						null, null, null, 
+						"Cl&ear server log", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
 
 }

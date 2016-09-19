@@ -70,6 +70,7 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 			items.add(new Separator());
 			
 			MenuUtil.addServerSideMenu(items, serviceLocator);
+			MenuUtil.addServerLogMenu(items, serviceLocator);
 			MenuUtil.addMiscMenu(items, serviceLocator);
 			
 			items.add(new Separator());

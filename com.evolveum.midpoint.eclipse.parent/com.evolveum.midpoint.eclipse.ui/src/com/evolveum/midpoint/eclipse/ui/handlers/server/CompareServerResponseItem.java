@@ -107,7 +107,7 @@ public class CompareServerResponseItem extends ServerResponseItem<CompareServerR
 			editorIds.add(null);
 		}
 		
-		String counterString = formatActionCounter(responseCounter);
+		String counterString = ResourceUtils.formatActionCounter(responseCounter);
 		
 		String seeText;
 		if (!labels.isEmpty()) {

@@ -102,4 +102,25 @@ public class ResourceUtils {
 		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 	}
 
+	public static String formatActionCounter(int counter) {
+		return String.format("%05d", counter);
+	}
+
+	public static String fixComponent(String s) {
+		if (s == null) {
+			return null;
+		}
+		return s
+				.replace('<', '_')
+				.replace('>', '_')
+				.replace(':', '_')
+				.replace('"', '_')
+				.replace('\'', '_')
+				.replace('/', '_')
+				.replace('\\', '_')
+				.replace('|', '_')
+				.replace('?', '_')
+				.replace('*', '_');
+	}
+
 }

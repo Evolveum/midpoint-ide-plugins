@@ -1,8 +1,5 @@
 package com.evolveum.midpoint.eclipse.ui.handlers.server;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +15,8 @@ import org.eclipse.ui.ide.IDE;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
 import com.evolveum.midpoint.eclipse.ui.handlers.ResourceUtils;
+import com.evolveum.midpoint.eclipse.ui.handlers.ServerLogUtils;
+import com.evolveum.midpoint.eclipse.ui.handlers.ServerLogUtils.LogFileFragment;
 import com.evolveum.midpoint.eclipse.ui.prefs.PluginPreferences;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.HyperlinksRegistry;
@@ -30,7 +29,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 	public static final String OUTPUT_TYPE_RESULT = "result.xml";
 
 	private String logfilename;
-	private long logPosition;
+	private Long logPosition;
 	
 	private IFile opResultFile = null; 
 	private IFile consoleFile = null; 
@@ -39,7 +38,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 	
 	private byte[] logFileFragment = null;
 
-	public ExecuteActionResponseItem(ServerRequestItem item, ServerRequest request, ExecuteActionServerResponse response, String logfilename, long logPosition) {
+	public ExecuteActionResponseItem(ServerRequestItem item, ServerRequest request, ExecuteActionServerResponse response, String logfilename, Long logPosition) {
 		super(item, request, response);
 		this.logfilename = logfilename;
 		this.logPosition = logPosition;
@@ -94,32 +93,11 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		ResourceUtils.createOutputFile(opResultFile, response.getOperationResult());
 		ResourceUtils.createOutputFile(consoleFile, response.getConsoleOutput());
 		ResourceUtils.createOutputFile(dataFile, response.getDataOutput());
-		logFileFragment = getLogFileFragment(logfilename, logPosition);
+		LogFileFragment lff = ServerLogUtils.getLogFileFragment(logfilename, logPosition, false);
+		logFileFragment = lff != null ? lff.content : null;
 		ResourceUtils.createOutputFile(logFile, logFileFragment);
 	}
 	
-	private byte[] getLogFileFragment(String logfilename, long logPosition) {
-		if (StringUtils.isBlank(logfilename)) {
-			return "Path to midPoint server log file (idm.log) is not specified. You can use Preferences page to enter it.".getBytes(); 
-		}
-		try {
-			RandomAccessFile log = new RandomAccessFile(logfilename, "r");
-			log.seek(logPosition);
-			byte[] buffer = new byte[10240];
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			int n;
-			while ((n=log.read(buffer)) >= 0) {
-				baos.write(buffer, 0, n);
-			}
-			log.close();
-			baos.close();
-			return baos.toByteArray();
-		} catch (IOException e) {
-			Console.logError("Couldn't read from midPoint log", e);
-			return null;
-		}
-	}
-
 	@Override
 	public void openFileIfNeeded() {
 		int predefinedActionNumber = requestItem.getPredefinedActionNumber();
@@ -174,7 +152,7 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		List<String> labels = Arrays.asList("Server log", "Data output", "Console output", "Operation result");
 		List<IFile> files = Arrays.asList(logFile, dataFile, consoleFile, opResultFile);
 		List<String> editorIds = Arrays.asList(FileRequestHandler.getLogViewerEditorId(logFileFragment), null, null, null);
-		String counterString = formatActionCounter(responseCounter);
+		String counterString = ResourceUtils.formatActionCounter(responseCounter);
 
 		HyperlinksRegistry.getInstance().registerEntry(counterString, labels, files, editorIds);
 		return getResultLine() + " [see " + StringUtils.join(labels, "; ") + "] (#" + counterString + ")";

@@ -35,19 +35,11 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 	public static final String ACTION_OUTPUT_ROOT_DIRECTORY = "actionOutputRootDirectory";
 	public static final String ACTION_OUTPUT_FILE_NAME_PATTERN_NO_SOURCE = "actionOutputFileNameNoSource";
 
-	public static final String USE_MIDPOINT_LOG_VIEWER = "useMidPointLogViewer";
-	
 	public ActionsPreferencePage() {
 		super(GRID);
 	}
 
 	protected void createFieldEditors() {
-		
-		final String[][] USE_MIDPOINT_LOG_VIEWER_OPTIONS = new String[][] { 
-			{ "Never", MidPointPreferencePage.VALUE_NEVER }, 
-			{ "Only if complex", MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX }, 
-			{ "Always", MidPointPreferencePage.VALUE_ALWAYS } 
-		};
 		
 		final String[][] OPEN_AFTER_OPTIONS = new String[][] { 
 			{ "Server log", ExecuteActionResponseItem.OUTPUT_TYPE_LOG }, 
@@ -87,10 +79,6 @@ public class ActionsPreferencePage extends FieldEditorPreferencePage implements 
 		addField(new ComboFieldEditor(ACTION_OUTPUT_ROOT_DIRECTORY, "Directory considered root", MidPointPreferencePage.ROOT_DIRECTORY_OPTIONS, getFieldEditorParent()));
 		addField(new StringFieldEditor(ACTION_OUTPUT_FILE_NAME_PATTERN_NO_SOURCE, "Output files with no source", getFieldEditorParent()));
 		
-		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
-			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
-
-		addField(new ComboFieldEditor(USE_MIDPOINT_LOG_VIEWER, "Use midPoint log viewer to view server log fragments", USE_MIDPOINT_LOG_VIEWER_OPTIONS, getFieldEditorParent()));
 	}
 
 	public void init(IWorkbench workbench) {

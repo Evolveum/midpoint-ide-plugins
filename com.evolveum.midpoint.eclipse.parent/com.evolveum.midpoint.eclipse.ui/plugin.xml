@@ -92,6 +92,24 @@
 			description="Generates a random midPoint OID"
 			id="com.evolveum.midpoint.eclipse.ui.command.generateOid">
 		</command>
+		<command name="Mark current log position"
+			description="Marks current log position in order to allow showing log from this point (later)"
+			id="com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition">
+		</command>
+		<command name="Show log in console"
+			description="Shows server log in console window"
+			id="com.evolveum.midpoint.eclipse.ui.command.showLogInConsole">
+			<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.from" name="From what moment"/>
+		</command>
+		<command name="Show log in editor"
+			description="Shows server log in editor (log viewer) window"
+			id="com.evolveum.midpoint.eclipse.ui.command.showLogInEditor">
+			<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.from" name="From what moment/source"/>
+		</command>
+		<command name="Clear server log"
+			description="Clears log on server"
+			id="com.evolveum.midpoint.eclipse.ui.command.clearServerLog">
+		</command>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler"
@@ -132,6 +150,14 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.GenerateOidHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.generateOid" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition" />				 
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.showLogInConsole" />				 
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.showLogInEditor" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.clearServerLog" />				 
 	</extension>
 	<extension point="org.eclipse.ui.menus">
 		<menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.popup.any?after=additions">
@@ -181,6 +207,10 @@
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ComparePreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.preference.compare"/>
+		<page name="Log"
+			class="com.evolveum.midpoint.eclipse.ui.prefs.LogPreferencePage"
+			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.preference.log"/>			
 		<page name="Miscellaneous"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.MiscPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"

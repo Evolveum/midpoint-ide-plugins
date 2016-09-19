@@ -34,6 +34,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerRespons
 import com.evolveum.midpoint.eclipse.runtime.api.resp.NotApplicableServerResponse;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
+import com.evolveum.midpoint.eclipse.ui.handlers.ServerLogUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
@@ -185,7 +186,7 @@ public class FileRequestHandler extends AbstractHandler {
 				monitor.subTask(item.getDisplayName());
 			}
 
-			long logPosition = getLogPosition(logfilename);
+			Long logPosition = ServerLogUtils.getLogPosition();
 
 			ServerRequest request = item.createServerRequest();
 			if (request == null) {
@@ -333,12 +334,6 @@ public class FileRequestHandler extends AbstractHandler {
 								}
 							}
 						}
-	}
-
-	protected static long getLogPosition(String logfilename) {
-		File file = new File(logfilename);
-		return file.length();
-		
 	}
 
 	public static ServerRequestPack createRequestPackFromSelection(ExecutionEvent event, RequestedAction action, ISelection selection) {

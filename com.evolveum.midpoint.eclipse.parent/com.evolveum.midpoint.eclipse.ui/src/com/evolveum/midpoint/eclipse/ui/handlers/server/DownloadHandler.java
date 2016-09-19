@@ -161,11 +161,11 @@ main:		for (ServerObject object : allObjects) {
 		}
 		
 		String patternResolved = pattern
-				.replace("$t", fixComponent(object.getType().getElementName()))
-				.replace("$T", fixComponent(object.getType().getRestType()))
-				.replace("$o", fixComponent(object.getOid()))
-				.replace("$n", fixComponent(object.getName()))
-				.replace("$s", fixComponent(PluginPreferences.getSelectedServerShortName()));
+				.replace("$t", ResourceUtils.fixComponent(object.getType().getElementName()))
+				.replace("$T", ResourceUtils.fixComponent(object.getType().getRestType()))
+				.replace("$o", ResourceUtils.fixComponent(object.getOid()))
+				.replace("$n", ResourceUtils.fixComponent(object.getName()))
+				.replace("$s", ResourceUtils.fixComponent(PluginPreferences.getSelectedServerShortName()));
 		
 		System.out.println("pattern = " + pattern + ", resolvedPattern = " + patternResolved);
 		IPath rv = root.append(new Path(patternResolved));
@@ -173,23 +173,6 @@ main:		for (ServerObject object : allObjects) {
 		return rv;
 	}
 	
-	public static String fixComponent(String s) {
-		if (s == null) {
-			return null;
-		}
-		return s
-				.replace('<', '_')
-				.replace('>', '_')
-				.replace(':', '_')
-				.replace('"', '_')
-				.replace('\'', '_')
-				.replace('/', '_')
-				.replace('\\', '_')
-				.replace('|', '_')
-				.replace('?', '_')
-				.replace('*', '_');
-	}
-
 	protected List<ObjectTypes> determineTypesToDownload() {
 		List<ObjectTypes> rv = new ArrayList<>();
 		List<String> include = PluginPreferences.getIncludeInDownload();

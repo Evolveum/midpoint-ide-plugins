@@ -15,7 +15,6 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_FILE_NAME_PATTERN, "scratch/runs/$f.$n.$t");
 		store.setDefault(ActionsPreferencePage.ACTION_OUTPUT_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
-		store.setDefault(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER, MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX);
 		
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILE_NAME_PATTERN, "objects/$T/$n.xml");
 		store.setDefault(DownloadPreferencePage.DOWNLOADED_FILES_ROOT_DIRECTORY, MidPointPreferencePage.VALUE_CURRENT_PROJECT);
@@ -33,6 +32,12 @@ public class MidPointPreferenceInitializer extends AbstractPreferenceInitializer
 		store.setDefault(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE, "");
 		
 		store.setDefault(MidPointPreferencePage.SERVERS, ServerInfo.createDefaultXml());
+		
+		store.setDefault(LogPreferencePage.LOG_CONSOLE_REFRESH_INTERVAL, "1");
+		store.setDefault(LogPreferencePage.LOG_GO_BACK_N, "100");
+		store.setDefault(LogPreferencePage.LOG_FILE_NAME_PATTERN, "scratch/log/$n.log");
+		store.setDefault(LogPreferencePage.LOG_FILE_DEFAULT_PROJECT, "*");
+		store.setDefault(LogPreferencePage.USE_MIDPOINT_LOG_VIEWER, MidPointPreferencePage.VALUE_ONLY_IF_COMPLEX);
 		
 		store.setDefault(MiscPreferencePage.GENERATED_FILE_NAME_PATTERN, "scratch/gen/$n.xml");
 	}

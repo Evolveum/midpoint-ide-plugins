@@ -23,6 +23,18 @@ public class PluginConstants {
 	public static final String CMD_RELOAD_FROM_SERVER = "com.evolveum.midpoint.eclipse.ui.command.reloadFromServer";
 	public static final String CMD_SET_AS_ACTION = "com.evolveum.midpoint.eclipse.ui.command.setAsAction";
 	public static final String CMD_BROWSE = "com.evolveum.midpoint.eclipse.ui.command.browse";
+
+
+	public static final String CMD_MARK_CURRENT_LOG_POSITION = "com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition";
+	public static final String CMD_SHOW_LOG_IN_CONSOLE = "com.evolveum.midpoint.eclipse.ui.command.showLogInConsole";
+	public static final String CMD_SHOW_LOG_IN_EDITOR = "com.evolveum.midpoint.eclipse.ui.command.showLogInEditor";
+	public static final String PARAM_FROM = "com.evolveum.midpoint.eclipse.ui.commandParameter.from";
+	public static final String VALUE_START = "start";
+	public static final String VALUE_BACK_N = "backN";
+	public static final String VALUE_MARK = "mark";
+	public static final String VALUE_NOW = "now";
+	public static final String VALUE_CONSOLE = "console";
+	public static final String CMD_CLEAR_SERVER_LOG = "com.evolveum.midpoint.eclipse.ui.command.clearServerLog";
 	
 	public static final String CMD_SELECT_SERVER = "com.evolveum.midpoint.eclipse.ui.command.selectServer";
 	public static final String CMD_GENERATE_OID = "com.evolveum.midpoint.eclipse.ui.command.generateOid";

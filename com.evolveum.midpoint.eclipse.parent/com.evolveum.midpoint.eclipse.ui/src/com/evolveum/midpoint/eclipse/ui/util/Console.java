@@ -26,7 +26,7 @@ import com.evolveum.midpoint.eclipse.ui.util.Util.Options;
 
 public class Console {
 
-	public static final String CONSOLE_NAME = "midPoint console";
+	public static final String CONSOLE_NAME = "MidPoint plugin console";
 	public static Color redColor;
 
 	public static MessageConsole findConsole() {

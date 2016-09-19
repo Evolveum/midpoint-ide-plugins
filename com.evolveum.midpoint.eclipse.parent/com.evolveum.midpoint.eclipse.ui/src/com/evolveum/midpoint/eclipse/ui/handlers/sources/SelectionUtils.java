@@ -128,6 +128,9 @@ public class SelectionUtils {
 
 	public static IProject guessSelectedProjectFromExplorerOrNavigator() {
         ISelectionService ss = getSelectionServiceFromActiveWindow();
+        if (ss == null) {
+        	return null;
+        }
         
         IResource resExplorer = getResourceFromSelection(ss.getSelection("org.eclipse.ui.navigator.ProjectExplorer"));
         IResource resNavigator = getResourceFromSelection(ss.getSelection("org.eclipse.ui.views.ResourceNavigator"));
@@ -197,6 +200,37 @@ public class SelectionUtils {
 			return file;
 		}
 		// only part of file is selected
+		return null;
+	}
+
+	public static IProject guessSelectedProject(ISelection selection, String defaultName) {
+		List<IFile> files = getSelectedXmlFiles(selection);
+		if (!files.isEmpty()) {
+			return files.get(0).getProject();
+		}
+		IResource resource = getResourceFromActiveWindow();
+		if (resource != null) {
+			return resource.getProject();
+		}
+		IProject project = guessSelectedProjectFromExplorerOrNavigator();
+		if (project != null) {
+			return project;
+		}
+		if (StringUtils.isNotBlank(defaultName)) {
+			if ("*".equals(defaultName)) {
+				IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+				for (IProject p : projects) {
+					if (p.isOpen()) {
+						return p;
+					}
+				}
+			} else {
+				IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(defaultName);
+				if (p != null && p.exists()) {
+					return p;
+				}
+			}
+		}
 		return null;
 	}
 

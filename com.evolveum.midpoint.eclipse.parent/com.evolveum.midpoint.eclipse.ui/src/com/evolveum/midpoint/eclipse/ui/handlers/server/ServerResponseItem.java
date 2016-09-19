@@ -84,9 +84,9 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		String patternResolved = pattern
 				.replace("$f", sourceName + index)
 				.replace("$F", rootToSource.toPortableString() + index)
-				.replace(COUNTER_SYMBOL, formatActionCounter(responseCounter))
-				.replace("$t", DownloadHandler.fixComponent(outputType))
-				.replace("$s", DownloadHandler.fixComponent(PluginPreferences.getSelectedServerShortName())); 
+				.replace(COUNTER_SYMBOL, ResourceUtils.formatActionCounter(responseCounter))
+				.replace("$t", ResourceUtils.fixComponent(outputType))
+				.replace("$s", ResourceUtils.fixComponent(PluginPreferences.getSelectedServerShortName())); 
 
 		System.out.println("patternResolved = " + patternResolved);
 		IPath resolvedPath = new Path(patternResolved);
@@ -97,10 +97,6 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		return resolvedPath;
 	}
 	
-	public static String formatActionCounter(int counter) {
-		return String.format("%05d", counter);
-	}
-
 	private IPath determineRoot(IPath source) {
 		String rootSpec = getRootSpecification();
 		return ResourceUtils.determineRoot(source, rootSpec);

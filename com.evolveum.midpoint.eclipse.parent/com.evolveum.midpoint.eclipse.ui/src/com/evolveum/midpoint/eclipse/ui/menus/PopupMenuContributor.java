@@ -39,11 +39,14 @@ public class PopupMenuContributor extends CompoundContributionItem implements IW
 			MenuUtil.addBrowse(items, serviceLocator);
 			MenuUtil.addTransferMenu(items, serviceLocator);
 			MenuUtil.addServerSideMenu(items, serviceLocator);
+			MenuUtil.addServerLogMenu(items, serviceLocator);
 			items.add(new Separator());
 			
 		}
-		
+
+		MenuUtil.addSetAsActionMenu(items, serviceLocator);
 		MenuUtil.addMiscMenu(items, serviceLocator);
+		items.add(new Separator());
 	}
 
 	@Override

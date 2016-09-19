@@ -25,9 +25,11 @@ public class PluginPreferences {
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
 	public static final String DONWLOAD_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.download";
 	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
+	public static final String LOG_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.log";
 	public static final String MISC_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.misc";
 
 	public static final String GEN_COUNTER = "generationCounter";
+	public static final String LOG_COUNTER = "logFileCounter";
 	public static final String EXEC_COUNTER = "executionCounter";
 	
 	public static ConnectionParameters getConnectionParameters() {
@@ -82,7 +84,7 @@ public class PluginPreferences {
 	}
 	
 	public static String getUseMidPointLogViewer() {
-		return store().getString(ActionsPreferencePage.USE_MIDPOINT_LOG_VIEWER);
+		return store().getString(LogPreferencePage.USE_MIDPOINT_LOG_VIEWER);
 	}
 	
 	public static String getActionOutputFileNamePattern() {
@@ -244,6 +246,12 @@ public class PluginPreferences {
 		return c;
 	}
 
+	public static int getAndIncrementLogCounter() {
+		int c = store().getInt(LOG_COUNTER);
+		store().setValue(LOG_COUNTER, c+1);
+		return c;
+	}
+
 	public static int getAndIncrementExecCounter() {
 		int c = store().getInt(EXEC_COUNTER);
 		store().setValue(EXEC_COUNTER, c+1);
@@ -256,6 +264,22 @@ public class PluginPreferences {
 
 	public static void setExecCounter(int value) {
 		store().setValue(EXEC_COUNTER, value);
+	}
+	
+	public static int getLogGoBackN() {
+		return store().getInt(LogPreferencePage.LOG_GO_BACK_N);
+	}
+	
+	public static int getLogConsoleRefreshInterval() {
+		return store().getInt(LogPreferencePage.LOG_CONSOLE_REFRESH_INTERVAL);
+	}
+	
+	public static String getLogFileNamePattern() {
+		return store().getString(LogPreferencePage.LOG_FILE_NAME_PATTERN);
+	}
+	
+	public static String getLogFileDefaultProject() {
+		return store().getString(LogPreferencePage.LOG_FILE_DEFAULT_PROJECT);
 	}
 
 }
