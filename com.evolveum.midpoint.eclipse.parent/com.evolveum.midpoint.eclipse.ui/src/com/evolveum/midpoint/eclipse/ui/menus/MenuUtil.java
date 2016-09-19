@@ -42,17 +42,14 @@ public class MenuUtil {
 	}
 
 	public static void addUploadOrExecuteWithAction(List<IContributionItem> items, IServiceLocator serviceLocator) {
-		int actionNumber = PluginPreferences.getActionAfterUpload();
-		if (actionNumber != 0 && StringUtils.isNotBlank(PluginPreferences.getActionFile(actionNumber))) {
-			Map<String,String> parameters = new HashMap<>();
-			parameters.put(PluginConstants.PARAM_WITH_ACTION, "true");
-			items.add(new CommandContributionItem( 
-					new CommandContributionItemParameter(
-							serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
-							null, null, null, 
-							"&Upload/execute", 
-							null, null, CommandContributionItem.STYLE_PUSH, null, true)));
-		}
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_WITH_ACTION, "true");
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_UPLOAD_OR_EXECUTE, parameters, 
+						null, null, null, 
+						"&Upload/execute", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
 	public static void addUploadOrExecuteStopOnError(List<IContributionItem> items, IServiceLocator serviceLocator) {

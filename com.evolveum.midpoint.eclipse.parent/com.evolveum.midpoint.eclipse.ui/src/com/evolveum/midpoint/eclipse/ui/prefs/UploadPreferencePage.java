@@ -1,9 +1,8 @@
 package com.evolveum.midpoint.eclipse.ui.prefs;
 
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.RadioGroupFieldEditor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Label;
@@ -24,9 +23,14 @@ public class UploadPreferencePage extends FieldEditorPreferencePage implements I
 
 	protected void createFieldEditors() {
 		
-		final String[][] AUTO_ACTION_OPTIONS = new String[][] { { "Action 1", "1" }, { "Action 2", "2" }, { "Action 3", "3" }, { "No action", "" } };
+		Label action = new Label(getFieldEditorParent(), SWT.LEFT);
+		action.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
+		action.setText("Action to execute after any upload/execute batch successfully finishes:");
 		
-		addField(new RadioGroupFieldEditor(ACTION_AFTER_UPLOAD, "Action to execute after any upload/execute batch successfully finishes", 4, AUTO_ACTION_OPTIONS, getFieldEditorParent()));
+		Label action2 = new Label(getFieldEditorParent(), SWT.LEFT);
+		action2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
+		action2.setText("Please set in 'Actions' preference page.");
+		action2.setFont(JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT));
 
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));

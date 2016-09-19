@@ -256,7 +256,9 @@
  		<key
   			sequence="M3+F2"
   			commandId="com.evolveum.midpoint.eclipse.ui.command.uploadOrExecute"
-  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+  			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
+  		</key>
   		<key
   			sequence="M3+1"
   			commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
