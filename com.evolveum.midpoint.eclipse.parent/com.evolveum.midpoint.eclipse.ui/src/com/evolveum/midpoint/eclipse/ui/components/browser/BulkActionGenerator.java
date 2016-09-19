@@ -24,6 +24,7 @@ public class BulkActionGenerator extends Generator {
 		MODIFY("modify", "modify", ObjectTypes.OBJECT, true, true, false),
 		LOG("log", "log", ObjectTypes.OBJECT, false, false, false),
 		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false, false),
+		VALIDATE("validate resource", "validate", ObjectTypes.RESOURCE, false, false, false),
 		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false, false);
 		
 		private final String displayName, actionName;

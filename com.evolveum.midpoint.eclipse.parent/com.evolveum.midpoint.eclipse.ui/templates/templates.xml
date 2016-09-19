@@ -55,5 +55,161 @@
     		&lt;q:value&gt;...&lt;/q:value&gt;
     	&lt;/q:equal&gt;
     </template>
+    
+    <template id="resource" autoinsert="false" context="xml_tag" deleted="false" description="new Resource object" enabled="true" name="resource object">
+   &lt;resource 
+   
+   	oid="TODO: generate"
+   		
+   	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+   	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"&gt;
+   	
+   	&lt;name&gt;TODO: resource name&lt;/name&gt;
+   	
+   	&lt;connectorRef type="ConnectorType"&gt;
+		&lt;filter&gt;
+			&lt;q:equal&gt;
+				&lt;q:path&gt;c:connectorType&lt;/q:path&gt;
+				&lt;q:value&gt;com.evolveum.polygon.csvfile.CSVFileConnector&lt;/q:value&gt;   	&lt;!-- TODO: change if necessary --&gt;
+			&lt;/q:equal&gt;
+		&lt;/filter&gt;
+	&lt;/connectorRef&gt;
+	
+	&lt;connectorConfiguration&gt;
+		&lt;configurationProperties xmlns=""&gt;
+			&lt;property1&gt;TODO: value 1&lt;/property1&gt;
+			&lt;property2&gt;TODO: value 2&lt;/property2&gt;
+		&lt;/configurationProperties&gt;
+	&lt;/connectorConfiguration&gt;
+
+	&lt;schemaHandling&gt;
+
+		&lt;objectType&gt;
+			&lt;displayName&gt;Default Account&lt;/displayName&gt;
+			&lt;default&gt;true&lt;/default&gt;
+
+			&lt;objectClass&gt;ri:AccountObjectClass&lt;/objectClass&gt;
+			&lt;attribute&gt;
+				&lt;ref&gt;icfs:uid&lt;/ref&gt;
+				&lt;displayName&gt;Entry UUID&lt;/displayName&gt;
+			&lt;/attribute&gt;
+			&lt;attribute&gt;
+				&lt;ref&gt;icfs:name&lt;/ref&gt;
+
+				&lt;displayName&gt;Name&lt;/displayName&gt;
+
+				&lt;outbound&gt;
+					&lt;source&gt;
+						&lt;path&gt;$$user/name&lt;/path&gt;
+					&lt;/source&gt;
+				&lt;/outbound&gt;
+				&lt;inbound&gt;
+					&lt;target&gt;
+						&lt;path&gt;$$user/name&lt;/path&gt;
+					&lt;/target&gt;
+				&lt;/inbound&gt;
+			&lt;/attribute&gt;
+		&lt;/objectType&gt;
+	&lt;/schemaHandling&gt;
+	
+	&lt;synchronization&gt;
+		&lt;objectSynchronization&gt;
+			&lt;enabled&gt;true&lt;/enabled&gt;
+			&lt;correlation&gt;
+				&lt;q:equal&gt;
+					&lt;q:path&gt;name&lt;/q:path&gt;
+					&lt;expression&gt;
+						&lt;path&gt;
+							$$account/attributes/icfs:name
+						&lt;/path&gt;
+					&lt;/expression&gt;
+				&lt;/q:equal&gt;
+			&lt;/correlation&gt;
+
+			&lt;reaction&gt;
+				&lt;situation&gt;linked&lt;/situation&gt;
+				&lt;action&gt;
+					&lt;handlerUri&gt;http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyFocus&lt;/handlerUri&gt;
+				&lt;/action&gt;
+			&lt;/reaction&gt;
+			&lt;reaction&gt;
+				&lt;situation&gt;deleted&lt;/situation&gt;
+				&lt;action&gt;
+					&lt;handlerUri&gt;http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink&lt;/handlerUri&gt;
+				&lt;/action&gt;
+			&lt;/reaction&gt;
+			&lt;reaction&gt;
+				&lt;situation&gt;unlinked&lt;/situation&gt;
+				&lt;action&gt;
+					&lt;handlerUri&gt;http://midpoint.evolveum.com/xml/ns/public/model/action-3#link&lt;/handlerUri&gt;
+				&lt;/action&gt;
+			&lt;/reaction&gt;
+			&lt;reaction&gt;
+				&lt;situation&gt;unmatched&lt;/situation&gt;
+				&lt;action&gt;
+					&lt;handlerUri&gt;http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus&lt;/handlerUri&gt;
+				&lt;/action&gt;
+			&lt;/reaction&gt;
+		&lt;/objectSynchronization&gt;
+	&lt;/synchronization&gt;
+&lt;/resource&gt;
+    </template>
+
+    <template id="user" autoinsert="false" context="xml_tag" deleted="false" description="new User object" enabled="true" name="user object">
+&lt;user 
+   
+   	oid="TODO: generate"
+   		
+   	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+   	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"&gt;
+   	
+   	&lt;name&gt;TODO: user name&lt;/name&gt;
+   	&lt;fullName&gt;...&lt;/fullName&gt;
+   	&lt;givenName&gt;...&lt;/givenName&gt;
+   	&lt;familyName&gt;...&lt;/familyName&gt;
+   	
+&lt;/user&gt;
+    </template>
+
+    <template id="objectTemplate" autoinsert="false" context="xml_tag" deleted="false" description="new Object template object" enabled="true" name="objectTemplate object">
+&lt;objectTemplate 
+   
+   	oid="TODO: generate"
+   		
+   	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+   	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+   	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"&gt;
+   	
+   	&lt;name&gt;TODO: template name&lt;/name&gt;
+
+    &lt;mapping&gt;
+    	&lt;source&gt;
+    		&lt;path&gt;...&lt;/path&gt;
+    	&lt;/source&gt;
+    	&lt;expression&gt;
+    		&lt;script&gt;
+    			&lt;code&gt;
+    				// TODO insert code here
+    			&lt;/code&gt;
+    		&lt;/script&gt;
+    	&lt;/expression&gt;
+    	&lt;target&gt;
+    		&lt;path&gt;...&lt;/path&gt;
+    	&lt;/target&gt;
+    &lt;/mapping&gt;
+   	   	
+&lt;/objectTemplate&gt;
+    </template>
+    
     <!-- <template autoinsert="true" context="xml_tag" deleted="false" description="elem1descri" enabled="true" name="elem1">&lt;patter&gt;&lt;/patter&gt;</template>  -->
 </templates>

@@ -23,9 +23,10 @@ public class EditPreferencesHandler extends AbstractHandler {
 				HandlerUtil.getActiveShell(event), id, 
 				new String[] { 
 						PluginPreferences.PREFERENCES_ID, 
+						PluginPreferences.UPLOAD_PREFERENCES_ID, 
 						PluginPreferences.ACTIONS_PREFERENCES_ID, 
-						PluginPreferences.DONWLOAD_PREFERENCES_ID, 
 						PluginPreferences.COMPARE_PREFERENCES_ID,
+						PluginPreferences.DONWLOAD_PREFERENCES_ID, 
 						PluginPreferences.LOG_PREFERENCES_ID, 
 						PluginPreferences.MISC_PREFERENCES_ID }, 
 				null);

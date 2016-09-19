@@ -2,17 +2,28 @@ package com.evolveum.midpoint.eclipse.ui.handlers;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.eclipse.runtime.api.Constants;
+import com.evolveum.midpoint.eclipse.runtime.api.resp.ExecuteActionServerResponse;
+import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage;
+import com.evolveum.midpoint.eclipse.ui.util.Console;
 import com.evolveum.midpoint.eclipse.ui.util.Util;
+import com.evolveum.midpoint.util.DOMUtil;
 
 public class ResourceUtils {
 
@@ -123,4 +134,75 @@ public class ResourceUtils {
 				.replace('*', '_');
 	}
 
+	public static void applyValidationResult(SourceObject object, String dataOutput) {
+		IFile file = object.getFile();
+		if (file == null) {
+			return;
+		}
+		
+		Element root = DOMUtil.parseDocument(dataOutput).getDocumentElement();
+		Element item = DOMUtil.getChildElement(root, "item");
+		if (item == null) {
+			return;
+		}
+		Element validationResult = DOMUtil.getChildElement(item, "validationResult");
+		if (validationResult == null) {
+			return;
+		}
+		List<Element> issues = DOMUtil.getChildElements(validationResult, new QName(Constants.COMMON_NS, "issue"));
+		
+		try {
+			file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+			for (Element issue : issues) {
+				String severity = getElementText(issue, "severity");
+				String category = getElementText(issue, "category");
+				String code = getElementText(issue, "code");
+				String text = getElementText(issue, "text");
+				String itemPath = getElementText(issue, "itemPath");
+				int severityCode;
+				switch (severity) {
+				case "error": severityCode = IMarker.SEVERITY_ERROR; break;
+				case "warning": severityCode = IMarker.SEVERITY_WARNING; break;
+				default: severityCode = IMarker.SEVERITY_INFO; break;
+				}
+				IMarker m = file.createMarker(IMarker.PROBLEM);
+				m.setAttribute(IMarker.LINE_NUMBER, 1);
+				m.setAttribute(IMarker.MESSAGE, text);
+				m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+				m.setAttribute(IMarker.SEVERITY, severityCode);
+				m.setAttribute(IMarker.LOCATION, itemPath);
+			}
+			
+		} catch (CoreException e) {
+			Console.logError("Couldn't show validation result: " + e.getMessage(), e);
+		}
+	}
+
+	private static String getElementText(Element element, String name) {
+		Element child = DOMUtil.getChildElement(element, name);
+		return child != null ? child.getTextContent() : null;
+	}
+
+	public static void applyTestResult(SourceObject object, ExecuteActionServerResponse lastResponse) {
+		IFile file = object.getFile();
+		if (file == null) {
+			return;
+		}
+		if (lastResponse.isSuccess()) {
+			return;
+		}
+		
+		try {
+			file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+			IMarker m = file.createMarker(IMarker.PROBLEM);
+			m.setAttribute(IMarker.LINE_NUMBER, 1);
+			m.setAttribute(IMarker.MESSAGE, "Test resource failed: " + lastResponse.getErrorDescription());
+			m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+			m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+		} catch (CoreException e) {
+			Console.logError("Couldn't show validation result: " + e.getMessage(), e);
+		}
+	}
+
 }
+

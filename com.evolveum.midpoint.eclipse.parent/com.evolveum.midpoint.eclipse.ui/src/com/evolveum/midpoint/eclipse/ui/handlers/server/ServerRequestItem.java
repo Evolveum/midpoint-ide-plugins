@@ -90,7 +90,11 @@ public class ServerRequestItem {
 			csr.setIgnoreItems(PluginPreferences.getCompareIgnoreItems());
 			return csr;
 		} else {
-			return new ServerRequest(serverAction, expandedContent);
+			ServerRequest req = new ServerRequest(serverAction, expandedContent);
+//			if (serverAction == ServerAction.UPLOAD) {
+//				req.setValidate(PluginPreferences.isValidateAfterUpload());
+//			}
+			return req;
 		}	
 	}
 

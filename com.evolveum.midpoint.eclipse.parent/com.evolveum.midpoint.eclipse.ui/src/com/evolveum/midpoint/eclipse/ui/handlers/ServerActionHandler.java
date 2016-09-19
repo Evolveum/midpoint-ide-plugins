@@ -28,6 +28,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.resp.UploadServerResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.components.browser.BulkActionGenerator;
 import com.evolveum.midpoint.eclipse.ui.components.browser.GeneratorOptions;
+import com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler.Action;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
@@ -45,6 +46,7 @@ public class ServerActionHandler extends AbstractHandler {
 		
 		RECOMPUTE(BulkActionGenerator.Action.RECOMPUTE, "recomputed"), 
 		TEST_RESOURCE(BulkActionGenerator.Action.TEST_RESOURCE, "tested"), 
+		VALIDATE(BulkActionGenerator.Action.VALIDATE, "validated"),
 		DELETE(BulkActionGenerator.Action.DELETE, "deleted");
 		
 		private final BulkActionGenerator.Action action; 
@@ -172,30 +174,22 @@ public class ServerActionHandler extends AbstractHandler {
 						}
 					}
 					
-					BulkActionGenerator gen = new BulkActionGenerator(action.action);
-					String requestString = gen.generateFromSourceObject(object, genOptions);
-					System.out.println("Executing: " + requestString);
-
-					ServerRequest request = new ServerRequest(ServerAction.EXECUTE, requestString);
-					ServerResponse response = runtime.executeServerRequest(request, PluginPreferences.getConnectionParameters());
+					boolean success = executeAction(action, object, genOptions);
+					if (action == Action.TEST_RESOURCE && lastResponse != null) {
+						ResourceUtils.applyTestResult(object, lastResponse);
+					}
 					
-					if (response instanceof NotApplicableServerResponse) {
-						// shouldn't occur
-						Console.logWarning("Item " + object.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
-					} else {
-						ExecuteActionServerResponse easr = (ExecuteActionServerResponse) response;
-						if (easr.isSuccess()) {
-							if (easr.getConsoleOutput() != null && easr.getConsoleOutput().startsWith("Warning: no matching")) {
-								fail++;
-								Console.logWarning("Object " + object.getDisplayName() + " doesn't exist on server; name = " + object.getName() + ", oid = " + object.getOid());
-							} else {
-								ok++;
-								Console.logMinor("Object " + object.getDisplayName() + " " + action.pastTense + " OK");
-							}
-						} else {
-							fail++;
-							Console.logError("Error processing object " + object.getDisplayName() + ": " + easr.getErrorDescription(), easr.getException());
+					if (success && action == Action.TEST_RESOURCE && "true".equals(event.getParameter(PluginConstants.PARAM_VALIDATE))) {
+						success = executeAction(Action.VALIDATE, object, genOptions);
+						if (lastResponse != null) {
+							ResourceUtils.applyValidationResult(object, lastResponse.getDataOutput());
 						}
+					}
+					
+					if (success) {
+						ok++;
+					} else {
+						fail++;
 					}
 					
 					if (action == Action.DELETE && alsoLocally) {
@@ -225,6 +219,40 @@ public class ServerActionHandler extends AbstractHandler {
 		};
 		job.schedule();
 		
+	}
+	
+	private ExecuteActionServerResponse lastResponse;		// FIXME brutal hack!!!
+
+	protected boolean executeAction(Action action, SourceObject object, GeneratorOptions genOptions) {
+		BulkActionGenerator gen = new BulkActionGenerator(action.action);
+		String requestString = gen.generateFromSourceObject(object, genOptions);
+		System.out.println("Executing: " + requestString);
+
+		ServerRequest request = new ServerRequest(ServerAction.EXECUTE, requestString);
+		RuntimeService runtime = RuntimeActivator.getRuntimeService();
+		ServerResponse response = runtime.executeServerRequest(request, PluginPreferences.getConnectionParameters());
+		
+		if (response instanceof NotApplicableServerResponse) {
+			// shouldn't occur
+			Console.logWarning("Item " + object.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
+			lastResponse = null;
+			return false;
+		} else {
+			ExecuteActionServerResponse easr = (ExecuteActionServerResponse) response;
+			lastResponse = easr;
+			if (easr.isSuccess()) {
+				if (easr.getConsoleOutput() != null && easr.getConsoleOutput().startsWith("Warning: no matching")) {
+					Console.logWarning("Object " + object.getDisplayName() + " doesn't exist on server; name = " + object.getName() + ", oid = " + object.getOid());
+					return false;
+				} else {
+					Console.logMinor("Object " + object.getDisplayName() + " " + action.pastTense + " OK");
+					return true;
+				}
+			} else {
+				Console.logError("Error processing object " + object.getDisplayName() + ": " + easr.getErrorDescription(), easr.getException());
+				return false;
+			}
+		}
 	}
 
 

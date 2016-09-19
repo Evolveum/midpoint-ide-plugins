@@ -87,6 +87,7 @@
 			description="Tests selected resource(s) on server"
 			id="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer">
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.uploadFirst" name="Upload object(s) first"/>
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.validate" name="Validate"/>
 		</command>
 		<command name="Generate random OID"
 			description="Generates a random midPoint OID"
@@ -203,18 +204,22 @@
 		<page name="MidPoint"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.MidPointPreferencePage"
 			id="com.evolveum.midpoint.eclipse.ui.preference.midPoint"/>
+		<page name="Upload"
+			class="com.evolveum.midpoint.eclipse.ui.prefs.UploadPreferencePage"
+			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.preference.upload"/>
 		<page name="Actions"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ActionsPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.preference.actions"/>
-		<page name="Download"
-			class="com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage"
-			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
-			id="com.evolveum.midpoint.eclipse.ui.preference.download"/>
 		<page name="Compare"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.ComparePreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.preference.compare"/>
+		<page name="Download"
+			class="com.evolveum.midpoint.eclipse.ui.prefs.DownloadPreferencePage"
+			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"
+			id="com.evolveum.midpoint.eclipse.ui.preference.download"/>
 		<page name="Log"
 			class="com.evolveum.midpoint.eclipse.ui.prefs.LogPreferencePage"
 			category="com.evolveum.midpoint.eclipse.ui.preference.midPoint"

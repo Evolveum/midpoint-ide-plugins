@@ -191,11 +191,22 @@ public class RuntimeServiceImpl implements RuntimeService {
 				httpRequest = new HttpPost(url);
 			} else if (finalAction == ServerAction.UPLOAD) {
 				String url = connectionParameters.getUrl() + REST + "/" + type.getRestType();
-				String suffix = 
-						type == ObjectTypes.TASK || type == ObjectTypes.SYSTEM_CONFIGURATION ? 
-								"" : 
-								"?options=raw";
-
+				
+				List<String> options = new ArrayList<>();
+				if (type != ObjectTypes.TASK && type != ObjectTypes.SYSTEM_CONFIGURATION) {
+					options.add("options=raw");
+				}
+//				if (type == ObjectTypes.RESOURCE && request.isValidate()) {
+//					options.add("options=validate");
+//				}
+				
+				String suffix;
+				if (!options.isEmpty()) {
+					suffix = "?" + StringUtils.join(options, "&");
+				} else {
+					suffix = "";
+				}
+				
 				if (oid != null && !oid.isEmpty()) {
 					httpRequest = new HttpPut(url + "/" + oid + suffix);
 				} else {

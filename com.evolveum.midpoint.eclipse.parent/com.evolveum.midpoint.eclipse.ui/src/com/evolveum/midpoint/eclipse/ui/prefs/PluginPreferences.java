@@ -24,6 +24,7 @@ public class PluginPreferences {
 	public static final String PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.midPoint";
 	public static final String ACTIONS_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.actions";
 	public static final String DONWLOAD_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.download";
+	public static final String UPLOAD_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.upload";
 	public static final String COMPARE_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.compare";
 	public static final String LOG_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.log";
 	public static final String MISC_PREFERENCES_ID = "com.evolveum.midpoint.eclipse.ui.preference.misc";
@@ -100,11 +101,11 @@ public class PluginPreferences {
 	}
 	
 	public static String getShowUploadOrExecuteResultMessageBox() {
-		return store().getString(MidPointPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX);
+		return store().getString(UploadPreferencePage.SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX);
 	}
 
 	public static String getShowComparisonResultMessageBox() {
-		return store().getString(MidPointPreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX);
+		return store().getString(ComparePreferencePage.SHOW_COMPARISON_RESULT_MESSAGE_BOX);
 	}
 
 	public static String getGeneratedFileNamePattern() {
@@ -162,7 +163,7 @@ public class PluginPreferences {
 	public static List<String> getCompareIgnoreItems() {
 		String aggregated = store().getString(ComparePreferencePage.COMPARE_OTHER_ITEMS_TO_IGNORE);
 		List<String> rv = split(aggregated);
-		if (store().getBoolean(ComparePreferencePage.COMPARE_IGNORE_METADATA)) {
+		if (store().getBoolean(ComparePreferencePage.COMPARE_IGNORE_OPERATIONAL_DATA)) {
 			rv.add("metadata");
 		}
 		return rv;
@@ -282,4 +283,7 @@ public class PluginPreferences {
 		return store().getString(LogPreferencePage.LOG_FILE_DEFAULT_PROJECT);
 	}
 
+	public static boolean isValidateAfterUpload() {
+		return store().getBoolean(UploadPreferencePage.VALIDATE_AFTER_UPLOAD);
+	}
 }

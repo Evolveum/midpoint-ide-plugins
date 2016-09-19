@@ -12,6 +12,7 @@ public class PluginConstants {
 	public static final String PARAM_RAW = "com.evolveum.midpoint.eclipse.ui.commandParameter.raw";
 	public static final String PARAM_ALSO_LOCALLY = "com.evolveum.midpoint.eclipse.ui.commandParameter.alsoLocally";
 	public static final String PARAM_UPLOAD_FIRST = "com.evolveum.midpoint.eclipse.ui.commandParameter.uploadFirst";
+	public static final String PARAM_VALIDATE = "com.evolveum.midpoint.eclipse.ui.commandParameter.validate";
 	public static final String PARAM_ACTION_NUMBER = "com.evolveum.midpoint.eclipse.ui.commandParameter.actionNumber";
 	public static final String PARAM_SERVER_NUMBER = "com.evolveum.midpoint.eclipse.ui.commandParameter.serverNumber";
 	public static final String PARAM_STOP_ON_ERROR = "com.evolveum.midpoint.eclipse.ui.commandParameter.stopOnError";

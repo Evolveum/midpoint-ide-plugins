@@ -14,9 +14,6 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 
 	public static final String SERVERS = "servers";
 
-	public static final String SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX = "showUploadExecuteResultMessageBox";
-	public static final String SHOW_COMPARISON_RESULT_MESSAGE_BOX = "showComparisonResultMessageBox";
-
 	public static final String VALUE_NEVER = "never";
 	public static final String VALUE_WHEN_ERRORS = "whenErrors";
 	public static final String VALUE_WHEN_DIFFERENCES_OR_ERRORS = "whenDifferencesOrErrors";
@@ -75,9 +72,6 @@ public class MidPointPreferencePage extends FieldEditorPreferencePage implements
 		new Label(getFieldEditorParent(), SWT.SEPARATOR | SWT.HORIZONTAL)
 			.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		
-		addField(new ComboFieldEditor(SHOW_UPLOAD_EXECUTE_RESULT_MESSAGE_BOX, "Show message box after upload/execute", RESULT_BOX_OPTIONS, getFieldEditorParent()));
-		addField(new ComboFieldEditor(SHOW_COMPARISON_RESULT_MESSAGE_BOX, "Show message box after comparing", COMPARISON_RESULT_BOX_OPTIONS, getFieldEditorParent()));
-
 	}
 
 	public void init(IWorkbench workbench) {

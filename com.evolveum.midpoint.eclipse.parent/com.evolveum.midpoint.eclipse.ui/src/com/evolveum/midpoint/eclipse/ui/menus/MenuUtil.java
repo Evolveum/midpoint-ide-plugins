@@ -196,6 +196,18 @@ public class MenuUtil {
 						"Upload and test resource", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
+	
+	public static void addTestAndValidateResourceOnServerWithUpload(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_UPLOAD_FIRST, "true");
+		parameters.put(PluginConstants.PARAM_VALIDATE, "true");
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_TEST_RESOURCE, parameters, 
+						null, null, null, 
+						"Upload, test and validate resource", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
 
 	public static void addServerNameLabel(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		String serverName = PluginPreferences.getSelectedServerName();
@@ -270,10 +282,11 @@ public class MenuUtil {
 		List<IContributionItem> dummyItems = new ArrayList<>();
 //		MenuUtil.addEnableOnServer(dummyItems, serviceLocator);
 //		MenuUtil.addDisableOnServer(dummyItems, serviceLocator);
-		MenuUtil.addRecomputeOnServer(dummyItems, serviceLocator);
+		//MenuUtil.addRecomputeOnServer(dummyItems, serviceLocator);
 		MenuUtil.addRecomputeOnServerWithUpload(dummyItems, serviceLocator);
-		MenuUtil.addTestResourceOnServer(dummyItems, serviceLocator);
+		//MenuUtil.addTestResourceOnServer(dummyItems, serviceLocator);
 		MenuUtil.addTestResourceOnServerWithUpload(dummyItems, serviceLocator);
+		MenuUtil.addTestAndValidateResourceOnServerWithUpload(dummyItems, serviceLocator);
 		MenuUtil.addDeleteOnServerRaw(dummyItems, serviceLocator);
 		MenuUtil.addDeleteOnServerNonRaw(dummyItems, serviceLocator);
 		MenuUtil.addDeleteOnServerRawAndLocally(dummyItems, serviceLocator);
