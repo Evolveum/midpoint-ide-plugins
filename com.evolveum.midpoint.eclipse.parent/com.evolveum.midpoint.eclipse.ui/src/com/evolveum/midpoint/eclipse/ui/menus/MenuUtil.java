@@ -369,14 +369,60 @@ public class MenuUtil {
 		MenuUtil.addShowLogInViewerMenu(dummyItems, serviceLocator);
 		MenuUtil.addMarkCurrentPosition(dummyItems, serviceLocator);
 		MenuUtil.addClearServerLog(dummyItems, serviceLocator);
-//		dummyItems.add(new Separator());
-//		MenuUtil.addModelLogMenu(dummyItems, serviceLocator);
+		dummyItems.add(new Separator());
+		MenuUtil.addModelLogMenu(dummyItems, serviceLocator);
+		MenuUtil.addOtherLogMenu(dummyItems, serviceLocator, PluginConstants.VALUE_PROVISIONING, "Set Provisioning logging");
+		MenuUtil.addOtherLogMenu(dummyItems, serviceLocator, PluginConstants.VALUE_REPOSITORY, "Set Repository logging");
+		MenuUtil.addOtherLogMenu(dummyItems, serviceLocator, PluginConstants.VALUE_GUI, "Set GUI logging");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_ALL, PluginConstants.VALUE_INFO, "Set all of these to INFO");
 		for (IContributionItem item : dummyItems) {
 			dummy.add(item);
 		}
 		items.add(dummy);
 	}
 	
+	public static void addModelLogMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		MenuManager dummy = new MenuManager("Set Model logging");
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_INFO, "Set to INFO");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_CLOCKWORK_SUMMARY, "Set to 'clockwork summary' (Clockwork=DEBUG)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_PROJECTOR_SUMMARY, "Set to 'projector summary' (previous + Projector=TRACE)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_MAPPING_TRACE, "Set to 'mapping trace' (previous + Mapping=TRACE)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_EXPRESSION_TRACE, "Set to 'expression trace' (previous + Expression=TRACE)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_PROJECTOR_TRACE, "Set to 'projector trace' (previous + projector.*=TRACE)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_LENS_TRACE, "Set to 'lens trace' (previous + lens.*=TRACE)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_DEBUG, "Set to DEBUG (whole module)");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, PluginConstants.VALUE_MODEL, PluginConstants.VALUE_TRACE, "Set to TRACE (whole module)");
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+	
+	public static void addOtherLogMenu(List<IContributionItem> items, IServiceLocator serviceLocator, String module, String label) {
+		MenuManager dummy = new MenuManager(label);
+		List<IContributionItem> dummyItems = new ArrayList<>();
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, module, PluginConstants.VALUE_INFO, "Set to INFO");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, module, PluginConstants.VALUE_DEBUG, "Set to DEBUG");
+		MenuUtil.addLogEntry(dummyItems, serviceLocator, module, PluginConstants.VALUE_TRACE, "Set to TRACE");
+		for (IContributionItem item : dummyItems) {
+			dummy.add(item);
+		}
+		items.add(dummy);
+	}
+	
+	public static void addLogEntry(List<IContributionItem> items, IServiceLocator serviceLocator, String component, String level, String label) {
+		Map<String,String> parameters = new HashMap<>();
+		parameters.put(PluginConstants.PARAM_COMPONENT, component);
+		parameters.put(PluginConstants.PARAM_LEVEL, level);
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_SET_LOG_LEVEL, parameters, 
+						null, null, null, 
+						label, 
+						null, null, CommandContributionItem.STYLE_PUSH, null, false)));
+	}
+
 	public static void addShowLogInConsoleMenu(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		MenuManager dummy = new MenuManager("Show log in &console");
 		List<IContributionItem> dummyItems = new ArrayList<>();

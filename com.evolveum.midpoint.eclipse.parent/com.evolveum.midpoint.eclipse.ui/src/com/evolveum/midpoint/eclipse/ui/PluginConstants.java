@@ -24,6 +24,28 @@ public class PluginConstants {
 	public static final String CMD_SET_AS_ACTION = "com.evolveum.midpoint.eclipse.ui.command.setAsAction";
 	public static final String CMD_BROWSE = "com.evolveum.midpoint.eclipse.ui.command.browse";
 
+	public static final String CMD_SET_LOG_LEVEL = "com.evolveum.midpoint.eclipse.ui.command.setLogLevel";
+	public static final String PARAM_COMPONENT = "com.evolveum.midpoint.eclipse.ui.commandParameter.component";
+	public static final String PARAM_LEVEL = "com.evolveum.midpoint.eclipse.ui.commandParameter.level";
+	
+	public static final String VALUE_MODEL = "model";
+	public static final String VALUE_PROVISIONING = "provisioning";
+	public static final String VALUE_REPOSITORY = "repository";
+	public static final String VALUE_GUI = "gui";
+	public static final String VALUE_ALL = "all";
+	
+	public static final String VALUE_INFO = "info";
+	public static final String VALUE_WARN = "warn";
+	public static final String VALUE_DEBUG = "debug";
+	public static final String VALUE_TRACE = "trace";
+	
+	// model-specific ones
+	public static final String VALUE_CLOCKWORK_SUMMARY = "clockworkSummary";
+	public static final String VALUE_PROJECTOR_SUMMARY = "projectorSummary";
+	public static final String VALUE_MAPPING_TRACE = "mappingTrace";
+	public static final String VALUE_EXPRESSION_TRACE = "expressionTrace";
+	public static final String VALUE_PROJECTOR_TRACE = "projectorTrace";
+	public static final String VALUE_LENS_TRACE = "lensTrace";
 
 	public static final String CMD_MARK_CURRENT_LOG_POSITION = "com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition";
 	public static final String CMD_SHOW_LOG_IN_CONSOLE = "com.evolveum.midpoint.eclipse.ui.command.showLogInConsole";

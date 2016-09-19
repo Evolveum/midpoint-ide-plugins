@@ -42,6 +42,9 @@ public class ParsingUtils {
 	}
 	
 	public static String parseThread(String line, Boolean componentNames) {
+		if (line == null) {
+			return null;
+		}
 		int firstLeftBracket = line.indexOf('[');
 		if (firstLeftBracket < 0) {
 			return null;
