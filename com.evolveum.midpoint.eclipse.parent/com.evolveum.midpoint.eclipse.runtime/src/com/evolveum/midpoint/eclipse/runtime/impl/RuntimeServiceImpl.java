@@ -92,7 +92,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			
 			// old way
 			{
-				String url = parameters.getUrl() + REST + "/users";
+				String url = parameters.getUrl() + REST + "/users/search";
 				HttpPost request = new HttpPost(url);
 
 				HttpEntity body = new StringEntity("<query><filter><inOid><value>none</value></inOid></filter></query>", createXmlContentType());
@@ -100,11 +100,15 @@ public class RuntimeServiceImpl implements RuntimeService {
 		
 				HttpResponse response = client.execute(request);
 				StatusLine statusLine = response.getStatusLine();
+				TestConnectionResponse tcr;
 				if (isSuccess(statusLine)) {
-					return new TestConnectionResponse(true, null, null);
+					tcr = new TestConnectionResponse(true, null, null);
 				} else {
-					return new TestConnectionResponse(false, "Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase(), null);
+					tcr = new TestConnectionResponse(false, "Server response: " + statusLine.getStatusCode() + ": " + statusLine.getReasonPhrase(), null);
 				}
+				tcr.setVersion("(unknown)");
+				tcr.setRevision("(unknown)");
+				return tcr;
 			}
 		} catch (Throwable t) {
 			return new TestConnectionResponse(false, null, t);
