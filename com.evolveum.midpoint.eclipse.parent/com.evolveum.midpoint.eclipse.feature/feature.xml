@@ -2,42 +2,37 @@
 <feature
       id="com.evolveum.midpoint.eclipse.feature"
       label="MidPoint Development Tools"
-      version="0.10.0.qualifier"
+      version="0.10.1.qualifier"
       provider-name="Evolveum">
 
    <description>
       MidPoint Development Tools for Eclipse facilitate development,
 deployment and maintenance of midPoint-based solutions. These
-tools are currently available as a prototype, with a much limited
+tools are currently available as a prototype, with a limited
 functionality. This functionality includes:
-
-* uploading files from Eclipse workspace to a midPoint server,
+* browsing objects stored on a midPoint server,
+* transferring objects between Eclipse workspace and midPoint
+server (upload, download, reload, compare),
 * executing actions (defined by XML files in Eclipse workspace)
 on a midPoint server,
 * observing output of these actions: data, console, operation
 result and log fragments,
-* structured view of midPoint model-level logs (this functionality
-is currently available separately).
-
+* viewing server log within Eclipse workspace (providing 
+plain as well as structured view).
 More information can be found at:
 * https://wiki.evolveum.com/display/midPoint/Eclipse+plugin+HOWTO
-* https://wiki.evolveum.com/display/midPoint/Log+Viewer
    </description>
 
    <copyright>
       Copyright (c) 2010-2016 Evolveum
-
 Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
 http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 or implied.
-
 See the License for the specific language governing permissions
 and limitations under the License.
    </copyright>
