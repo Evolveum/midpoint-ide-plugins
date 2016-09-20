@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.eclipse.ui.components.browser;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -22,6 +23,8 @@ public class BulkActionGenerator extends Generator {
 		DISABLE("disable", "disable", ObjectTypes.FOCUS, false, true, false),
 		DELETE("delete", "delete", ObjectTypes.OBJECT, true, true, true),
 		MODIFY("modify", "modify", ObjectTypes.OBJECT, true, true, false),
+		ASSIGN_THIS("assign selected objects (to something)", "modify", ObjectTypes.ABSTRACT_ROLE, true, true, false),
+		ASSIGN_TO_THIS("assign (something) to selected objects", "modify", ObjectTypes.FOCUS, true, true, false),
 		LOG("log", "log", ObjectTypes.OBJECT, false, false, false),
 		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false, false),
 		VALIDATE("validate resource", "validate", ObjectTypes.RESOURCE, false, false, false),
@@ -60,7 +63,15 @@ public class BulkActionGenerator extends Generator {
 
 		Element top = null;
 		
-		List<Batch> batches = createBatches(objects, options, action.applicableTo);
+		List<Batch> batches;
+		if (action != Action.ASSIGN_THIS) {
+			batches = createBatches(objects, options, action.applicableTo);
+		} else {
+			// very special case: we assign to (yet) unspecified single object
+			Batch batch = new Batch();
+			batch.getObjects().add(new ServerObject("TODO: oid", "TODO: name", ObjectTypes.FOCUS, Collections.emptyList(), "", ""));
+			batches = Collections.singletonList(batch);
+		}
 		Element root;
 		if (batches.size() > 1) {
 			top = root = DOMUtil.getDocument(new QName(Constants.COMMON_NS, options.isWrapActions() ? "objects" : "actions", "c")).getDocumentElement();
@@ -95,7 +106,7 @@ public class BulkActionGenerator extends Generator {
 			}
 					
 			createOidsSearch(pipe, batch);
-			createAction(pipe, options);
+			createAction(pipe, options, objects);
 			
 			if (task != null) {
 				DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "taskIdentifier", "c")).setTextContent(generateTaskIdentifier());
@@ -148,7 +159,8 @@ public class BulkActionGenerator extends Generator {
 		}
 	}
 
-	public void createAction(Element root, GeneratorOptions options) {
+	// objects should be non-null for ASSIGN_THIS action
+	public void createAction(Element root, GeneratorOptions options, List<ServerObject> objects) {
 		Element actionE = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
 		DOMUtil.setXsiType(actionE, new QName(Constants.SCRIPT_NS, "ActionExpressionType", "s"));
 		DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(action.actionName);
@@ -162,6 +174,7 @@ public class BulkActionGenerator extends Generator {
 			DOMUtil.createSubElement(rawParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("dryRun");
 			DOMUtil.createSubElement(rawParam, new QName(Constants.COMMON_NS, "value", "c")).setTextContent("true");
 		}
+		
 		if (action == Action.MODIFY) {
 			Element deltaParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
 			DOMUtil.createSubElement(deltaParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("delta");
@@ -181,6 +194,34 @@ public class BulkActionGenerator extends Generator {
 			DOMUtil.setXsiType(script, new QName(Constants.COMMON_NS, "ScriptExpressionEvaluatorType", "c"));
 			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "code", "c")).setTextContent("\n                    log.info('{}', input.asPrismObject().debugDump())\n");
 			DOMUtil.createComment(actionE, " <s:parameter><s:name>outputItem</s:name><c:value xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>UserType</c:value></s:parameter> ");
+		} else if (action == Action.ASSIGN_TO_THIS) {
+			Element deltaParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(deltaParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("delta");
+			Element objectDelta = DOMUtil.createSubElement(deltaParam, new QName(Constants.COMMON_NS, "value", "c"));
+			DOMUtil.setXsiType(objectDelta, new QName(Constants.TYPES_NS, "ObjectDeltaType", "t"));
+			Element itemDelta = DOMUtil.createSubElement(objectDelta, new QName(Constants.TYPES_NS, "itemDelta", "t"));
+			
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "modificationType", "t")).setTextContent("add");
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "path", "t")).setTextContent("assignment");
+			Element assignment = DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "value", "t"));
+			DOMUtil.setXsiType(assignment, new QName(Constants.COMMON_NS, "AssignmentType"));
+			Element targetRef = DOMUtil.createSubElement(assignment, new QName(Constants.COMMON_NS, "targetRef", "c"));
+			targetRef.setAttribute("type", "TODO: target type");
+			targetRef.setAttribute("oid", "TODO: target OID");
+		} else if (action == Action.ASSIGN_THIS) {
+			Element deltaParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(deltaParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("delta");
+			Element objectDelta = DOMUtil.createSubElement(deltaParam, new QName(Constants.COMMON_NS, "value", "c"));
+			DOMUtil.setXsiType(objectDelta, new QName(Constants.TYPES_NS, "ObjectDeltaType", "t"));
+			Element itemDelta = DOMUtil.createSubElement(objectDelta, new QName(Constants.TYPES_NS, "itemDelta", "t"));
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "modificationType", "t")).setTextContent("add");
+			DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "path", "t")).setTextContent("assignment");
+			for (ServerObject object : objects) {
+				Element assignment = DOMUtil.createSubElement(itemDelta, new QName(Constants.TYPES_NS, "value", "t"));
+				DOMUtil.setXsiType(assignment, new QName(Constants.COMMON_NS, "AssignmentType"));
+				Element targetRef = DOMUtil.createSubElement(assignment, new QName(Constants.COMMON_NS, "targetRef", "c"));
+				createRefContent(targetRef, object, options);
+			}
 		}
 		
 	}
@@ -208,7 +249,10 @@ public class BulkActionGenerator extends Generator {
 	public String generateFromSourceObject(SourceObject object, GeneratorOptions options) {
 		Element pipe = DOMUtil.getDocument(new QName(Constants.SCRIPT_NS, "pipeline", "s")).getDocumentElement();
 		createSingleSourceSearch(pipe, object);
-		createAction(pipe, options);
+		if (action == Action.ASSIGN_THIS) {
+			throw new IllegalStateException("'Assign this' is not supported here.");
+		}
+		createAction(pipe, options, null);
 		return DOMUtil.serializeDOMToString(pipe);
 	}
 

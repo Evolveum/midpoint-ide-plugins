@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IContainer;
@@ -36,6 +37,9 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -106,6 +110,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	private Button btnDownload;
 	private Button btnGenerate;
 	private Button btnExecute;
+	private Button btnCopyOid;
 	
 	private Button btnSymbolicReferences;
 	private Button btnRunTimeResolution;
@@ -129,6 +134,8 @@ public class BrowserDialog extends TitleAreaDialog {
 			new BulkActionGenerator(BulkActionGenerator.Action.DISABLE),
 			new BulkActionGenerator(BulkActionGenerator.Action.DELETE),
 			new BulkActionGenerator(BulkActionGenerator.Action.MODIFY),
+			new BulkActionGenerator(BulkActionGenerator.Action.ASSIGN_TO_THIS),
+			new BulkActionGenerator(BulkActionGenerator.Action.ASSIGN_THIS),
 			new BulkActionGenerator(BulkActionGenerator.Action.EXECUTE_SCRIPT),
 			new BulkActionGenerator(BulkActionGenerator.Action.LOG),
 			new BulkActionGenerator(BulkActionGenerator.Action.TEST_RESOURCE),
@@ -754,7 +761,35 @@ public class BrowserDialog extends TitleAreaDialog {
 		});
 		btnExecute.setToolTipText("Generates and executes specified items, e.g. bulk actions or tasks.");
 		btnExecute.setEnabled(false);
+		
+		btnCopyOid = createButton(parent, GENERATE_ID, "Copy &OID(s)", false);
+		btnCopyOid.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				copyOidPerformed();
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				copyOidPerformed();
+			}
+		});
+		btnCopyOid.setToolTipText("Copies OID(s) of selected object(s) into clipboard.");
+		btnCopyOid.setEnabled(false);
+		
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+	}
+
+	protected void copyOidPerformed() {
+		Display display = Display.getCurrent();
+		if (display == null) {
+			Console.logError("No display.");
+			return;
+		}
+		Clipboard cb = new Clipboard(display);
+        TextTransfer textTransfer = TextTransfer.getInstance();
+		
+        String text = StringUtils.join(getSelectedOids(), ", ");
+        cb.setContents(new Object[] { text }, new Transfer[] { textTransfer });
 	}
 
 //	protected void showPerformed() {
@@ -1022,6 +1057,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnDownload.setEnabled(!oids.isEmpty() && haveProject);
 		btnGenerate.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0);
 		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
+		btnCopyOid.setEnabled(!oids.isEmpty());
 	}
 	
 	public void computeTxtBatchSizeIsEnabled() {

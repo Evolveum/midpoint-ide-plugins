@@ -35,12 +35,16 @@ public abstract class Generator {
 	}
 	
 	public void createRefContent(Element refRoot, ServerObject object, GeneratorOptions options) {
+		createRefContent(refRoot, object, options, getSymbolicRefItemName(object), getSymbolicRefItemValue(object));
+	}
+	
+	public static void createRefContent(Element refRoot, ServerObject object, GeneratorOptions options, String symbolicRefItemName, String symbolicRefItemValue) {
 		DOMUtil.setQNameAttribute(refRoot, "type", object.getType().getTypeQName());
 		if (options.isSymbolicReferences()) {
 			Element filter = DOMUtil.createSubElement(refRoot, new QName(Constants.COMMON_NS, "filter", "c"));
 			Element equal = DOMUtil.createSubElement(filter, new QName(Constants.QUERY_NS, "equal", "q"));
-			DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "path", "q")).setTextContent(getSymbolicRefItemName(object));
-			DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "value", "q")).setTextContent(getSymbolicRefItemValue(object));
+			DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "path", "q")).setTextContent(symbolicRefItemName);
+			DOMUtil.createSubElement(equal, new QName(Constants.QUERY_NS, "value", "q")).setTextContent(symbolicRefItemValue);
 			if (options.isSymbolicReferencesRuntime()) {
 				DOMUtil.createSubElement(refRoot, new QName(Constants.COMMON_NS, "resolutionTime", "c")).setTextContent("run");
 			}
