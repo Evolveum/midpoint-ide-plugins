@@ -86,6 +86,11 @@ public class ServerActionHandler extends AbstractHandler {
 			return;		// message was logged
 		}
 		
+		boolean uploadFirst = "true".equals(event.getParameter(PluginConstants.PARAM_UPLOAD_FIRST));
+		if (uploadFirst && !Expander.checkPropertiesFile(selectedServer)) {
+			return;		// message was logged
+		}
+		
 		ISelection selection = SelectionUtils.getSelection(event);
 		
 		Job job = new Job(jobTitle) {
@@ -156,8 +161,10 @@ public class ServerActionHandler extends AbstractHandler {
 						break;
 					}
 					
-					if ("true".equals(event.getParameter(PluginConstants.PARAM_UPLOAD_FIRST))) {
-						ServerRequest uploadRequest = new ServerRequest(ServerAction.UPLOAD, object.getContent());
+					if (uploadFirst) {
+						String content = object.getContent();
+						String expandedContent = Expander.expand(content, object, PluginPreferences.getSelectedServer());
+						ServerRequest uploadRequest = new ServerRequest(ServerAction.UPLOAD, expandedContent);
 						ServerResponse uploadResponse = runtime.executeServerRequest(uploadRequest, PluginPreferences.getConnectionParameters());
 						if (!(uploadResponse instanceof UploadServerResponse)) {
 							Console.logError("Couldn't upload object " + object.getDisplayName() + ": unexpected response: " + uploadResponse.getClass());
