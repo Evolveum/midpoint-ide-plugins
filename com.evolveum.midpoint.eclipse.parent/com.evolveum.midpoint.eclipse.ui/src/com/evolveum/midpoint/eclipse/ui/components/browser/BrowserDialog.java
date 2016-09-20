@@ -412,6 +412,15 @@ public class BrowserDialog extends TitleAreaDialog {
 		if (interpretation == null) {
 			return;
 		}
+		
+		if (types.size() > 1) {
+			for (int i = 0; i < types.size(); i++) {
+				if (!types.get(i).isConcrete() && i > 0) {
+					Util.showAndLogWarning("Unsupported query", "Because of MID-3390 this query is currently not supported by midPoint. Please replace abstract types with concrete ones; or specify at most one abstract type.");
+					return;
+				}
+			}
+		}
 
 		int limit = getLimit();
 		int offset = getOffset();

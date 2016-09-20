@@ -546,17 +546,17 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 			if (dataClauseRequired) {
 				Element or = DOMUtil.createSubElement(dataClauseParent, Constants.Q_OR);
-				for (String name : names) {
-					Element substring = DOMUtil.createSubElement(or, Constants.Q_SUBSTRING);
-					DOMUtil.createSubElement(substring, Constants.Q_MATCHING).setTextContent("polyStringNorm");
-					DOMUtil.createSubElement(substring, Constants.Q_PATH).setTextContent("name");			
-					DOMUtil.createSubElement(substring, Constants.Q_VALUE).setTextContent(name);
-				}
 				if (!oids.isEmpty()) {
 					Element inOid = DOMUtil.createSubElement(or, Constants.Q_IN_OID);	
 					for (String oid : oids) {
 						DOMUtil.createSubElement(inOid, Constants.Q_VALUE).setTextContent(oid);
 					}
+				}
+				for (String name : names) {
+					Element substring = DOMUtil.createSubElement(or, Constants.Q_SUBSTRING);
+					DOMUtil.createSubElement(substring, Constants.Q_MATCHING).setTextContent("polyStringNorm");
+					DOMUtil.createSubElement(substring, Constants.Q_PATH).setTextContent("name");			
+					DOMUtil.createSubElement(substring, Constants.Q_VALUE).setTextContent(name);
 				}
 			}
 		}
@@ -577,7 +577,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		return namesOidsQueryInternal(null, Collections.emptyList(), oids, limit, offset);
 	}
 
-	private static List<String> getLines(String text) {
+	public static List<String> getLines(String text) {
 		List<String> rv = new ArrayList<>();
 		StringReader sr = new StringReader(text);
 		try {
