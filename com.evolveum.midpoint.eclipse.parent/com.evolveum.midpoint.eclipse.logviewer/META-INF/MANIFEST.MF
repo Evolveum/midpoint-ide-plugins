@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Evolveum Log Viewer
 Bundle-SymbolicName: com.evolveum.midpoint.eclipse.logviewer;singleton:=true
-Bundle-Version: 0.10.1.qualifier
+Bundle-Version: 0.10.2.qualifier
 Bundle-Activator: com.evolveum.midpoint.eclipse.logviewer.Activator
 Bundle-Vendor: Evolveum
 Require-Bundle: org.eclipse.ui,

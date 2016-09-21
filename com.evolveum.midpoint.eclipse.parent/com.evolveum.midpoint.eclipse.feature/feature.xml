@@ -2,7 +2,7 @@
 <feature
       id="com.evolveum.midpoint.eclipse.feature"
       label="MidPoint Development Tools"
-      version="0.10.1.qualifier"
+      version="0.10.2.qualifier"
       provider-name="Evolveum">
 
    <description>
