@@ -77,19 +77,24 @@ public abstract class Generator {
 	}
 	protected List<Batch> createBatches(List<ServerObject> objects, GeneratorOptions options, ObjectTypes applicableTo) {
 		List<Batch> rv = new ArrayList<Batch>();
-		Batch current = null;
-		int index = 0;
-		for (ServerObject object : objects) {
-			if (!applicableTo.isAssignableFrom(object.getType())) {
-				continue;
+		
+		if (options.isBatchByOids()) {
+			Batch current = null;
+			int index = 0;
+			for (ServerObject object : objects) {
+				if (!applicableTo.isAssignableFrom(object.getType())) {
+					continue;
+				}
+				if (current == null || current.getObjects().size() == options.getBatchSize()) {
+					current = new Batch();
+					current.setFirst(index);
+					rv.add(current);
+				}
+				current.getObjects().add(object);
+				index++;
 			}
-			if (current == null || current.getObjects().size() == options.getBatchSize()) {
-				current = new Batch();
-				current.setFirst(index);
-				rv.add(current);
-			}
-			current.getObjects().add(object);
-			index++;
+		} else {
+			rv.add(new Batch());
 		}
 		return rv;
 	}

@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.eclipse.ui.components.browser;
 
+import java.util.Collection;
+
+import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
+
 public class GeneratorOptions {
 	
 	private boolean symbolicReferences;
@@ -12,6 +16,8 @@ public class GeneratorOptions {
 	private boolean batchByOids;
 	private boolean batchUsingOriginalQuery;
 	private int batchSize;
+	private String originalQuery;
+	private Collection<ObjectTypes> originalQueryTypes;
 	
 	public boolean isSymbolicReferences() {
 		return symbolicReferences;
@@ -67,8 +73,18 @@ public class GeneratorOptions {
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
 	}
+	public String getOriginalQuery() {
+		return originalQuery;
+	}
+	public void setOriginalQuery(String originalQuery) {
+		this.originalQuery = originalQuery;
+	}
+	public Collection<ObjectTypes> getOriginalQueryTypes() {
+		return originalQueryTypes;
+	}
+	public void setOriginalQueryTypes(Collection<ObjectTypes> originalQueryTypes) {
+		this.originalQueryTypes = originalQueryTypes;
+	}
 	
-	
-
 }
 

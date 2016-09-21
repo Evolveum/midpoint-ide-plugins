@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
+import com.evolveum.midpoint.eclipse.ui.util.Util;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class TaskGenerator extends Generator {
@@ -55,11 +56,19 @@ public class TaskGenerator extends Generator {
 
 	@Override
 	public String generate(List<ServerObject> objects, GeneratorOptions options) {
-		if (objects.isEmpty()) {
-			return null;
-		}
 		Document doc = DOMUtil.getDocument(new QName(Constants.COMMON_NS, "objects", "c"));
 		Element root = doc.getDocumentElement();
+		
+		// TODO deduplicate with bulk actions
+		ObjectTypes type = action.applicableTo;
+		if (options.isBatchUsingOriginalQuery()) {
+			if (options.getOriginalQueryTypes().size() == 1) {
+				ObjectTypes selected = options.getOriginalQueryTypes().iterator().next();
+				if (type.isAssignableFrom(selected)) {
+					type = selected;
+				}
+			}
+		}
 		
 		List<Batch> batches = createBatches(objects, options, action.applicableTo);
 		for (Batch batch : batches) {
@@ -68,18 +77,40 @@ public class TaskGenerator extends Generator {
 			DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "name", "c")).setTextContent("Execute " + action.getDisplayName() + " on objects " + (batch.getFirst()+1) + " to " + (batch.getLast()+1));
 			Element extension = DOMUtil.createSubElement(task, new QName(Constants.COMMON_NS, "extension", "c"));
 			DOMUtil.setNamespaceDeclaration(extension, "mext", Constants.MEXT_NS);
-			DOMUtil.createSubElement(extension, new QName(Constants.MEXT_NS, "objectType", "mext")).setTextContent(action.applicableTo.getTypeName());
+			DOMUtil.createSubElement(extension, new QName(Constants.MEXT_NS, "objectType", "mext")).setTextContent(type.getTypeName());
 			Element objectQuery = DOMUtil.createSubElement(extension, new QName(Constants.MEXT_NS, "objectQuery", "mext"));
-			Element filter = DOMUtil.createSubElement(objectQuery, Constants.Q_FILTER_Q);
-			Element inOid = DOMUtil.createSubElement(filter, Constants.Q_IN_OID_Q);	
-			for (ServerObject o : batch.getObjects()) {
-				DOMUtil.createSubElement(inOid, Constants.Q_VALUE_Q).setTextContent(o.getOid());
-				DOMUtil.createComment(inOid, " " + o.getName() + " ");
+			if (options.isBatchByOids()) {
+				Element filter = DOMUtil.createSubElement(objectQuery, Constants.Q_FILTER_Q);
+				Element inOid = DOMUtil.createSubElement(filter, Constants.Q_IN_OID_Q);	
+				for (ServerObject o : batch.getObjects()) {
+					DOMUtil.createSubElement(inOid, Constants.Q_VALUE_Q).setTextContent(o.getOid());
+					DOMUtil.createComment(inOid, " " + o.getName() + " ");
+				}
+			} else {
+				try {
+					Element originalQuery = DOMUtil.parseDocument(options.getOriginalQuery()).getDocumentElement();
+					List<Element> children = DOMUtil.listChildElements(originalQuery);
+					for (Element child : children) {
+						DOMUtil.fixNamespaceDeclarations(child);
+						objectQuery.appendChild(doc.adoptNode(child));
+					}
+				} catch (RuntimeException e) {
+					Util.showAndLogError("Couldn't parse XML query", "Error parsing query: " + e.getMessage(), e);
+				}
 			}
 			
 			ObjectTypes superType = null;
-			for (ServerObject o : batch.getObjects()) {
-				superType = ObjectTypes.commonSuperType(superType, o.getType());
+			if (options.isBatchByOids()) {
+				for (ServerObject o : batch.getObjects()) {
+					superType = ObjectTypes.commonSuperType(superType, o.getType());
+				}
+			} else {
+				for (ObjectTypes t : options.getOriginalQueryTypes()) {
+					superType = ObjectTypes.commonSuperType(superType, t);
+				}
+			}
+			if (superType == null) {
+				superType = ObjectTypes.OBJECT;
 			}
 			
 			if (action == Action.MODIFY) {

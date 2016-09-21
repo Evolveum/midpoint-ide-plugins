@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.resources.IContainer;
@@ -91,6 +90,7 @@ public class BrowserDialog extends TitleAreaDialog {
 	
 	private static final int INITIAL_QUERY_HEIGHT = 156;
 	private static final int INITIAL_RESULTS_HEIGHT = 156;
+	private static final int SEL_ORIGINAL_QUERY = 3;
 	
 	private Text txtQuery;
 	private ListViewer listTypes;
@@ -115,7 +115,6 @@ public class BrowserDialog extends TitleAreaDialog {
 	private Button btnSymbolicReferences;
 	private Button btnRunTimeResolution;
 	private Button btnWrapActions;
-	private Button btnUseOriginalQuery;
 	
 	private Combo comboWhatToGenerate;
 	private Combo comboUseProject;
@@ -153,10 +152,6 @@ public class BrowserDialog extends TitleAreaDialog {
 			new RefGenerator("parentOrgRef", ObjectTypes.ORG),
 			new RefGenerator("ownerRef", ObjectTypes.ORG)
 			);
-	private Button btnExecAllByOid;
-	private Button btnExecIndividually;
-	private Button btnExecByN;
-	private Button btnExecAllByQuery;
 	private Combo comboExecution;
 	private Text txtBatchSize;
 	private Button btnCreateSuspended;
@@ -354,20 +349,11 @@ public class BrowserDialog extends TitleAreaDialog {
 	}
 	
 	protected void convertToQueryPerformed() {
-		String query = txtQuery.getText();
-		List<ObjectTypes> types = ((IStructuredSelection)listTypes.getSelection()).toList();
 		QueryInterpretation interpretation = getInterpretation();
 		if (interpretation == null || interpretation == QueryInterpretation.XML_QUERY) {
 			return;
 		}
-		int limit = getLimit();
-		int offset = getOffset();
-		if (limit < 0 || offset < 0) {
-			return;
-		}
-		
-		RuntimeService runtime = RuntimeActivator.getRuntimeService();
-		String realQuery = runtime.createQuery(types, query, interpretation, limit, offset);
+		String realQuery = getXmlQuery();
 		
 		txtQuery.setText(realQuery);
 		btnNamesAndOids.setSelection(false);
@@ -375,6 +361,25 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnOids.setSelection(false);
 		btnQuery.setSelection(true);
 		computeSearchBoxItemsEnablement();
+	}
+
+	public String getXmlQuery() {
+		String query = txtQuery.getText();
+		QueryInterpretation interpretation = getInterpretation();
+		if (interpretation == null || interpretation == QueryInterpretation.XML_QUERY) {
+			return query;
+		}
+		List<ObjectTypes> types = getSelectedTypes();
+		int limit = getLimit();
+		int offset = getOffset();
+		
+		RuntimeService runtime = RuntimeActivator.getRuntimeService();
+		String realQuery = runtime.createQuery(types, query, interpretation, limit, offset);
+		return realQuery;
+	}
+
+	public List<ObjectTypes> getSelectedTypes() {
+		return ((IStructuredSelection)listTypes.getSelection()).toList();
 	}
 
 	public int getLimit() {
@@ -413,7 +418,7 @@ public class BrowserDialog extends TitleAreaDialog {
 
 	protected void searchPerformed() {
 		String query = txtQuery.getText();
-		List<ObjectTypes> types = ((IStructuredSelection)listTypes.getSelection()).toList();
+		List<ObjectTypes> types = getSelectedTypes();
 		
 		QueryInterpretation interpretation = getInterpretation();
 		if (interpretation == null) {
@@ -427,6 +432,10 @@ public class BrowserDialog extends TitleAreaDialog {
 					return;
 				}
 			}
+		}
+		
+		if (interpretation == QueryInterpretation.XML_QUERY && types.size() > 1) {
+			Util.showAndLogWarning("Unsupported query", "You can select at most one type when providing XML query");
 		}
 
 		int limit = getLimit();
@@ -620,13 +629,15 @@ public class BrowserDialog extends TitleAreaDialog {
 		comboExecution.setText(defVal);
 		comboExecution.add("By OIDs, one after one");
 		comboExecution.add("By OIDs, in batches of N");
-		//comboExecution.add("Using original query (ignoring selection)");
-		comboExecution.add("Using original query");
+		comboExecution.add("Using original query (selection is ignored!)");
 		comboExecution.setToolTipText("'By OIDs' means the query will refer to selected objects' OIDs. 'Using original query' means that the selection will be ignored, and the original query will be used instead.");
 		comboExecution.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				computeTxtBatchSizeIsEnabled();
+				computeTreeResultsEnabled();
+				actionButtonsRelatedSelectionChanged();
+				computeOptionsEnablement();
 			}
 		});
 		
@@ -698,6 +709,10 @@ public class BrowserDialog extends TitleAreaDialog {
 		lblRunTimeResolution.setToolTipText("Should references be resolved at runtime? Currently supported only for assignments and targetRefs.");
 	}
 	
+	protected void computeTreeResultsEnabled() {
+		treeResults.getControl().setEnabled(comboExecution.getSelectionIndex() != 3 || !isExecutable());
+	}
+
 	@Override
 	protected boolean isResizable() {
 		return true;
@@ -850,18 +865,17 @@ public class BrowserDialog extends TitleAreaDialog {
 			return;
 		}
 		List<ServerObject> selectedObjects = getSelectedObjects();
-		if (selectedObjects.size() == 0) {
-			return;
-		}
 		int genIndex = comboWhatToGenerate.getSelectionIndex();
 		if (genIndex < 0) {
 			return;
 		}
-		GeneratorOptions options = createGeneratorOptions(selectedObjects);
-		if (!options.isBatchByOids()) {
+		GeneratorOptions options = createGeneratorOptions();
+		if (options.isBatchByOids() && selectedObjects.isEmpty()) {
 			return;
 		}
-
+		if (checkMultipleTypes(options)) {
+			return;
+		}
 		Generator generator = generators.get(genIndex);
 		Job job = new Job("Generating XML") {
 			protected IStatus run(IProgressMonitor monitor) {
@@ -880,7 +894,17 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 	}
 
-	public GeneratorOptions createGeneratorOptions(List<ServerObject> selectedObjects) {
+	public boolean checkMultipleTypes(GeneratorOptions options) {
+		if (options.isBatchUsingOriginalQuery()) {
+			if (getInterpretation() == QueryInterpretation.XML_QUERY && getSelectedTypes().size() > 1) {
+				Util.showAndLogWarning("Unsupported query", "You can select at most one type when providing XML query");
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public GeneratorOptions createGeneratorOptions() {
 		GeneratorOptions options = new GeneratorOptions();
 		options.setSymbolicReferences(btnSymbolicReferences.getSelection());
 		options.setSymbolicReferencesRuntime(btnRunTimeResolution.getSelection());
@@ -890,10 +914,14 @@ public class BrowserDialog extends TitleAreaDialog {
 		options.setDryRun(btnCreateDryRun.getSelection());
 		int execOption = comboExecution.getSelectionIndex();
 		switch (execOption) {
-		case 0: options.setBatchByOids(true); options.setBatchSize(selectedObjects.size()); break;
+		case 0: options.setBatchByOids(true); options.setBatchSize(getSelectedObjects().size()); break;
 		case 1: options.setBatchByOids(true); options.setBatchSize(1); break;
 		case 2: options.setBatchByOids(true); options.setBatchSize(getBatchSize()); break;
-		case 3: Util.showWarning("Not implemented yet", "This feature is not yet implemented"); break;
+		case 3: 
+			options.setBatchUsingOriginalQuery(true); 
+			options.setOriginalQuery(getXmlQuery());
+			options.setOriginalQueryTypes(getSelectedTypes());
+			break;
 		}
 		return options;
 	}
@@ -904,18 +932,17 @@ public class BrowserDialog extends TitleAreaDialog {
 			return;
 		}
 		List<ServerObject> selectedObjects = getSelectedObjects();
-		if (selectedObjects.size() == 0) {
-			return;
-		}
 		int genIndex = comboWhatToGenerate.getSelectionIndex();
 		if (genIndex < 0) {
 			return;
 		}
-		GeneratorOptions options = createGeneratorOptions(selectedObjects);
-		if (!options.isBatchByOids()) {
+		GeneratorOptions options = createGeneratorOptions();
+		if (options.isBatchByOids() && selectedObjects.isEmpty()) {
 			return;
 		}
-		
+		if (checkMultipleTypes(options)) {
+			return;
+		}
 		ServerInfo selectedServer = PluginPreferences.getSelectedServer();
 		if (selectedServer == null) {
 			return;
@@ -1055,8 +1082,8 @@ public class BrowserDialog extends TitleAreaDialog {
 		
 		btnShow.setEnabled(!oids.isEmpty() && haveProject);
 		btnDownload.setEnabled(!oids.isEmpty() && haveProject);
-		btnGenerate.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0);
-		btnExecute.setEnabled(!oids.isEmpty() && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
+		btnGenerate.setEnabled((!oids.isEmpty() || comboExecution.getSelectionIndex() == SEL_ORIGINAL_QUERY) && haveProject && whatToGenerate >= 0);
+		btnExecute.setEnabled((!oids.isEmpty() || comboExecution.getSelectionIndex() == SEL_ORIGINAL_QUERY) && haveProject && whatToGenerate >= 0 && generators.get(whatToGenerate).isExecutable());
 		btnCopyOid.setEnabled(!oids.isEmpty());
 	}
 	
@@ -1074,6 +1101,7 @@ public class BrowserDialog extends TitleAreaDialog {
 		btnCreateSuspended.setEnabled(getGenerator().supportsWrapIntoTask() && btnWrapActions.getSelection() || getGenerator().supportsCreateSuspended());
 		btnCreateRaw.setEnabled(getGenerator().supportsRawOption());
 		btnCreateDryRun.setEnabled(getGenerator().supportsDryRunOption());
+		computeTreeResultsEnabled();
 	}
 	
 	public Generator getGenerator() {

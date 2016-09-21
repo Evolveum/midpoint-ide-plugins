@@ -12,6 +12,7 @@ import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
 import com.evolveum.midpoint.eclipse.runtime.api.resp.ServerObject;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
 import com.evolveum.midpoint.eclipse.ui.util.Console;
+import com.evolveum.midpoint.eclipse.ui.util.Util;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class BulkActionGenerator extends Generator {
@@ -57,10 +58,6 @@ public class BulkActionGenerator extends Generator {
 
 	@Override
 	public String generate(List<ServerObject> objects, GeneratorOptions options) {
-		if (objects.isEmpty()) {
-			return null;
-		}
-
 		Element top = null;
 		
 		List<Batch> batches;
@@ -68,6 +65,10 @@ public class BulkActionGenerator extends Generator {
 			batches = createBatches(objects, options, action.applicableTo);
 		} else {
 			// very special case: we assign to (yet) unspecified single object
+			if (!options.isBatchByOids()) {
+				Util.showAndLogInformation("Not supported", "Using original query is not supported for this action.");
+				return null;
+			}
 			Batch batch = new Batch();
 			batch.getObjects().add(new ServerObject("TODO: oid", "TODO: name", ObjectTypes.FOCUS, Collections.emptyList(), "", ""));
 			batches = Collections.singletonList(batch);
@@ -105,7 +106,7 @@ public class BulkActionGenerator extends Generator {
 				pipe = DOMUtil.createSubElement(batchRoot, new QName(Constants.SCRIPT_NS, "pipeline", "s")); 
 			}
 					
-			createOidsSearch(pipe, batch);
+			createSearch(pipe, options, batch);
 			createAction(pipe, options, objects);
 			
 			if (task != null) {
@@ -127,15 +128,44 @@ public class BulkActionGenerator extends Generator {
 		return System.currentTimeMillis() + ":" + Math.round(Math.random() * 1000000000.0);
 	}
 
-	public void createOidsSearch(Element root, Batch batch) {
+	public void createSearch(Element root, GeneratorOptions options, Batch batch) {
+		
+		ObjectTypes type = action.applicableTo;
+		if (options.isBatchUsingOriginalQuery()) {
+			if (options.getOriginalQueryTypes().size() == 1) {
+				ObjectTypes selected = options.getOriginalQueryTypes().iterator().next();
+				if (type.isAssignableFrom(selected)) {
+					type = selected;
+				}
+			}
+		}
+		
 		Element search = DOMUtil.createSubElement(root, new QName(Constants.SCRIPT_NS, "expression", "s"));
 		DOMUtil.setXsiType(search, new QName(Constants.SCRIPT_NS, "SearchExpressionType", "s"));
-		DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(action.applicableTo.getTypeName());
-		Element filter = DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "searchFilter", "s"));
-		Element inOid = DOMUtil.createSubElement(filter, Constants.Q_IN_OID_Q);	
-		for (ServerObject o : batch.getObjects()) {
-			DOMUtil.createSubElement(inOid, Constants.Q_VALUE_Q).setTextContent(o.getOid());
-			DOMUtil.createComment(inOid, " " + o.getName() + " ");
+		DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "type", "s")).setTextContent(type.getTypeName());
+		
+		if (options.isBatchByOids()) {
+			Element filter = DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "searchFilter", "s"));
+			Element inOid = DOMUtil.createSubElement(filter, Constants.Q_IN_OID_Q);	
+			for (ServerObject o : batch.getObjects()) {
+				DOMUtil.createSubElement(inOid, Constants.Q_VALUE_Q).setTextContent(o.getOid());
+				DOMUtil.createComment(inOid, " " + o.getName() + " ");
+			}
+		} else {
+			try {
+				Element originalQuery = DOMUtil.parseDocument(options.getOriginalQuery()).getDocumentElement();
+				Element originalFilter = DOMUtil.getChildElement(originalQuery, "filter");
+				if (originalFilter != null) {
+					Element filter = DOMUtil.createSubElement(search, new QName(Constants.SCRIPT_NS, "searchFilter", "s"));
+					List<Element> children = DOMUtil.listChildElements(originalFilter);
+					for (Element child : children) {
+						DOMUtil.fixNamespaceDeclarations(child);
+						filter.appendChild(root.getOwnerDocument().adoptNode(child));
+					}
+				}
+			} catch (RuntimeException e) {
+				Util.showAndLogError("Couldn't parse XML query", "Error parsing query: " + e.getMessage(), e);
+			}
 		}
 	}
 
