@@ -14,7 +14,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 public class TaskGenerator extends Generator {
 	
-	private static final String URI_PREFIX_SYNC = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization";
+	private static final String URI_PREFIX_SYNC = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task";
 	private static final String URI_PREFIX_MODEL = "http://midpoint.evolveum.com/xml/ns/public/model";
 	
 	public enum Action {
