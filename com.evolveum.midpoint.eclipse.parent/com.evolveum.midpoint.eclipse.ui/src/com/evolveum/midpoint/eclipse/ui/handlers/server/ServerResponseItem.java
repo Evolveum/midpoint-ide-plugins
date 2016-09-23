@@ -153,6 +153,8 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		String logLine = getConsoleLogLine(responseCounter);
 		if (response.isSuccess()) {
 			Console.logMinor(logLine);
+		} else if (response.isWarning()) {
+			Console.logWarning(logLine);
 		} else {
 			Console.logError(logLine, response.getException());
 		}
@@ -179,6 +181,10 @@ public abstract class ServerResponseItem<SR extends ServerResponse> {
 		} else {
 			return !isSuccess();
 		}
+	}
+
+	public boolean isWarning() {
+		return response.isWarning();
 	}
 
 }

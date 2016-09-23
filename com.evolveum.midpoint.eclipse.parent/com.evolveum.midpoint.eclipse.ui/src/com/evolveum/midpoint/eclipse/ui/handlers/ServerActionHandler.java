@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.evolveum.midpoint.eclipse.runtime.RuntimeActivator;
 import com.evolveum.midpoint.eclipse.runtime.api.ObjectTypes;
+import com.evolveum.midpoint.eclipse.runtime.api.OperationResultStatus;
 import com.evolveum.midpoint.eclipse.runtime.api.RuntimeService;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerAction;
 import com.evolveum.midpoint.eclipse.runtime.api.req.ServerRequest;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.eclipse.runtime.api.resp.UploadServerResponse;
 import com.evolveum.midpoint.eclipse.ui.PluginConstants;
 import com.evolveum.midpoint.eclipse.ui.components.browser.BulkActionGenerator;
 import com.evolveum.midpoint.eclipse.ui.components.browser.GeneratorOptions;
-import com.evolveum.midpoint.eclipse.ui.handlers.ServerActionHandler.Action;
 import com.evolveum.midpoint.eclipse.ui.handlers.server.FileRequestHandler;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SelectionUtils;
 import com.evolveum.midpoint.eclipse.ui.handlers.sources.SourceObject;
@@ -181,19 +181,19 @@ public class ServerActionHandler extends AbstractHandler {
 						}
 					}
 					
-					boolean success = executeAction(action, object, genOptions);
+					OperationResultStatus status = executeAction(action, object, genOptions);
 					if (action == Action.TEST_RESOURCE && lastResponse != null) {
 						ResourceUtils.applyTestResult(object, lastResponse);
 					}
 					
-					if (success && action == Action.TEST_RESOURCE && "true".equals(event.getParameter(PluginConstants.PARAM_VALIDATE))) {
-						success = executeAction(Action.VALIDATE, object, genOptions);
+					if (status == OperationResultStatus.SUCCESS && action == Action.TEST_RESOURCE && "true".equals(event.getParameter(PluginConstants.PARAM_VALIDATE))) {
+						status = executeAction(Action.VALIDATE, object, genOptions);
 						if (lastResponse != null) {
 							ResourceUtils.applyValidationResult(object, lastResponse.getDataOutput());
 						}
 					}
 					
-					if (success) {
+					if (status == OperationResultStatus.SUCCESS || status == OperationResultStatus.WARNING) {
 						ok++;
 					} else {
 						fail++;
@@ -230,7 +230,7 @@ public class ServerActionHandler extends AbstractHandler {
 	
 	private ExecuteActionServerResponse lastResponse;		// FIXME brutal hack!!!
 
-	protected boolean executeAction(Action action, SourceObject object, GeneratorOptions genOptions) {
+	protected OperationResultStatus executeAction(Action action, SourceObject object, GeneratorOptions genOptions) {
 		BulkActionGenerator gen = new BulkActionGenerator(action.action);
 		String requestString = gen.generateFromSourceObject(object, genOptions);
 		System.out.println("Executing: " + requestString);
@@ -243,21 +243,25 @@ public class ServerActionHandler extends AbstractHandler {
 			// shouldn't occur
 			Console.logWarning("Item " + object.getDisplayName() + " was not applicable for this operation; skipping it: " + ((NotApplicableServerResponse) response).getMessage());
 			lastResponse = null;
-			return false;
+			return null;
 		} else {
 			ExecuteActionServerResponse easr = (ExecuteActionServerResponse) response;
 			lastResponse = easr;
-			if (easr.isSuccess()) {
+			switch (easr.getStatus()) {
+			case SUCCESS:
 				if (easr.getConsoleOutput() != null && easr.getConsoleOutput().startsWith("Warning: no matching")) {
 					Console.logWarning("Object " + object.getDisplayName() + " doesn't exist on server; name = " + object.getName() + ", oid = " + object.getOid());
-					return false;
+					return OperationResultStatus.WARNING;
 				} else {
 					Console.logMinor("Object " + object.getDisplayName() + " " + action.pastTense + " OK");
-					return true;
+					return OperationResultStatus.SUCCESS;
 				}
-			} else {
+			case WARNING:
+				Console.logWarning("Warning while processing object " + object.getDisplayName() + ": " + easr.getErrorDescription(), easr.getException());
+				return OperationResultStatus.WARNING;
+			default:
 				Console.logError("Error processing object " + object.getDisplayName() + ": " + easr.getErrorDescription(), easr.getException());
-				return false;
+				return OperationResultStatus.ERROR;
 			}
 		}
 	}

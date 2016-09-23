@@ -7,6 +7,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.eclipse.runtime.api.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class ServerResponse {
@@ -50,6 +51,15 @@ public class ServerResponse {
 
 	public boolean isSuccess() {
 		return exception == null && statusCode >= 200 && statusCode < 300;		// TODO operationResult
+	}
+
+	public boolean isWarning() {
+		return getStatus() == OperationResultStatus.WARNING;
+	}
+
+	// TODO
+	public OperationResultStatus getStatus() {
+		return isSuccess() ? OperationResultStatus.SUCCESS : OperationResultStatus.ERROR;
 	}
 
 	public String getErrorDescription() {

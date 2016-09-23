@@ -253,7 +253,7 @@ public class FileRequestHandler extends AbstractHandler {
 
 						{
 							boolean showBox = false;
-							int uploadOk = 0, uploadFail = 0, execOk = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
+							int uploadOk = 0, uploadFail = 0, execOk = 0, execWarn = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
 							for (ServerResponseItem<?> responseItem : responseItems) {
 								if (responseItem.showResultLine(showBoxCondition)) {
 									showBox = true;
@@ -267,6 +267,8 @@ public class FileRequestHandler extends AbstractHandler {
 								} else if (responseItem instanceof ExecuteActionResponseItem) {
 									if (responseItem.isSuccess()) {
 										execOk++; 
+									} else if (responseItem.isWarning()) {
+										execWarn++;
 									} else {
 										execFail++;
 									}
@@ -301,10 +303,10 @@ public class FileRequestHandler extends AbstractHandler {
 								if (uploadOk > 0 || uploadFail > 0) {
 									sb.append("Uploaded OK: ").append(uploadOk).append(", fail: ").append(uploadFail).append(". ");
 								}
-								if (execOk > 0 || execFail > 0) {
-									sb.append("Executed OK: ").append(execOk).append(", fail: ").append(execFail).append(". ");
+								if (execOk > 0 || execFail > 0 || execWarn > 0) {
+									sb.append("Executed OK: ").append(execOk).append(", warn: ").append(execWarn).append(", fail: ").append(execFail).append(". ");
 								}
-								if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0) {
+								if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0 && execWarn == 0) {
 									sb.append("No items uploaded or executed");
 									noItems = true;
 								}
@@ -321,10 +323,16 @@ public class FileRequestHandler extends AbstractHandler {
 								}
 							} else {
 								boolean someFailure = diffFail > 0 || uploadFail > 0 || execFail > 0;
+								boolean someWarning = execWarn > 0;
 								if (someFailure) {
 									Console.logError(message);
 									if (showBox) {
 										Util.showError("Failure", message);
+									}
+								} else if (someWarning) {
+									Console.logWarning(message);
+									if (showBox) {
+										Util.showInformation("Warning", message);
 									}
 								} else {
 									Console.log(message);

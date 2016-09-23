@@ -5,6 +5,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.eclipse.runtime.api.Constants;
+import com.evolveum.midpoint.eclipse.runtime.api.OperationResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 
 public class ExecuteActionServerResponse extends ServerResponse {
@@ -14,9 +15,9 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	protected String dataOutput;
 	protected String consoleOutput;
 	protected String operationResult;
-	protected String operationResultStatus;
+	protected String operationResultStatusString;
 	protected String operationResultMessage;
-	
+
 	public ExecuteActionServerResponse() {
 	}
 	
@@ -26,7 +27,21 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	
 	@Override
 	public boolean isSuccess() {
-		return super.isSuccess() && (operationResultStatus == null || "success".equals(operationResultStatus));
+		return super.isSuccess() && (operationResultStatusString == null || "success".equals(operationResultStatusString));
+	}
+	
+	@Override
+	public OperationResultStatus getStatus() {
+		if (!super.isSuccess()) {
+			return OperationResultStatus.ERROR;		// TODO
+		}
+		if (operationResultStatusString == null || "success".equals(operationResultStatusString)) {
+			return OperationResultStatus.SUCCESS;
+		} else if ("warning".equals(operationResultStatusString) || "handledError".equals(operationResultStatusString)) {
+			return OperationResultStatus.WARNING;
+		} else {
+			return OperationResultStatus.ERROR;
+		}
 	}
 	
 	public String getDataOutput() {
@@ -41,8 +56,8 @@ public class ExecuteActionServerResponse extends ServerResponse {
 		return operationResult;
 	}
 
-	public String getOperationResultStatus() {
-		return operationResultStatus;
+	public String getOperationResultStatusString() {
+		return operationResultStatusString;
 	}
 
 	public String getOperationResultMessage() {
@@ -64,7 +79,7 @@ public class ExecuteActionServerResponse extends ServerResponse {
 		if (resultList.getLength() > 0) {
 			Element result = (Element) resultList.item(0);
 			DOMUtil.fixNamespaceDeclarations(result);
-			operationResultStatus = getElementTextContent(result, Constants.COMMON_NS, "status");
+			operationResultStatusString = getElementTextContent(result, Constants.COMMON_NS, "status");
 			operationResultMessage = getMessage(result);
 			operationResult = DOMUtil.serializeDOMToString(result);
 		}
