@@ -136,6 +136,7 @@ public class BrowserDialog extends TitleAreaDialog {
 			new BulkActionGenerator(BulkActionGenerator.Action.ASSIGN_TO_THIS),
 			new BulkActionGenerator(BulkActionGenerator.Action.ASSIGN_THIS),
 			new BulkActionGenerator(BulkActionGenerator.Action.EXECUTE_SCRIPT),
+			new BulkActionGenerator(BulkActionGenerator.Action.NOTIFY),
 			new BulkActionGenerator(BulkActionGenerator.Action.LOG),
 			new BulkActionGenerator(BulkActionGenerator.Action.TEST_RESOURCE),
 			new BulkActionGenerator(BulkActionGenerator.Action.VALIDATE),

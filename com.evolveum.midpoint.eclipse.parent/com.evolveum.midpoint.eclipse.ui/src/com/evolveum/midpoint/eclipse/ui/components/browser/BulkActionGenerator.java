@@ -29,7 +29,8 @@ public class BulkActionGenerator extends Generator {
 		LOG("log", "log", ObjectTypes.OBJECT, false, false, false),
 		TEST_RESOURCE("test resource", "test-resource", ObjectTypes.RESOURCE, false, false, false),
 		VALIDATE("validate resource", "validate", ObjectTypes.RESOURCE, false, false, false),
-		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false, false);
+		EXECUTE_SCRIPT("execute script", "execute-script", ObjectTypes.OBJECT, false, false, false),
+		NOTIFY("send notifications", "notify", ObjectTypes.OBJECT, false, false, false);
 		
 		private final String displayName, actionName;
 		private final ObjectTypes applicableTo;
@@ -222,8 +223,25 @@ public class BulkActionGenerator extends Generator {
 			DOMUtil.createSubElement(scriptParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("script");
 			Element script = DOMUtil.createSubElement(scriptParam, new QName(Constants.COMMON_NS, "value", "c"));
 			DOMUtil.setXsiType(script, new QName(Constants.COMMON_NS, "ScriptExpressionEvaluatorType", "c"));
-			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "code", "c")).setTextContent("\n                    log.info('{}', input.asPrismObject().debugDump())\n");
+			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "code", "c")).setTextContent("\n                    log.info('{}', input.asPrismObject().debugDump())\n                ");
 			DOMUtil.createComment(actionE, " <s:parameter><s:name>outputItem</s:name><c:value xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>UserType</c:value></s:parameter> ");
+		} else if (action == Action.NOTIFY) {
+			Element subtypeParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(subtypeParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("subtype");
+			DOMUtil.createSubElement(subtypeParam, new QName(Constants.COMMON_NS, "value", "c")).setTextContent("...TODO...");
+			Element handlerParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
+			DOMUtil.createSubElement(handlerParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("handler");
+			Element handlerValue = DOMUtil.createSubElement(handlerParam, new QName(Constants.COMMON_NS, "value", "c"));
+			DOMUtil.setXsiType(handlerValue, new QName(Constants.COMMON_NS, "EventHandlerType", "c"));
+			Element generalNotifier = DOMUtil.createSubElement(handlerValue, new QName(Constants.COMMON_NS, "generalNotifier", "c"));
+			Element recipientExpression = DOMUtil.createSubElement(generalNotifier, new QName(Constants.COMMON_NS, "recipientExpression", "c"));
+			DOMUtil.createSubElement(recipientExpression, new QName(Constants.COMMON_NS, "value", "c")).setTextContent("TODO@TODO.com");
+			Element bodyExpression = DOMUtil.createSubElement(generalNotifier, new QName(Constants.COMMON_NS, "bodyExpression", "c"));
+			Element script = DOMUtil.createSubElement(bodyExpression, new QName(Constants.COMMON_NS, "script", "c"));
+			DOMUtil.createSubElement(generalNotifier, new QName(Constants.COMMON_NS, "transport", "c")).setTextContent("mail");
+			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "language", "c")).setTextContent("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity");
+			DOMUtil.createSubElement(script, new QName(Constants.COMMON_NS, "code", "c")).setTextContent("event.object is '$event.object.name' with OID of $event.object.oid");
+			DOMUtil.createComment(actionE, " Other parameters: forWholeInput, status, operation ");
 		} else if (action == Action.ASSIGN_TO_THIS) {
 			Element deltaParam = DOMUtil.createSubElement(actionE, new QName(Constants.SCRIPT_NS, "parameter", "s"));
 			DOMUtil.createSubElement(deltaParam, new QName(Constants.SCRIPT_NS, "name", "s")).setTextContent("delta");
