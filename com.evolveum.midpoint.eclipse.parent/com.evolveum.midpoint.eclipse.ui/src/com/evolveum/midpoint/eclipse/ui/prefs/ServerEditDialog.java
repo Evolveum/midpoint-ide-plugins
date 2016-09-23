@@ -21,6 +21,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 	private Text txtName;
 	private Text txtUrl;
 	private Text txtLogin;
+	private Button btnIgnoreSslIssues;
 	private Text txtPassword;
 	private Text txtShortName;
 	private Text txtProperties;
@@ -68,6 +69,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 
 		createName(container);
 		createUrl(container);
+		createIgnoreSslIssues(container);
 		createLogin(container);
 		createPassword(container);
 		createShortName(container);
@@ -108,6 +110,23 @@ public class ServerEditDialog extends TitleAreaDialog {
 			txtUrl.setText(existingDataItem.getUrl());
 		}
 	}
+	
+	private void createIgnoreSslIssues(Composite container) {
+		Composite c = new Composite(container, SWT.NONE);
+		c.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false, 4, 1));
+//		flags.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
+		c.setLayout(new GridLayout(2, false));
+
+		btnIgnoreSslIssues = new Button(c, SWT.CHECK);
+		Label buttonLabel = new Label(c, SWT.NONE);
+		buttonLabel.setText("Ignore SSL/TLS connection issues (insecure!)");
+		buttonLabel.setToolTipText("Use if the SSL/TLS on server is not configured properly, e.g. if self-signed certificate is used or name does not match.");
+		
+		if (existingDataItem != null) {
+			btnIgnoreSslIssues.setSelection(existingDataItem.isIgnoreSslIssues());
+		}
+	}
+
 
 	private void createLogin(Composite container) {
 		Label label = new Label(container, SWT.NONE);
@@ -149,7 +168,7 @@ public class ServerEditDialog extends TitleAreaDialog {
         btnTestConnection.addSelectionListener(new SelectionAdapter() {
             @Override
 			public void widgetSelected(SelectionEvent evt) {
-                PluginPreferences.testConnection(txtName.getText(), txtUrl.getText(), txtLogin.getText(), txtPassword.getText());
+                PluginPreferences.testConnection(txtName.getText(), txtUrl.getText(), txtLogin.getText(), txtPassword.getText(), btnIgnoreSslIssues.getSelection());
             }
         });
         btnTestConnection.addDisposeListener(event -> btnTestConnection = null);		
@@ -289,6 +308,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 		newDataItem = new ServerInfo();
 		newDataItem.setName(txtName.getText());
 		newDataItem.setUrl(txtUrl.getText());
+		newDataItem.setIgnoreSslIssues(btnIgnoreSslIssues.getSelection());
 		newDataItem.setLogin(txtLogin.getText());
 		newDataItem.setPassword(txtPassword.getText());
 		newDataItem.setShortName(txtShortName.getText());

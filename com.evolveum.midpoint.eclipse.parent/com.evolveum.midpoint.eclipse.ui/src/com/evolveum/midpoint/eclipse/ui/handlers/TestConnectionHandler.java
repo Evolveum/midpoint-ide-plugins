@@ -27,6 +27,7 @@ public class TestConnectionHandler extends AbstractHandler {
 	public static final String PARAM_SERVER_URL = "com.evolveum.midpoint.eclipse.ui.commandParameter.serverUrl";
 	public static final String PARAM_LOGIN = "com.evolveum.midpoint.eclipse.ui.commandParameter.login";
 	public static final String PARAM_PASSWORD = "com.evolveum.midpoint.eclipse.ui.commandParameter.password";
+	public static final String PARAM_IGNORE_SSL_ISSUES = "com.evolveum.midpoint.eclipse.ui.commandParameter.ignoreSslIssues";
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
@@ -41,7 +42,8 @@ public class TestConnectionHandler extends AbstractHandler {
 							event.getParameter(PARAM_SERVER_NAME),
 							event.getParameter(PARAM_SERVER_URL),
 							event.getParameter(PARAM_LOGIN),
-							event.getParameter(PARAM_PASSWORD));
+							event.getParameter(PARAM_PASSWORD),
+							Boolean.valueOf(event.getParameter(PARAM_IGNORE_SSL_ISSUES)));
 				} else {
 					List<ServerInfo> servers = PluginPreferences.getServers();
 					if (servers.size() == 0) {

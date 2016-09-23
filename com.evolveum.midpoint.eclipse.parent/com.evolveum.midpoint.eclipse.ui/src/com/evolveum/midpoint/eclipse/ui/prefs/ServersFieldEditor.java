@@ -52,7 +52,7 @@ public class ServersFieldEditor extends AbstractServersFieldEditor<ServerInfo> {
 		int index = table.getSelectionIndex();
 		if (index >= 0) {
 			ServerInfo item = currentItems.get(index);
-			PluginPreferences.testConnection(item.getName(), item.getUrl(), item.getLogin(), item.getPassword());
+			PluginPreferences.testConnection(item.getName(), item.getUrl(), item.getLogin(), item.getPassword(), item.isIgnoreSslIssues());
 		}
 	}
 

@@ -36,9 +36,9 @@ public class PluginPreferences {
 	public static ConnectionParameters getConnectionParameters() {
 		ServerInfo s = getSelectedServer();
 		if (s == null) {
-			return new ConnectionParameters("", "", "", "");			// TODO...
+			return new ConnectionParameters("", "", "", "", false);			// TODO...
 		} else {
-			return new ConnectionParameters(s.getName(), s.getUrl(), s.getLogin(), s.getPassword());
+			return s.getConnectionParameters();
 		}
 	}
 	
@@ -188,7 +188,7 @@ public class PluginPreferences {
 	}
 	
 	
-	public static void testConnection(String name, String url, String login, String password) {
+	public static void testConnection(String name, String url, String login, String password, boolean ignoreSslIssues) {
 		ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
 		IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
 		
@@ -199,6 +199,7 @@ public class PluginPreferences {
 					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_SERVER_URL), url),
 					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_LOGIN), login),
 					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_PASSWORD), password),				
+					new Parameterization(command.getParameter(TestConnectionHandler.PARAM_IGNORE_SSL_ISSUES), String.valueOf(ignoreSslIssues)),
 					};
 			ParameterizedCommand parametrizedCommand = new ParameterizedCommand(command, params);
 			handlerService.executeCommand(parametrizedCommand, null);

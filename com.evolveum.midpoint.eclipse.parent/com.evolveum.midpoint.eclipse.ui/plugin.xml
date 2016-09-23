@@ -37,6 +37,7 @@
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.serverUrl" name="Server URL"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.login" name="Login"/>
 				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.password" name="Password"/>
+				<commandParameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.ignoreSslIssues" name="Ignore SSL issues"/>
 		</command>
 		<command name="Test connections"
 			description="Tests connections to midPoint servers"

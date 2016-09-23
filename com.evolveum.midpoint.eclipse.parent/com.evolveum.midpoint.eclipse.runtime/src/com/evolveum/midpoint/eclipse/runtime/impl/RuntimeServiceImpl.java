@@ -5,11 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
@@ -28,10 +34,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -121,8 +134,34 @@ public class RuntimeServiceImpl implements RuntimeService {
                 AuthScope.ANY,
                 new UsernamePasswordCredentials(parameters.getLogin(), parameters.getPassword()));
 		
-		HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(credsProvider).build();
-		return client;
+		HttpClientBuilder clientBuilder = HttpClientBuilder.create().setDefaultCredentialsProvider(credsProvider);
+		
+		if (parameters.isIgnoreSslIssues()) {
+			SSLContext sslContext;
+			try {
+				sslContext = new SSLContextBuilder()
+			        .loadTrustMaterial(null, new org.apache.http.ssl.TrustStrategy() {
+			            @Override
+			            public boolean isTrusted(X509Certificate[] x509CertChain, String authType) throws CertificateException {
+			                return true;
+			            }
+			        })
+			        .build();
+			} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			clientBuilder.setSSLContext(sslContext);
+			clientBuilder.setConnectionManager(
+                new PoolingHttpClientConnectionManager(
+                        RegistryBuilder.<ConnectionSocketFactory>create()
+                                .register("http", PlainConnectionSocketFactory.INSTANCE)
+                                .register("https", new SSLConnectionSocketFactory(sslContext,
+                                        NoopHostnameVerifier.INSTANCE))
+                                .build()
+                		));
+		}
+		
+		return clientBuilder.build();
 	}
 
 	private boolean isSuccess(StatusLine statusLine) {

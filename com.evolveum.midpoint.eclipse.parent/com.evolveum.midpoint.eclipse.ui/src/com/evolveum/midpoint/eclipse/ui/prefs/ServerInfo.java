@@ -20,6 +20,7 @@ public class ServerInfo implements DataItem {
 	private static final String E_LOG_FILE = "logFile";
 	private static final String E_PROPERTIES_FILE = "propertiesFile";
 	private static final String E_PASSWORD = "password";
+	private static final String E_IGNORE_SSL_ISSUES = "ignoreSslIssues";
 	private static final String E_LOGIN = "login";
 	private static final String E_URL = "url";
 	private static final String E_NAME = "name";
@@ -30,17 +31,18 @@ public class ServerInfo implements DataItem {
 	private String url;
 	private String login;
 	private String password;
+	private boolean ignoreSslIssues;
 	private String shortName;
 	private String propertiesFile;
 	private String logFile;
 	
-	public ServerInfo(boolean selected, String name, String url, String login, String password, String shortName, String propertiesFile,
-			String logFile) {
+	public ServerInfo(boolean selected, String name, String url, String login, String password, boolean ignoreSslIssues, String shortName, String propertiesFile, String logFile) {
 		this.selected = selected;
 		this.name = name;
 		this.url = url;
 		this.login = login;
 		this.password = password;
+		this.ignoreSslIssues = ignoreSslIssues;
 		this.shortName = shortName;
 		this.propertiesFile = propertiesFile;
 		this.logFile = logFile;
@@ -57,7 +59,7 @@ public class ServerInfo implements DataItem {
 
 	@Override
 	public DataItem clone() {
-		ServerInfo clone = new ServerInfo(selected, name, url, login, password, shortName, propertiesFile, logFile);
+		ServerInfo clone = new ServerInfo(selected, name, url, login, password, ignoreSslIssues, shortName, propertiesFile, logFile);
 		return clone;
 	}
 	
@@ -103,6 +105,14 @@ public class ServerInfo implements DataItem {
 		this.password = password;
 	}
 	
+	public boolean isIgnoreSslIssues() {
+		return ignoreSslIssues;
+	}
+
+	public void setIgnoreSslIssues(boolean ignoreSslIssues) {
+		this.ignoreSslIssues = ignoreSslIssues;
+	}
+
 	public String getShortName() {
 		return shortName;
 	}
@@ -128,7 +138,7 @@ public class ServerInfo implements DataItem {
 	}
 
 	public static ServerInfo createDefault() {
-		return new ServerInfo(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", "", "", "");
+		return new ServerInfo(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", false, "", "", "");
 	}
 
 	public static String createDefaultXml() {
@@ -155,6 +165,7 @@ public class ServerInfo implements DataItem {
 		DOMUtil.createSubElement(server, new QName(E_URL)).setTextContent(url);
 		DOMUtil.createSubElement(server, new QName(E_LOGIN)).setTextContent(login);
 		DOMUtil.createSubElement(server, new QName(E_PASSWORD)).setTextContent(password);
+		DOMUtil.createSubElement(server, new QName(E_IGNORE_SSL_ISSUES)).setTextContent(String.valueOf(ignoreSslIssues));
 		DOMUtil.createSubElement(server, new QName(E_SHORT_NAME)).setTextContent(shortName);
 		DOMUtil.createSubElement(server, new QName(E_PROPERTIES_FILE)).setTextContent(propertiesFile);
 		DOMUtil.createSubElement(server, new QName(E_LOG_FILE)).setTextContent(logFile);
@@ -188,6 +199,7 @@ public class ServerInfo implements DataItem {
 				get(e, E_URL),
 				get(e, E_LOGIN),
 				get(e, E_PASSWORD),
+				getBoolean(e, E_IGNORE_SSL_ISSUES),
 				get(e, E_SHORT_NAME),
 				get(e, E_PROPERTIES_FILE),
 				get(e, E_LOG_FILE));
@@ -206,7 +218,7 @@ public class ServerInfo implements DataItem {
 	}
 
 	public ConnectionParameters getConnectionParameters() {
-		return new ConnectionParameters(name, url, login, password);
+		return new ConnectionParameters(name, url, login, password, ignoreSslIssues);
 	}
 
 	public String getDisplayName() {
