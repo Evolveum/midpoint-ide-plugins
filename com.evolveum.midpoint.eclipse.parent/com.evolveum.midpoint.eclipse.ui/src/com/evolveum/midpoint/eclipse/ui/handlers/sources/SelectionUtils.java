@@ -56,6 +56,9 @@ public class SelectionUtils {
 	}
 
 	public static void addXmlFiles(List<IFile> files, IResource resource) {
+		if (resource instanceof IProject && !((IProject) resource).isOpen()) {
+			return;
+		}
 		if (resource instanceof IContainer) {
 			try {
 				for (IResource member : ((IContainer) resource).members()) {
