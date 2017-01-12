@@ -15,33 +15,12 @@ public class ExecuteActionServerResponse extends ServerResponse {
 	protected String dataOutput;
 	protected String consoleOutput;
 	protected String operationResult;
-	protected String operationResultStatusString;
-	protected String operationResultMessage;
 
 	public ExecuteActionServerResponse() {
 	}
 	
 	public ExecuteActionServerResponse(Throwable t) {
 		super(t);
-	}
-	
-	@Override
-	public boolean isSuccess() {
-		return super.isSuccess() && (operationResultStatusString == null || "success".equals(operationResultStatusString));
-	}
-	
-	@Override
-	public OperationResultStatus getStatus() {
-		if (!super.isSuccess()) {
-			return OperationResultStatus.ERROR;		// TODO
-		}
-		if (operationResultStatusString == null || "success".equals(operationResultStatusString)) {
-			return OperationResultStatus.SUCCESS;
-		} else if ("warning".equals(operationResultStatusString) || "handledError".equals(operationResultStatusString)) {
-			return OperationResultStatus.WARNING;
-		} else {
-			return OperationResultStatus.ERROR;
-		}
 	}
 	
 	public String getDataOutput() {

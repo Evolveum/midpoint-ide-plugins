@@ -239,6 +239,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 				if (type != ObjectTypes.TASK && type != ObjectTypes.SYSTEM_CONFIGURATION) {
 					options.add("options=raw");
 				}
+				options.add("options=isImport");
 //				if (type == ObjectTypes.RESOURCE && request.isValidate()) {
 //					options.add("options=validate");
 //				}
@@ -267,9 +268,16 @@ public class RuntimeServiceImpl implements RuntimeService {
 			HttpUriRequest uriRequest = (HttpUriRequest) httpRequest;
 			System.out.println("Invoking " + uriRequest.getMethod() + " on " + uriRequest.getURI());
 			HttpResponse response = client.execute(uriRequest);
-
+			
 			StatusLine statusLine = response.getStatusLine();
 			System.out.println("Server response status line: " + statusLine);
+
+			String resultStatus = getHeader(response, "OperationResultStatus");
+			String resultMessage = getHeader(response, "OperationResultMessage");
+			System.out.println("Operation result: " + resultStatus + " (" + resultMessage + ")");
+
+			serverResponse.setOperationResultStatusString(resultStatus);	// these will be overriden for ExecuteActionServerResponse later
+			serverResponse.setOperationResultMessage(resultMessage);
 
 			if (response.getEntity() != null) {
 				// TODO encoding!
@@ -337,6 +345,24 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 		return serverResponse;
 
+	}
+
+	private String getHeader(HttpResponse response, String name) {
+		Header[] headers = response.getHeaders(name);
+		if (headers.length == 0) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();;
+		boolean first = true;
+		for (Header header : headers) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append("; ");
+			}
+			sb.append(header.getValue());
+		}
+		return sb.toString();
 	}
 
 	public ContentType createXmlContentType() {

@@ -17,6 +17,9 @@ public class ServerResponse {
 	protected String rawResponseBody;
 	protected Throwable exception;
 	
+	protected String operationResultStatusString;
+	protected String operationResultMessage;
+	
 	public ServerResponse() {
 	}
 	
@@ -48,25 +51,54 @@ public class ServerResponse {
 	public void setException(Throwable exception) {
 		this.exception = exception;
 	}
+	public String getOperationResultStatusString() {
+		return operationResultStatusString;
+	}
+	public void setOperationResultStatusString(String operationResultStatusString) {
+		this.operationResultStatusString = operationResultStatusString;
+	}
+	public String getOperationResultMessage() {
+		return operationResultMessage;
+	}
+	public void setOperationResultMessage(String operationResultMessage) {
+		this.operationResultMessage = operationResultMessage;
+	}
+
+	public OperationResultStatus getStatus() {
+		if (exception != null || statusCode < 200 || statusCode >= 300) {		// TODO
+			return OperationResultStatus.ERROR;
+		} else if (operationResultStatusString == null || "success".equals(operationResultStatusString)) {
+			return OperationResultStatus.SUCCESS;
+		} else if ("warning".equals(operationResultStatusString) || "handledError".equals(operationResultStatusString)) {
+			return OperationResultStatus.WARNING;
+		} else {
+			return OperationResultStatus.ERROR;
+		}
+	}
 
 	public boolean isSuccess() {
-		return exception == null && statusCode >= 200 && statusCode < 300;		// TODO operationResult
+		return getStatus() == OperationResultStatus.SUCCESS;
 	}
 
 	public boolean isWarning() {
 		return getStatus() == OperationResultStatus.WARNING;
 	}
 
-	// TODO
-	public OperationResultStatus getStatus() {
-		return isSuccess() ? OperationResultStatus.SUCCESS : OperationResultStatus.ERROR;
-	}
-
 	public String getErrorDescription() {
 		if (exception != null) {
 			return exception.toString();
 		}
-		return statusCode + ": " + reasonPhrase;
+		StringBuilder sb = new StringBuilder();
+		if (statusCode < 200 || statusCode >= 300) {
+			sb.append(statusCode).append(": ").append(reasonPhrase);
+		}
+		if (operationResultStatusString != null) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(operationResultStatusString).append(": ").append(operationResultMessage);
+		}
+		return sb.toString();
 	}
 	
 	protected Element getElement(Element root, String nsUri, String elementName) {
