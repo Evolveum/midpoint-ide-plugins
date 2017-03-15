@@ -253,7 +253,7 @@ public class FileRequestHandler extends AbstractHandler {
 
 						{
 							boolean showBox = false;
-							int uploadOk = 0, uploadFail = 0, execOk = 0, execWarn = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
+							int uploadOk = 0, uploadWarn = 0, uploadFail = 0, execOk = 0, execWarn = 0, execFail = 0, diffFail = 0, diffMissing = 0, diffModified = 0, diffSame = 0;
 							for (ServerResponseItem<?> responseItem : responseItems) {
 								if (responseItem.showResultLine(showBoxCondition)) {
 									showBox = true;
@@ -261,6 +261,8 @@ public class FileRequestHandler extends AbstractHandler {
 								if (responseItem instanceof UploadServerResponseItem) {
 									if (responseItem.isSuccess()) {
 										uploadOk++; 
+									} else if (responseItem.isWarning()) {
+										uploadWarn++;
 									} else {
 										uploadFail++;
 									}
@@ -300,13 +302,16 @@ public class FileRequestHandler extends AbstractHandler {
 								}
 							} else {
 								StringBuilder sb = new StringBuilder();
-								if (uploadOk > 0 || uploadFail > 0) {
-									sb.append("Uploaded OK: ").append(uploadOk).append(", fail: ").append(uploadFail).append(". ");
+								boolean uploaded = false, executed = false;
+								if (uploadOk > 0 || uploadWarn > 0 || uploadFail > 0) {
+									sb.append("Uploaded OK: ").append(uploadOk).append(", warn: ").append(uploadWarn).append(", fail: ").append(uploadFail).append(". ");
+									uploaded = true;
 								}
 								if (execOk > 0 || execFail > 0 || execWarn > 0) {
 									sb.append("Executed OK: ").append(execOk).append(", warn: ").append(execWarn).append(", fail: ").append(execFail).append(". ");
+									executed = true;
 								}
-								if (uploadOk == 0 && uploadFail == 0 && execOk == 0 && execFail == 0 && execWarn == 0) {
+								if (!uploaded && !executed) {
 									sb.append("No items uploaded or executed");
 									noItems = true;
 								}

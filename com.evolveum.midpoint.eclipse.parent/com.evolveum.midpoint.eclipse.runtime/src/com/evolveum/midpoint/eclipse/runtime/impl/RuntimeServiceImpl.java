@@ -183,8 +183,15 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String localName = rootElement.getLocalName();
 			String uri = rootElement.getNamespaceURI();
 			oid = rootElement.getAttribute("oid");
-			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid);
 			type = ObjectTypes.findByElementName(localName);
+			System.out.println("Node name: " + nodeName + ", localName: " + localName + ", uri: " + uri + ", oid: " + oid +", type: " + type);
+			if (type == ObjectTypes.OBJECT) {
+				ObjectTypes realType = determineObjectType(rootElement);
+				if (realType != null) {
+					System.out.println("Found real type, using it: " + realType);
+					type = realType;
+				}
+			}
 			if (request.getAction() == ServerAction.UPLOAD && type == null) {
 				throw new IllegalStateException("Unknown element " + localName);		// should be already checked
 			}
@@ -280,28 +287,20 @@ public class RuntimeServiceImpl implements RuntimeService {
 			serverResponse.setOperationResultMessage(resultMessage);
 
 			if (response.getEntity() != null) {
-				// TODO encoding!
-				InputStream is = response.getEntity().getContent();
-				StringBuilder sb = new StringBuilder();
-				if (is != null) {
-					BufferedReader br = new BufferedReader(new InputStreamReader(is));
-					String line;
-					while ((line=br.readLine()) != null) {
-						sb.append(line).append("\n");
-					}
-					is.close();
-				}
-				serverResponse.setRawResponseBody(sb.toString());
-				System.out.println("Server response (raw):\n" + sb.toString() + "\n---------------------------------");
+				String responseBody = getResponseBody(response);
+				serverResponse.setRawResponseBody(responseBody);
+				System.out.println("Server response (raw):\n" + responseBody + "\n---------------------------------");
 				if (serverResponse instanceof ExecuteActionServerResponse) {
 					Header contentType = response.getEntity().getContentType();
 					System.out.println("Content type of the response: " + contentType);
 					if (contentType != null && contentType.getValue().startsWith("application/xml") && isSuccess(statusLine)) {
-						((ExecuteActionServerResponse) serverResponse).parseXmlResponse(sb.toString());
+						((ExecuteActionServerResponse) serverResponse).parseXmlResponse(responseBody);
 					}
 				} else if (serverResponse instanceof CompareServerResponse && isSuccess(statusLine)) {
-					((CompareServerResponse) serverResponse).parseXmlResponse(sb.toString(), (CompareServerRequest) request);
+					((CompareServerResponse) serverResponse).parseXmlResponse(responseBody, (CompareServerRequest) request);
 				}
+			} else {
+				System.out.println("(no entity in response)");
 			}
 			
 			serverResponse.setStatusCode(statusLine.getStatusCode());
@@ -347,6 +346,21 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 	}
 
+	public String getResponseBody(HttpResponse response) throws IOException {
+		// TODO encoding!
+		InputStream is = response.getEntity().getContent();
+		StringBuilder sb = new StringBuilder();
+		if (is != null) {
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String line;
+			while ((line=br.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			is.close();
+		}
+		return sb.toString();
+	}
+
 	private String getHeader(HttpResponse response, String name) {
 		Header[] headers = response.getHeaders(name);
 		if (headers.length == 0) {
@@ -366,7 +380,8 @@ public class RuntimeServiceImpl implements RuntimeService {
 	}
 
 	public ContentType createXmlContentType() {
-		return ContentType.create("application/xml", Consts.UTF_8);
+		//return ContentType.create("application/xml", Consts.UTF_8);
+		return ContentType.create("application/xml");
 	}
 
 	@Override
@@ -406,6 +421,12 @@ public class RuntimeServiceImpl implements RuntimeService {
 			resp.setReasonPhrase(statusLine.getReasonPhrase());
 
 			if (!isSuccess(statusLine)) {
+				if (response.getEntity() != null) {
+					String responseBody = getResponseBody(response);
+					System.out.println("Server response (raw):\n" + responseBody + "\n---------------------------------");
+				} else {
+					System.out.println("(no entity in response)");
+				}
 				return resp;
 			}
 

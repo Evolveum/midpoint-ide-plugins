@@ -59,7 +59,9 @@ public class UploadServerResponseItem extends ServerResponseItem<ServerResponse>
 	public String getResultLine() {
 		String itemName = requestItem.getDisplayName() != null ? requestItem.getDisplayName() : "the item";
 		if (response.isSuccess()) {
-			return "Successfully uploaded " + itemName; 
+			return "Successfully uploaded " + itemName;
+		} else if (response.isWarning()) {
+			return "Uploaded (with warning): " + itemName;
 		} else {
 			return "Failed to upload " + itemName + ": " + response.getErrorDescription();
 		}

@@ -24,6 +24,7 @@ public enum ObjectTypes {
     ROLE("role", "roles", "RoleType", "Role", "roleType", "displayName", ABSTRACT_ROLE),
     PASSWORD_POLICY("valuePolicy", "valuePolicies", "ValuePolicyType", "Value policy", null, null, OBJECT),
     NODE("node", "nodes", "NodeType", "Node", null, null, OBJECT),
+    FORM("form", "forms", "FormType", "Form", null, null, OBJECT),
     ORG("org", "orgs", "OrgType", "Organization", "orgType", "displayName", ABSTRACT_ROLE),
     REPORT("report", "reports", "ReportType", "Report", null, null, OBJECT),
     REPORT_OUTPUT("reportOutput", "reportOutputs", "ReportOutputType", "Report output", null, null, OBJECT),
