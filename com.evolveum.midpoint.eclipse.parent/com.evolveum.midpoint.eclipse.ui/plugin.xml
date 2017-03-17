@@ -95,7 +95,7 @@
 			id="com.evolveum.midpoint.eclipse.ui.command.generateOid">
 		</command>
 		<command name="Analyze prism structure"
-			description="TODO"
+			description="Converts one-line (toString) dump of prism data or beans into full-text information. Experimental."
 			id="com.evolveum.midpoint.eclipse.ui.command.analyzePrismStructure">
 		</command>
 		<command name="Mark current log position"
