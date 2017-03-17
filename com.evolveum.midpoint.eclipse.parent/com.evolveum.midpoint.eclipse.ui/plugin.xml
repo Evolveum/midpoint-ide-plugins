@@ -94,6 +94,10 @@
 			description="Generates a random midPoint OID"
 			id="com.evolveum.midpoint.eclipse.ui.command.generateOid">
 		</command>
+		<command name="Analyze prism structure"
+			description="TODO"
+			id="com.evolveum.midpoint.eclipse.ui.command.analyzePrismStructure">
+		</command>
 		<command name="Mark current log position"
 			description="Marks current log position in order to allow showing log from this point (later)"
 			id="com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition">
@@ -158,6 +162,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testResourceOnServer" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.GenerateOidHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.generateOid" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.AnalyzePrismStructureHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.analyzePrismStructure" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.markCurrentLogPosition" />				 
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.ServerLogHandler"

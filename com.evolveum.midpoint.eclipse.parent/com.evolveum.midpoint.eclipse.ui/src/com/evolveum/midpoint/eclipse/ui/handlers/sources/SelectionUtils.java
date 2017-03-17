@@ -14,10 +14,14 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionService;
@@ -27,6 +31,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class SelectionUtils {
 
@@ -235,6 +241,53 @@ public class SelectionUtils {
 			}
 		}
 		return null;
+	}
+	
+	public static class CursorPosition {
+		public final int line, column;
+		public CursorPosition(int line, int column) {
+			this.line = line;
+			this.column = column;
+		}
+		@Override
+		public String toString() {
+			return "CursorPosition [line=" + line + ", column=" + column + "]";
+		}
+	}
+	
+	public static CursorPosition getCursorPosition() {
+		// TODO ok?
+		IWorkbench wb = PlatformUI.getWorkbench();
+        IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+        IWorkbenchPage page = win != null ? win.getActivePage() : null;
+        IEditorPart editor = page != null ? page.getActiveEditor() : null;
+        Control control = editor.getAdapter(Control.class);
+        if (editor instanceof ITextEditor && control instanceof StyledText) {
+        	IDocumentProvider provider = ((ITextEditor)editor).getDocumentProvider();
+        	IDocument document = provider.getDocument(editor.getEditorInput());
+        	try {
+        		StyledText styledText = (StyledText) control;
+        		int caret = styledText.getCaretOffset();
+        		int line = document.getLineOfOffset(caret);
+        		int lineOffset = document.getLineOffset(line);
+       			int tabWidth = styledText.getTabs();
+       			int column = 0;
+       			for (int i = lineOffset; i < caret; i++) {
+       				if (document.getChar(i) == '\t') {
+        				column += tabWidth - (tabWidth == 0 ? 0 : column % tabWidth);
+       				} else {
+        				column++;
+       				}
+       			}
+                return new CursorPosition(line, column); 
+        	} catch (BadLocationException e) {
+                e.printStackTrace();
+            }
+        } else {
+        	System.out.println("Couldn't determine column, for editor=" + editor + ", control=" + control);
+        }
+
+        return null;
 	}
 
 }

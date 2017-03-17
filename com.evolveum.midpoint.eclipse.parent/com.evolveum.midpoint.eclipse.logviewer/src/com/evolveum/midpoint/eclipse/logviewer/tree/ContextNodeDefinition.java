@@ -56,6 +56,7 @@ public class ContextNodeDefinition extends OutlineNodeDefinition<ContextNodeCont
 			return line.substring(line.indexOf("---["));
 		} else if (line.startsWith("---[ PROJECTOR") || 
 				line.startsWith("---[ CLOCKWORK") ||
+				line.startsWith("---[ WORKFLOW") ||
 				line.startsWith("---[ preview")) {
 			return line;
 		} else {

@@ -22,3 +22,5 @@ Import-Package: org.apache.log4j,
  org.eclipse.jface.text
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: com.evolveum.midpoint.eclipse.ui.internal.EclipseActivator
+Bundle-ClassPath: lib/antlr4-runtime-4.6.jar,
+ .

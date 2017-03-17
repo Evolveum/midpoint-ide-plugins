@@ -297,6 +297,7 @@ public class MenuUtil {
 		MenuManager dummy = new MenuManager("&Miscellaneous");
 		List<IContributionItem> dummyItems = new ArrayList<>();
 		MenuUtil.addGenerateOid(dummyItems, serviceLocator);
+		MenuUtil.addAnalyzePrismStructure(dummyItems, serviceLocator);
 		for (IContributionItem item : dummyItems) {
 			dummy.add(item);
 		}
@@ -309,6 +310,15 @@ public class MenuUtil {
 						serviceLocator, null, PluginConstants.CMD_GENERATE_OID, null, 
 						null, null, null, 
 						"Generate random &OID", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+	public static void addAnalyzePrismStructure(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_ANALYZE_PRISM_STRUCTURE, null, 
+						null, null, null, 
+						"&Analyze prism structure", 
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 

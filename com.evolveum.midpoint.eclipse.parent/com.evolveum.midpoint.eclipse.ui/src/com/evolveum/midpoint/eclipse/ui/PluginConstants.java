@@ -61,6 +61,7 @@ public class PluginConstants {
 	
 	public static final String CMD_SELECT_SERVER = "com.evolveum.midpoint.eclipse.ui.command.selectServer";
 	public static final String CMD_GENERATE_OID = "com.evolveum.midpoint.eclipse.ui.command.generateOid";
+	public static final String CMD_ANALYZE_PRISM_STRUCTURE = "com.evolveum.midpoint.eclipse.ui.command.analyzePrismStructure";
 
 //	public static final String CMD_ENABLE_ON_SERVER = "com.evolveum.midpoint.eclipse.ui.command.enableOnServer";
 //	public static final String CMD_DISABLE_ON_SERVER = "com.evolveum.midpoint.eclipse.ui.command.disableOnServer";
