@@ -20,11 +20,11 @@ public class ConfigurationTemplateHelp {
 		sb.append("# =====================\n");
 		sb.append("# %skip-thread-processing - turns off parsing thread names\n");
 		sb.append("# %no-component-names/%component-names - tells not to expect/to expect component names (default: autodetect)\n");
-		sb.append("# %mark-delay <n> <severity> - if delay between two log lines is at least <n> milliseconds, marks the line as <level> (error, warning, info)\n");
-		sb.append("# %mark-error [<condition>] <severity> - mark ERROR messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
-		sb.append("# %mark-warn [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
-		sb.append("# %mark-info [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warning, info, none)\n");
-		sb.append("# %mark-line <condition> <severity> - mark lines fulfilling condition as <severity> (error, warning, info, none)\n");
+		sb.append("# %mark-delay <n> <severity> - if delay between two log lines is at least <n> milliseconds, marks the line as <level> (error, warn, info)\n");
+		sb.append("# %mark-error [<condition>] <severity> - mark ERROR messages (optionally with a condition) as <severity> (error, warn, info, none)\n");
+		sb.append("# %mark-warn [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warn, info, none)\n");
+		sb.append("# %mark-info [<condition>] <severity> - mark WARN messages (optionally with a condition) as <severity> (error, warn, info, none)\n");
+		sb.append("# %mark-line <condition> <severity> - mark lines fulfilling condition as <severity> (error, warn, info, none)\n");
 		sb.append("# %show-in-outline <condition> on/off - include/exclude lines fulfilling a condition in outline\n");
 		sb.append("# %outline <type> <level> - cause lines of give <type> outlined at give <level>\n");
 		sb.append("#     type = (startup, test, operation-summary, operation-context, projection-context, execution-mapping, expression, script)\n");
