@@ -36,6 +36,7 @@ public class Constants {
 	public static final QName Q_TYPE = new QName(QUERY_NS, "type");
 
 	public static final List<String> SCRIPTING_ACTIONS = Arrays.asList(
+			"executeScript",
 			"scriptingExpression",
 			"sequence",
 			"pipeline",

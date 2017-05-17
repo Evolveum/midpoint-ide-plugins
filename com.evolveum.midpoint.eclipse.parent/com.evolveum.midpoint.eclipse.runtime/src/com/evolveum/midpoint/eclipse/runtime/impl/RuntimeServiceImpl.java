@@ -274,6 +274,9 @@ public class RuntimeServiceImpl implements RuntimeService {
 
 			HttpUriRequest uriRequest = (HttpUriRequest) httpRequest;
 			System.out.println("Invoking " + uriRequest.getMethod() + " on " + uriRequest.getURI());
+			if (finalAction == ServerAction.EXECUTE) {
+				System.out.println("Body:\n" + request.getData());
+			}
 			HttpResponse response = client.execute(uriRequest);
 			
 			StatusLine statusLine = response.getStatusLine();

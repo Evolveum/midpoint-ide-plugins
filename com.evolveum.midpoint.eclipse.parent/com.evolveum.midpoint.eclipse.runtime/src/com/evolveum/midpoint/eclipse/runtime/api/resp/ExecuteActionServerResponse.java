@@ -47,14 +47,24 @@ public class ExecuteActionServerResponse extends ServerResponse {
 		Element root = DOMUtil.parseDocument(rawResponseBody).getDocumentElement();
 
 		Element xmlDataElement = getElement(root, Constants.API_TYPES_NS, "xmlData");
+		Element dataOutputElement = getElement(root, Constants.SCRIPT_NS, "dataOutput");
 		if (xmlDataElement != null) {
 			DOMUtil.fixNamespaceDeclarations(xmlDataElement);
 			dataOutput = DOMUtil.serializeDOMToString(xmlDataElement);
+		} else if (dataOutputElement != null) {
+			DOMUtil.fixNamespaceDeclarations(dataOutputElement);
+			dataOutput = DOMUtil.serializeDOMToString(dataOutputElement);
 		}
 		
 		consoleOutput = getElementTextContent(root, Constants.API_TYPES_NS, "textOutput");
+		if (consoleOutput == null) {
+			consoleOutput = getElementTextContent(root, Constants.SCRIPT_NS, "consoleOutput");
+		}
 		
 		NodeList resultList = root.getElementsByTagNameNS(Constants.MODEL_NS, "result");
+		if (resultList.getLength() == 0) {
+			resultList = root.getElementsByTagNameNS(Constants.API_TYPES_NS, "result");
+		}
 		if (resultList.getLength() > 0) {
 			Element result = (Element) resultList.item(0);
 			DOMUtil.fixNamespaceDeclarations(result);
