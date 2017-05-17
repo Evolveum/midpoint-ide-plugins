@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.evolveum.midpoint.eclipse</groupId>
 		<artifactId>com.evolveum.midpoint.eclipse.parent</artifactId>
-		<version>0.10.4-SNAPSHOT</version>
+		<version>0.10.5-SNAPSHOT</version>
 	</parent>
 	<artifactId>com.evolveum.midpoint.eclipse.logviewer</artifactId>
 	<packaging>eclipse-plugin</packaging>
