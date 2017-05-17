@@ -20,7 +20,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -39,6 +38,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -269,7 +269,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			}
 
 			HttpClient client = createClient(connectionParameters);
-			HttpEntity body = new StringEntity(request.getData(), createXmlContentType());				// TODO charset if defined in XML?
+			HttpEntity body = new ByteArrayEntity(request.getData().getBytes("utf-8"), createXmlContentType());				// TODO charset if defined in XML?
 			httpRequest.setEntity(body);
 
 			HttpUriRequest uriRequest = (HttpUriRequest) httpRequest;
@@ -411,7 +411,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search" + (shortData ? "" : "?include=row&include=jpegPhoto");
 			HttpPost request = new HttpPost(url);
 
-			HttpEntity body = new StringEntity(query, createXmlContentType());
+			HttpEntity body = new ByteArrayEntity(query.getBytes("utf-8"), createXmlContentType());
 			request.setEntity(body);
 
 			System.out.println("Requesting objects from " + url);
