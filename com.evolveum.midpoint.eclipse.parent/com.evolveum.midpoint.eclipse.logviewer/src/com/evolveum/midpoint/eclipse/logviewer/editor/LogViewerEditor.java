@@ -179,7 +179,6 @@ public class LogViewerEditor extends TextEditor {
 		return parser;
 	}
 
-
 	public void applyConfigurationAndActions() {
 		System.out.println("==> Starting application of configuration and actions <==");
 		long started = System.currentTimeMillis();

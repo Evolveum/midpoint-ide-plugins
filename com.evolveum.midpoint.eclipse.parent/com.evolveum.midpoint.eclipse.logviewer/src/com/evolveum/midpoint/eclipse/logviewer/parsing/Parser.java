@@ -36,6 +36,12 @@ import com.evolveum.midpoint.eclipse.logviewer.tree.OutlineNodeDefinition;
 
 public class Parser {
 
+	//private static final String ENTRY_TEXT = "(PROFILING): #### Entry: ";
+	//private static final String EXIT_TEXT = "(PROFILING): ##### Exit: ";
+
+	private static final String ENTRY_TEXT = "#### Entry: ";
+	private static final String EXIT_TEXT = "##### Exit: ";
+
 	private final int numberOfLines;
 	private final IDocument document;
 	private final IResource resource;
@@ -188,15 +194,46 @@ public class Parser {
 			long currentTimestamp = date.getTime();
 			if (lastTimestamp != null) {
 				long delta = currentTimestamp - lastTimestamp;
-				if (configuration.getErrorIfDelay() != null && delta >= configuration.getErrorIfDelay()) {
-					addMarker(lineNumber, "Delay (" + delta + " msec) reached configured threshold of " + configuration.getErrorIfDelay() + " msec", IMarker.SEVERITY_ERROR);
-				} else if (configuration.getWarningIfDelay() != null && delta >= configuration.getWarningIfDelay()) {
-					addMarker(lineNumber, "Delay (" + delta + " msec) reached configured threshold of " + configuration.getWarningIfDelay() + " msec", IMarker.SEVERITY_WARNING);
-				} else if (configuration.getInfoIfDelay() != null && delta >= configuration.getInfoIfDelay()) {
-					addMarker(lineNumber, "Delay (" + delta + " msec) reached configured threshold of " + configuration.getInfoIfDelay() + " msec", IMarker.SEVERITY_INFO);
-				}
+				addMarkerForDelayIfNeeded(lineNumber, delta, "Delay");
 			}
 			lastTimestamp = currentTimestamp;
+		}
+		
+		if (line != null && line.contains(EXIT_TEXT)) {
+			double etime = getEtime(line); 
+			addMarkerForDelayIfNeeded(lineNumber, Math.round(etime), "Etime");
+		}
+	}
+
+	public void addMarkerForDelayIfNeeded(int lineNumber, long delta, String what) {
+		if (configuration.getErrorIfDelay() != null && delta >= configuration.getErrorIfDelay()) {
+			addMarker(lineNumber, what + " (" + delta + " msec) reached configured threshold of " + configuration.getErrorIfDelay() + " msec", IMarker.SEVERITY_ERROR);
+		} else if (configuration.getWarningIfDelay() != null && delta >= configuration.getWarningIfDelay()) {
+			addMarker(lineNumber, what + " (" + delta + " msec) reached configured threshold of " + configuration.getWarningIfDelay() + " msec", IMarker.SEVERITY_WARNING);
+		} else if (configuration.getInfoIfDelay() != null && delta >= configuration.getInfoIfDelay()) {
+			addMarker(lineNumber, what + " (" + delta + " msec) reached configured threshold of " + configuration.getInfoIfDelay() + " msec", IMarker.SEVERITY_INFO);
+		}
+	}
+
+	// parse line like "2017-06-26 16:44:09,227 DEBUG: ##### Exit: 10  ...task.quartzimpl.TaskManagerQuartzImpl->createTaskInstance etime: 0.183 ms"
+	
+	private double getEtime(String line) {
+		final String TEXT_ETIME = " etime: ";
+		int i = line.lastIndexOf(TEXT_ETIME);
+		if (i < 0) {
+			return 0;
+		}
+		int j = line.indexOf(" ms", i);
+		if (j < 0) {
+			return 0;
+		}
+		String timeString = line.substring(i + TEXT_ETIME.length(), j);
+		try {
+			return Double.parseDouble(timeString);
+		} catch (NumberFormatException e) {
+			System.err.println("Etime cannot be parsed: " + timeString + ": " + e);
+			e.printStackTrace();
+			return 0;
 		}
 	}
 
@@ -289,8 +326,6 @@ public class Parser {
 	private Map<Integer,Integer> openEntryPoints = new HashMap<>();
 	
 	private void processEntryExitFolding(int lineNumber, String line) throws BadLocationException {
-		final String ENTRY_TEXT = "(PROFILING): #### Entry: ";
-		final String EXIT_TEXT = "(PROFILING): ##### Exit: ";
 		Integer entryNumber = getNumber(line, ENTRY_TEXT);
 		if (entryNumber != null) {
 			openEntryPoints.put(entryNumber, lineNumber);
