@@ -220,7 +220,14 @@ public class OutlineNode<C extends OutlineNodeContent> {
 	public String getDelta() {
 		return delta;
 	}
-
+	
+	public String computeDeltaSince(OutlineNode<?> reference) {
+		if (reference == null || reference.getDate() == null) {
+			return "-";
+		}
+		return String.valueOf(getDate().getTime() - reference.getDate().getTime());
+	}
+	
 	public void setDelta(String delta) {
 		this.delta = delta;
 	}

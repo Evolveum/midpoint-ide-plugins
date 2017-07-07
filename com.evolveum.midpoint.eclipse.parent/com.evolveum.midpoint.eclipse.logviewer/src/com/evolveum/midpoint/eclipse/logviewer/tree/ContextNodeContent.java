@@ -54,8 +54,8 @@ public class ContextNodeContent extends OutlineNodeContent {
 		OutlineNode<ContextNodeContent> first = getFirstDump();
 		OutlineNode<ContextNodeContent> previous = getPreviousDump();
 		if (owner.getDate() != null && (previous != null || first != null)) {
-			owner.setDelta(getDelta(previous));
-			owner.setSum(getDelta(first));
+			owner.setDelta(owner.computeDeltaSince(previous));
+			owner.setSum(owner.computeDeltaSince(first));
 		}
 		
 		TreeNode treeNode = new TreeNode(owner, label, owner.getRegion());
@@ -74,13 +74,6 @@ public class ContextNodeContent extends OutlineNodeContent {
 		return treeNode;
 	}
 
-	private String getDelta(OutlineNode<ContextNodeContent> reference) {
-		if (reference == null || reference.getDate() == null) {
-			return "-";
-		}
-		return String.valueOf(owner.getDate().getTime() - reference.getDate().getTime());
-	}
-	
 	@SuppressWarnings("unchecked")
 	private OutlineNode<ContextNodeContent> getPreviousDump() {
 		if (owner.getPreviousSibling() != null && owner.getPreviousSibling().getContent() instanceof ContextNodeContent) {
