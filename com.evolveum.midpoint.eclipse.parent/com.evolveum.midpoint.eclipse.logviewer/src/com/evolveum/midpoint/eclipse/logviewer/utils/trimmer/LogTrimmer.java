@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.eclipse.logviewer.parsing.ParsingUtils;
 
@@ -16,11 +18,57 @@ import com.evolveum.midpoint.eclipse.logviewer.parsing.ParsingUtils;
  * Commands from stdin:
  *  - trim "Log header text" [lines-to-keep] (0 if remove completely)
  *  - select-test "part-of-test-name"
+ *  - sort-by-threads
  * 
  * @author Pavol Mederly
  *
  */
 public class LogTrimmer {
+	
+	// TODO clean this up
+	private static String outfile;
+	private static String currentThreadName;
+	private static boolean sortByThreads;
+
+	private static Map<String, PrintWriter> writers = new HashMap<>();
+	
+	private static void output(String line) throws IOException {
+		String name;
+		if (sortByThreads) {
+			if (!outfile.contains("*")) {
+				throw new IllegalArgumentException("When sorting by threads, the outfile must contain '*' character (to be replaced by thread name).");
+			}
+			name = outfile.replace("*", fixFileName(currentThreadName));
+		} else {
+			name = outfile;
+		}
+		PrintWriter out = writers.get(name);
+		if (out == null) {
+			System.out.println("Opening file " + name);
+			out = new PrintWriter(new BufferedWriter(new FileWriter(name)));
+			writers.put(name, out);
+		}
+		out.println(line);
+	}
+	
+	private static String fixFileName(String name) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < name.length(); i++) {
+			char ch = name.charAt(i);
+			if (!Character.isAlphabetic(ch) && !Character.isDigit(ch) && ch != '-' && ch != '.' && ch != '_') {
+				sb.append('_');
+			} else {
+				sb.append(ch);
+			}
+		}
+		return sb.toString();
+	}
+
+	private static void closeOutput() {
+		for (PrintWriter writer : writers.values()) {
+			writer.close();
+		}
+	}
 
 	public static void main(String[] args) throws IOException {
 		
@@ -29,25 +77,24 @@ public class LogTrimmer {
 			return;
 		}
 
-		String outfile = args[1];
+		outfile = args[1];
 		System.out.println("Output: " + outfile);
-		PrintWriter out = null;		// lazy create (only if input can be opened as well, not to accidentally overwrite when swapping out and in files)
 		
 		List<Command> commands = parseCommands(args[0]);
 		List<TrimCommand> trimCommands = extractCommands(commands, TrimCommand.class);
 		List<SelectTestCommand> selectTestCommands = extractCommands(commands, SelectTestCommand.class);		
+		List<SortByThreadsCommand> sortByThreadsCommands = extractCommands(commands, SortByThreadsCommand.class);
+		
+		sortByThreads = !sortByThreadsCommands.isEmpty();
 
 		int linesRead = 0;
 		int linesWritten = 0;
+		currentThreadName = "";
 		
 		for (int i = 2; i < args.length; i++) {
 			String infile = args[i];
 			System.out.println("\nInput: " + infile);
 			BufferedReader in = new BufferedReader(new FileReader(infile));
-			
-			if (out == null) {
-				out = new PrintWriter(new BufferedWriter(new FileWriter(outfile))); 
-			}
 
 			int lineOfLogEntry = -1;
 			TrimCommand currentTrimCommand = null;
@@ -65,6 +112,9 @@ public class LogTrimmer {
 					lineOfLogEntry = 0;
 					currentTrimCommand = findRelevantCommand(trimCommands, line);
 					currentSelectTestCommand = updateTestCommand(currentSelectTestCommand, line, selectTestCommands);
+					if (sortByThreads) {
+						currentThreadName = ParsingUtils.parseThread(line, null);
+					}
 				} else {
 					if (lineOfLogEntry >= 0) {
 						lineOfLogEntry++;
@@ -73,14 +123,14 @@ public class LogTrimmer {
 				if (currentTrimCommand instanceof TrimCommand) {
 					int linesToKeep = ((TrimCommand) currentTrimCommand).getKeepLines(); 
 					if (lineOfLogEntry == linesToKeep) {
-						out.println("  (...)");
+						output("  (...)");
 						trim = true;
 					} else if (lineOfLogEntry > linesToKeep) {
 						trim = true;
 					}
 				}
 				if (!trim && (selectTestCommands.isEmpty() || currentSelectTestCommand != null)) {
-					out.println(line);
+					output(line);
 					linesWritten++;
 				}
 				
@@ -93,7 +143,7 @@ public class LogTrimmer {
 			}
 			in.close();
 		}
-		out.close();
+		closeOutput();
 		
 		System.out.println("\n\nLines read: " + linesRead + ", written: " + linesWritten);
 	}
@@ -150,6 +200,8 @@ public class LogTrimmer {
 				String key = line2.substring(1, keyEnd);
 				SelectTestCommand cmd = new SelectTestCommand(key);
 				commands.add(cmd);
+			} else if (line.startsWith("sort-by-threads")) {
+				commands.add(new SortByThreadsCommand());
 			} else {
 				throw new IllegalStateException("Unparseable command: " + line);
 			}
