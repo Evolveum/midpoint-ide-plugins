@@ -69,7 +69,7 @@ public class ServerResponse {
 			return OperationResultStatus.ERROR;
 		} else if (operationResultStatusString == null || "success".equals(operationResultStatusString)) {
 			return OperationResultStatus.SUCCESS;
-		} else if ("warning".equals(operationResultStatusString) || "handledError".equals(operationResultStatusString)) {
+		} else if ("in_progress".equals(operationResultStatusString) || "warning".equals(operationResultStatusString) || "handledError".equals(operationResultStatusString)) {
 			return OperationResultStatus.WARNING;
 		} else {
 			return OperationResultStatus.ERROR;

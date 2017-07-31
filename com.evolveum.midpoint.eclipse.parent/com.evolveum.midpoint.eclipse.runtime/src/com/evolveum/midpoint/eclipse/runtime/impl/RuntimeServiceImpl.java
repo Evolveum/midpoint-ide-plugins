@@ -286,7 +286,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 			String resultMessage = getHeader(response, "OperationResultMessage");
 			System.out.println("Operation result: " + resultStatus + " (" + resultMessage + ")");
 
-			serverResponse.setOperationResultStatusString(resultStatus);	// these will be overriden for ExecuteActionServerResponse later
+			serverResponse.setOperationResultStatusString(resultStatus);	// these will be overridden for ExecuteActionServerResponse later
 			serverResponse.setOperationResultMessage(resultMessage);
 
 			if (response.getEntity() != null) {

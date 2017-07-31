@@ -171,6 +171,8 @@ public class ExecuteActionResponseItem extends ServerResponseItem<ExecuteActionS
 		String itemName = requestItem.getDisplayName() != null ? requestItem.getDisplayName() : "the item";
 		if (response.isSuccess()) {
 			return "Successfully executed " + itemName; 
+		} else if (response.isWarning()) {
+			return "Warning when executing " + itemName + ": " + response.getErrorDescription(); 
 		} else {
 			return "Failed to execute " + itemName + ": " + response.getErrorDescription();
 		}
