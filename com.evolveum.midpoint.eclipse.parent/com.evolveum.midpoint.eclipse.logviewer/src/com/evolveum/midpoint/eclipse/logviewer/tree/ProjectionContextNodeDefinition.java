@@ -16,7 +16,7 @@ public class ProjectionContextNodeDefinition extends OutlineNodeDefinition<Proje
 
 	@Override
 	public ProjectionContextNodeContent recognize(int lineNumber, String line, String entry, String header, IRegion region, IDocument document) throws BadLocationException {
-		if (!line.startsWith("    PROJECTION ShadowType Discr")) {
+		if (!line.startsWith("    PROJECTION ShadowType Discr") && !line.startsWith("    PROJECTION ShadowType RSD(")) {
 			return null;
 		}
 		

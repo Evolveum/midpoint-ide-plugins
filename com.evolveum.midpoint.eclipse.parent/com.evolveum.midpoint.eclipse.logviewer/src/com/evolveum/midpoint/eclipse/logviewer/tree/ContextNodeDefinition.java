@@ -1,7 +1,11 @@
 package com.evolveum.midpoint.eclipse.logviewer.tree;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -77,7 +81,46 @@ public class ContextNodeDefinition extends OutlineNodeDefinition<ContextNodeCont
 		content.parseWaveInfo(line2);
 		content.parseLabelCore(lineContent);
 		content.setLabelSuffix("");
+		
+		findComponents(content, lineNumber+2, document);
 		return content;
+	}
+	
+	private static final Pattern RULES_PATTERN = Pattern.compile("^      (\\w)+ policy rules \\(total (\\d)+, triggered (\\d)+\\):.*"); 
+	
+	private void findComponents(ContextNodeContent content, int lineNumber, IDocument document) {
+		
+		List<String> zero = new ArrayList<>();
+		List<String> plus = new ArrayList<>();
+		List<String> minus = new ArrayList<>();
+		List<String> current = null;
+		while (lineNumber < document.getNumberOfLines()) {
+			String line = DocumentUtils.getLine(document, lineNumber);
+			if (line == null || line.startsWith("  PROJECTIONS:")) {
+				break;
+			}
+			Matcher matcher = RULES_PATTERN.matcher(line);
+			if (matcher.matches()) {
+				try {
+					content.setObjectRulesTotal(Integer.parseInt(matcher.group(2)));
+					content.setObjectRulesTriggered(Integer.parseInt(matcher.group(3)));
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
+			} else if (line.startsWith("        Zero:")) {
+				current = zero;
+			} else if (line.startsWith("        Plus:")) {
+				current = plus;
+			} else if (line.startsWith("        Minus:")) {
+				current = minus;
+			} else if (line.startsWith("          -> ") && current != null) {
+				current.add(line);
+			}
+			lineNumber++;
+		}
+		content.setZeroAssignments(zero.size());
+		content.setPlusAssignments(plus.size());
+		content.setMinusAssignments(minus.size());
 	}
 
 	@Override

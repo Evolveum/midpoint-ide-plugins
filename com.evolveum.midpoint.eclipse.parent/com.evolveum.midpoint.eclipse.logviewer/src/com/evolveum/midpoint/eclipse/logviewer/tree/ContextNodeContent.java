@@ -11,6 +11,8 @@ public class ContextNodeContent extends OutlineNodeContent {
 	private String execWave, projWave;
 	private String labelCore;
 	private String labelSuffix;
+	private int objectRulesTotal, objectRulesTriggered;
+	private int zeroAssignments, plusAssignments, minusAssignments;
 	
 	public String getLabelCore() {
 		return labelCore;
@@ -47,7 +49,9 @@ public class ContextNodeContent extends OutlineNodeContent {
 		}
 		
 		String label = "Wave: " + execWave + " : " + projWave + 
-				" - P:" + projectionContextsCount + ", M:" + mappingsCount + 
+				" - P:" + projectionContextsCount + ", M:" + mappingsCount +
+				", R:" + objectRulesTriggered + "/" + objectRulesTotal + 
+				", A:" + zeroAssignments + "=" + plusAssignments + "+" + minusAssignments + "-" +
 				(executionsCount > 0 ? " # " : " - ") + 
 				labelCore + labelSuffix;
 
@@ -128,5 +132,45 @@ public class ContextNodeContent extends OutlineNodeContent {
 			line = line.substring(5);
 		}
 		setLabelCore(line);
+	}
+
+	public int getObjectRulesTotal() {
+		return objectRulesTotal;
+	}
+
+	public void setObjectRulesTotal(int objectRulesTotal) {
+		this.objectRulesTotal = objectRulesTotal;
+	}
+
+	public int getObjectRulesTriggered() {
+		return objectRulesTriggered;
+	}
+
+	public void setObjectRulesTriggered(int objectRulesTriggered) {
+		this.objectRulesTriggered = objectRulesTriggered;
+	}
+
+	public int getZeroAssignments() {
+		return zeroAssignments;
+	}
+
+	public void setZeroAssignments(int zeroAssignments) {
+		this.zeroAssignments = zeroAssignments;
+	}
+
+	public int getPlusAssignments() {
+		return plusAssignments;
+	}
+
+	public void setPlusAssignments(int plusAssignments) {
+		this.plusAssignments = plusAssignments;
+	}
+
+	public int getMinusAssignments() {
+		return minusAssignments;
+	}
+
+	public void setMinusAssignments(int minusAssignments) {
+		this.minusAssignments = minusAssignments;
 	}
 }
