@@ -85,6 +85,8 @@ public class ConfigurationTemplateHelp {
 		sb.append("%outline projection-context 50\n");
 		sb.append("%outline execution 50\n");
 		sb.append("%outline mapping 50\n");
+		sb.append("%outline policy-rule 50\n");
+		sb.append("%outline policy-constraint 60\n");
 		sb.append("%outline expression 70\n");
 		sb.append("%outline script 80\n");
 		sb.append("\n\n");

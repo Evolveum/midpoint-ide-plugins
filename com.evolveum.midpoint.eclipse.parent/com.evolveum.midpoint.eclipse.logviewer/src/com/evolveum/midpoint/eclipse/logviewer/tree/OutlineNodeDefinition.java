@@ -60,6 +60,10 @@ public abstract class OutlineNodeDefinition<C extends OutlineNodeContent> implem
 			return ProjectionContextNodeDefinition.parseFromLine(config, line);
 		} else if (line.startsWith("%outline mapping")) {
 			return MappingNodeDefinition.parseFromLine(config, line);
+		} else if (line.startsWith("%outline policy-constraint")) {
+			return PolicyConstraintNodeDefinition.parseFromLine(config, line);
+		} else if (line.startsWith("%outline policy-rule")) {
+			return PolicyRuleNodeDefinition.parseFromLine(config, line);
 		} else if (line.startsWith("%outline expression")) {
 			return ExpressionNodeDefinition.parseFromLine(config, line);
 		} else if (line.startsWith("%outline script")) {
