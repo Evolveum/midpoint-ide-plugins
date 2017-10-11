@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MidPoint Development Tools Runtime Core
 Bundle-SymbolicName: com.evolveum.midpoint.eclipse.runtime
-Bundle-Version: 0.10.5.qualifier
+Bundle-Version: 0.10.6.qualifier
 Bundle-Activator: com.evolveum.midpoint.eclipse.runtime.RuntimeActivator
 Bundle-Vendor: Evolveum
 Require-Bundle: org.eclipse.core.runtime
