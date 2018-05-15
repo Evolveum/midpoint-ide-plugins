@@ -33,7 +33,8 @@ public enum ObjectTypes {
     ACCESS_CERTIFICATION_DEFINITION("accessCertificationDefinition", "accessCertificationDefinitions", "AccessCertificationDefinitionType", "Access certification definition", null, null, OBJECT),
     ACCESS_CERTIFICATION_CAMPAIGN("accessCertificationCampaign", "accessCertificationCampaigns", "AccessCertificationCampaignType", "Access certification campaign", null, null, OBJECT),
     SEQUENCE("sequence", "sequences", "SequenceType", "Sequence", null, null, OBJECT),
-    SERVICE("service", "services", "ServiceType", "Service", "serviceType", "displayName", ABSTRACT_ROLE)
+    SERVICE("service", "services", "ServiceType", "Service", "serviceType", "displayName", ABSTRACT_ROLE),
+    FUNCTION_LIBRARY("functionLibrary", "functionLibraries", "FunctionLibraryType", "Function library", null, null, OBJECT),
     ;
 	
 	private String elementName;
