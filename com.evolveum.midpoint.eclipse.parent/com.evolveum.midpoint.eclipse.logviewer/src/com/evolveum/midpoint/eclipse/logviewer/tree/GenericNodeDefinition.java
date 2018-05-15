@@ -18,7 +18,7 @@ public class GenericNodeDefinition extends OutlineNodeDefinition<GenericNodeCont
 	private final Condition condition;
 	private final String label;
 	
-	private static final Pattern PATTERN = Pattern.compile("\\%outline\\s+custom\\s+" + "(?<condition>" + Condition.REGEXP_COMPLETE + ")" + "(?<level>\\d+)\\s+(?<title>" + AtomicCondition.REGEXP_TEXT + ")\\s*(#.*)?");
+	private static final Pattern PATTERN = Pattern.compile("\\%outline\\s+custom\\s+" + "(?<condition>" + Condition.REGEXP_COMPLETE + ")" + "(?<level>\\d+)\\s+(?<label>" + AtomicCondition.REGEXP_TEXT + ")\\s*(#.*)?");
 	
 	public GenericNodeDefinition(EditorConfiguration editorConfiguration, Condition condition, int level, String label) {
 		super(editorConfiguration);
@@ -120,7 +120,7 @@ public class GenericNodeDefinition extends OutlineNodeDefinition<GenericNodeCont
 	}
 
 	public static OutlineNodeDefinition<?> parseFromLineAsTestDefinition(EditorConfiguration editorConfiguration, String line) {
-		Condition condition = Condition.parse("line matching '.*TestUtil\\): =====\\[\\ (\\w+\\.\\w+)\\ \\]======================================.*'");
+		Condition condition = Condition.parse("line matching '.*TestUtil\\): =====\\[\\ (\\w+\\.\\w+|\\w+)\\ \\]======================================.*'");
 		String label = "TEST: ${group:1}";
 		int level = OutlineNodeDefinition.getLevel(line);
 		return new GenericNodeDefinition(editorConfiguration, condition, level, label);
