@@ -314,7 +314,7 @@ public abstract class AbstractServersFieldEditor<T extends DataItem> extends Fie
 							Rectangle rect = item.getBounds(i);
 							if (rect.contains(pt)) {
 								table.setSelection(index);
-								editPressed();
+								selectPressed();
 								return;
 							}
 							if (!rowVisible && rect.intersects(clientArea)) {
