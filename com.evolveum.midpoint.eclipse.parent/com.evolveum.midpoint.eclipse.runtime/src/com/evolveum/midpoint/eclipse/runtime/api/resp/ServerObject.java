@@ -43,9 +43,9 @@ public class ServerObject {
 	public List<String> getSubtypes() {
 		return subtypes;
 	}
-	public void setSubtype(List<String> subtypes) {
+	public void setSubtypes(List<String> subtypes) {
 		this.subtypes = subtypes;
-	}	
+	}
 	public String getDisplayName() {
 		return displayName;
 	}

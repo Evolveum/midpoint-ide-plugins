@@ -408,7 +408,7 @@ public class RuntimeServiceImpl implements RuntimeService {
 		try {
 			HttpClient client = createClient(connectionParameters);
 
-			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search" + (shortData ? "" : "?include=row&include=jpegPhoto");
+			String url = connectionParameters.getUrl() + REST + "/"+type.getRestType()+"/search?resolveNames=archetypeRef" + (shortData ? "" : "&include=row&include=jpegPhoto");
 			HttpPost request = new HttpPost(url);
 
 			HttpEntity body = new ByteArrayEntity(query.getBytes("utf-8"), createXmlContentType());
@@ -446,6 +446,19 @@ public class RuntimeServiceImpl implements RuntimeService {
 					String xml = DOMUtil.serializeDOMToString(objectElement);
 					Element nameElement = DOMUtil.getChildElement(objectElement, new QName(Constants.COMMON_NS, "name"));
 					List<String> subTypeElementsValues = new ArrayList<>();
+					for (Element e : DOMUtil.getChildElements(objectElement, new QName(Constants.COMMON_NS, "archetypeRef"))) {
+						Element targetNameElement = DOMUtil.getChildElement(e, new QName(Constants.COMMON_NS, "targetName"));
+						String archetypeName = targetNameElement != null ? targetNameElement.getTextContent() : null; 
+						if (archetypeName != null && !archetypeName.isEmpty()) {
+							subTypeElementsValues.add(archetypeName);
+						} else {
+							String archetypeOid = e.getAttribute("oid");
+							subTypeElementsValues.add(archetypeOid);
+						}
+					}
+					for (Element e : DOMUtil.getChildElements(objectElement, new QName(Constants.COMMON_NS, "subtype"))) {
+						subTypeElementsValues.add(e.getTextContent());							
+					}
 					if (realType != null && realType.getSubTypeElement() != null) {
 						for (Element e : DOMUtil.getChildElements(objectElement, new QName(Constants.COMMON_NS, realType.getSubTypeElement()))) {
 							subTypeElementsValues.add(e.getTextContent());							
