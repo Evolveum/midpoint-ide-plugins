@@ -13,6 +13,10 @@
 			description="Browse objects on midPoint server"
 			id="com.evolveum.midpoint.eclipse.ui.command.browse">
 		</command>
+		<command name="Analyze traces"
+			description="Analyze traces"
+			id="com.evolveum.midpoint.eclipse.ui.command.analyzeTraces">
+		</command>
 		<command name="Download"
 			description="Downloads objects from midPoint"
 			id="com.evolveum.midpoint.eclipse.ui.command.download">
@@ -136,6 +140,8 @@
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.download" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.BrowseHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.browse" />
+		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.AnalyzeTracesHandler"
+				 commandId="com.evolveum.midpoint.eclipse.ui.command.analyzeTraces" />
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"
 				 commandId="com.evolveum.midpoint.eclipse.ui.command.testConnection" />				 
 		<handler class="com.evolveum.midpoint.eclipse.ui.handlers.TestConnectionHandler"
@@ -266,6 +272,10 @@
   			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
   			<parameter id="com.evolveum.midpoint.eclipse.ui.commandParameter.withAction" value="true"/>
   		</key>
+ 		<key
+  			sequence="M3+4"
+  			commandId="com.evolveum.midpoint.eclipse.ui.command.analyzeTraces"
+  			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
   		<key
   			sequence="M3+1"
   			commandId="com.evolveum.midpoint.eclipse.ui.command.executeAction"
@@ -288,5 +298,27 @@
  	<extension
       	point="org.eclipse.ui.editors.templates">
 			<include file="templates/templates.xml"/>
-	 </extension>  
+	 </extension>
+	 
+	<extension point="org.eclipse.ui.views">
+		<category
+            id="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
+            name="midPoint">
+      	</category>
+    	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.analyzer" 
+    		name="MidPoint Trace Structure"
+         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceAnalyzerView"
+         	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
+          	/>		<!-- icon="icons\view.gif" -->
+    	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.details" 
+    		name="MidPoint Trace Entry Details"
+         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceDetailsView"
+         	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
+          	/>		<!-- icon="icons\view.gif" -->
+    	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.performance" 
+    		name="MidPoint Trace Performance Information"
+         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TracePerformanceView"
+         	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
+          	/>		<!-- icon="icons\view.gif" -->
+	</extension>
 </plugin>

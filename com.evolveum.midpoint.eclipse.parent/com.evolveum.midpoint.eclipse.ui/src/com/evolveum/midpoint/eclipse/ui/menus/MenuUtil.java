@@ -72,6 +72,16 @@ public class MenuUtil {
 						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
 	}
 
+	public static void addAnalyzeTraces(List<IContributionItem> items, IServiceLocator serviceLocator) {
+		items.add(new CommandContributionItem( 
+				new CommandContributionItemParameter(
+						serviceLocator, null, PluginConstants.CMD_ANALYZE_TRACES, null, 
+						null, null, null, 
+						"&Analyze traces", 
+						null, null, CommandContributionItem.STYLE_PUSH, null, true)));
+	}
+
+
 	public static void addDownload(List<IContributionItem> items, IServiceLocator serviceLocator) {
 		items.add(new CommandContributionItem( 
 				new CommandContributionItemParameter(

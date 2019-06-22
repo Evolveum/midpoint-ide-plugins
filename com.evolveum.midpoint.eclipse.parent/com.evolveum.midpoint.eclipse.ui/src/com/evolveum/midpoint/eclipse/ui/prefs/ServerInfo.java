@@ -18,6 +18,7 @@ public class ServerInfo implements DataItem {
 	
 	private static final String E_SELECTED = "selected";
 	private static final String E_LOG_FILE = "logFile";
+	private static final String E_TRACE_DIR = "traceDir";
 	private static final String E_PROPERTIES_FILE = "propertiesFile";
 	private static final String E_PASSWORD = "password";
 	private static final String E_IGNORE_SSL_ISSUES = "ignoreSslIssues";
@@ -35,8 +36,10 @@ public class ServerInfo implements DataItem {
 	private String shortName;
 	private String propertiesFile;
 	private String logFile;
+	private String traceDir;
 	
-	public ServerInfo(boolean selected, String name, String url, String login, String password, boolean ignoreSslIssues, String shortName, String propertiesFile, String logFile) {
+	public ServerInfo(boolean selected, String name, String url, String login, String password, boolean ignoreSslIssues, String shortName, String propertiesFile, String logFile,
+			String traceDir) {
 		this.selected = selected;
 		this.name = name;
 		this.url = url;
@@ -46,6 +49,7 @@ public class ServerInfo implements DataItem {
 		this.shortName = shortName;
 		this.propertiesFile = propertiesFile;
 		this.logFile = logFile;
+		this.traceDir = traceDir;
 	}
 
 	public ServerInfo() {
@@ -54,12 +58,12 @@ public class ServerInfo implements DataItem {
 
 	@Override
 	public String[] getColumnValues() {
-		return new String[] { name, url, login, shortName, propertiesFile, logFile }; 
+		return new String[] { name, url, login, shortName, propertiesFile, logFile, traceDir }; 
 	}
 
 	@Override
 	public DataItem clone() {
-		ServerInfo clone = new ServerInfo(selected, name, url, login, password, ignoreSslIssues, shortName, propertiesFile, logFile);
+		ServerInfo clone = new ServerInfo(selected, name, url, login, password, ignoreSslIssues, shortName, propertiesFile, logFile, traceDir);
 		return clone;
 	}
 	
@@ -136,9 +140,17 @@ public class ServerInfo implements DataItem {
 	public void setLogFile(String logFile) {
 		this.logFile = logFile;
 	}
+	
+	public String getTraceDir() {
+		return traceDir;
+	}
+
+	public void setTraceDir(String traceDir) {
+		this.traceDir = traceDir;
+	}
 
 	public static ServerInfo createDefault() {
-		return new ServerInfo(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", false, "", "", "");
+		return new ServerInfo(false, "", "http://localhost:8080/midpoint", "administrator", "5ecr3t", false, "", "", "", "");
 	}
 
 	public static String createDefaultXml() {
@@ -169,6 +181,7 @@ public class ServerInfo implements DataItem {
 		DOMUtil.createSubElement(server, new QName(E_SHORT_NAME)).setTextContent(shortName);
 		DOMUtil.createSubElement(server, new QName(E_PROPERTIES_FILE)).setTextContent(propertiesFile);
 		DOMUtil.createSubElement(server, new QName(E_LOG_FILE)).setTextContent(logFile);
+		DOMUtil.createSubElement(server, new QName(E_TRACE_DIR)).setTextContent(traceDir);
 		DOMUtil.createSubElement(server, new QName(E_SELECTED)).setTextContent(String.valueOf(selected));
 	}
 
@@ -202,7 +215,8 @@ public class ServerInfo implements DataItem {
 				getBoolean(e, E_IGNORE_SSL_ISSUES),
 				get(e, E_SHORT_NAME),
 				get(e, E_PROPERTIES_FILE),
-				get(e, E_LOG_FILE));
+				get(e, E_LOG_FILE),
+				get(e, E_TRACE_DIR));
 		
 		return rv;
 	}

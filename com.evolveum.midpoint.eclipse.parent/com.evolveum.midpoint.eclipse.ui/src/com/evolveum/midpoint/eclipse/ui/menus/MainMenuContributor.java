@@ -37,6 +37,7 @@ public class MainMenuContributor extends CompoundContributionItem implements IWo
 		if (serverSelected) {
 
 			MenuUtil.addBrowse(items, serviceLocator);
+			MenuUtil.addAnalyzeTraces(items, serviceLocator);
 			
 			items.add(new Separator());
 

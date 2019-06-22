@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -26,9 +27,11 @@ public class ServerEditDialog extends TitleAreaDialog {
 	private Text txtShortName;
 	private Text txtProperties;
 	private Text txtLogFile;
+	private Text txtTraceDir;
 	private Button btnTestConnection;
 	private Button btnBrowsePropertiesFile;
 	private Button btnBrowseLogFile;
+	private Button btnBrowseTraceDir;
 	
 	private ServerInfo newDataItem;
 	private ServerInfo existingDataItem;
@@ -75,6 +78,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 		createShortName(container);
 		createPropertiesFile(container);
 		createLogFile(container);
+		createTraceDir(container);
 
 		return area;
 	}
@@ -223,7 +227,7 @@ public class ServerEditDialog extends TitleAreaDialog {
                 if (!f.exists()) {
         			f = null;
         		}
-                File d = getFile(f);
+                File d = browseForFile(f);
                 if (d == null) {
         			return null;
         		}
@@ -268,7 +272,7 @@ public class ServerEditDialog extends TitleAreaDialog {
                 if (!f.exists()) {
         			f = null;
         		}
-                File d = getFile(f);
+                File d = browseForFile(f);
                 if (d == null) {
         			return null;
         		}
@@ -279,11 +283,72 @@ public class ServerEditDialog extends TitleAreaDialog {
 		btnBrowseLogFile.addDisposeListener(event -> btnBrowseLogFile = null);		
 	}
 
-	private File getFile(File startingDirectory) {
+	private void createTraceDir(Composite container) {
+		Label label = new Label(container, SWT.NONE);
+		label.setText("Trace dir (if local)");
+
+		GridData gd = new GridData();
+		gd.grabExcessHorizontalSpace = true;
+		gd.horizontalSpan = 2;
+		gd.horizontalAlignment = GridData.FILL;
+		
+		txtTraceDir = new Text(container, SWT.BORDER);
+		txtTraceDir.setLayoutData(gd);
+		if (existingDataItem != null) {
+			txtTraceDir.setText(existingDataItem.getTraceDir());
+		}
+		
+		GridData gd2 = new GridData();
+		gd2.horizontalAlignment = GridData.FILL;
+		btnBrowseTraceDir = new Button(container, SWT.PUSH);
+		btnBrowseTraceDir.setText("Browse...");
+		btnBrowseTraceDir.setLayoutData(gd2);
+		btnBrowseTraceDir.addSelectionListener(new SelectionAdapter() {
+            @Override
+			public void widgetSelected(SelectionEvent evt) {
+                String newValue = changePressed();
+                if (newValue != null) {
+                	txtTraceDir.setText(newValue);
+                }
+            }
+        	protected String changePressed() {
+                File f = new File(txtTraceDir.getText());
+                if (!f.exists()) {
+        			f = null;
+        		}
+                File d = browseForDirectory(f);
+                if (d == null) {
+        			return null;
+        		}
+                return d.getAbsolutePath();
+            }
+
+        });        
+		btnBrowseTraceDir.addDisposeListener(event -> btnBrowseTraceDir = null);		
+	}
+	
+	private File browseForFile(File startingDirectory) {
 
         FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
         if (startingDirectory != null) {
 			dialog.setFileName(startingDirectory.getPath());
+		}
+        String file = dialog.open();
+        if (file != null) {
+            file = file.trim();
+            if (file.length() > 0) {
+				return new File(file);
+			}
+        }
+
+        return null;
+    }
+
+	private File browseForDirectory(File startingDirectory) {
+
+        DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.OPEN | SWT.SHEET);
+        if (startingDirectory != null) {
+			dialog.setFilterPath(startingDirectory.getPath());
 		}
         String file = dialog.open();
         if (file != null) {
@@ -314,6 +379,7 @@ public class ServerEditDialog extends TitleAreaDialog {
 		newDataItem.setShortName(txtShortName.getText());
 		newDataItem.setPropertiesFile(txtProperties.getText());
 		newDataItem.setLogFile(txtLogFile.getText());
+		newDataItem.setTraceDir(txtTraceDir.getText());
 		if (existingDataItem != null) {
 			newDataItem.setSelected(existingDataItem.isSelected());
 		}

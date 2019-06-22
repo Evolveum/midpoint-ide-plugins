@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.evolveum.midpoint.eclipse</groupId>
-	<version>0.10.8-SNAPSHOT</version>
+	<version>0.20.0-SNAPSHOT</version>
 	<artifactId>com.evolveum.midpoint.eclipse.parent</artifactId>
 	<packaging>pom</packaging>
 
 	<properties>
-		<tycho-version>0.26.0</tycho-version>
+		<tycho-version>1.4.0</tycho-version>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -166,6 +166,8 @@
 					<version>${tycho-version}</version>
 					<configuration>
 						<compilerArgument>-err:-forbidden</compilerArgument>
+                        <!-- <source>1.8</source>
+          				<target>1.8</target>  -->
 					</configuration>
 				</plugin>
 			</plugins>

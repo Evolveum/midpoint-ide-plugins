@@ -24,6 +24,7 @@ public class PluginConstants {
 	public static final String CMD_RELOAD_FROM_SERVER = "com.evolveum.midpoint.eclipse.ui.command.reloadFromServer";
 	public static final String CMD_SET_AS_ACTION = "com.evolveum.midpoint.eclipse.ui.command.setAsAction";
 	public static final String CMD_BROWSE = "com.evolveum.midpoint.eclipse.ui.command.browse";
+	public static final String CMD_ANALYZE_TRACES = "com.evolveum.midpoint.eclipse.ui.command.analyzeTraces";
 
 	public static final String CMD_SET_LOG_LEVEL = "com.evolveum.midpoint.eclipse.ui.command.setLogLevel";
 	public static final String PARAM_COMPONENT = "com.evolveum.midpoint.eclipse.ui.commandParameter.component";

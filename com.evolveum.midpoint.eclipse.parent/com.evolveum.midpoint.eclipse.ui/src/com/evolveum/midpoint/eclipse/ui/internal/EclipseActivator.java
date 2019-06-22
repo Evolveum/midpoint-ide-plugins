@@ -11,6 +11,7 @@ public class EclipseActivator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		INSTANCE = this;
+		System.out.println("Activator is here! PC = " + com.evolveum.midpoint.eclipse.runtime.RuntimeActivator.getPrismContext());
 	}
 	
 	@Override

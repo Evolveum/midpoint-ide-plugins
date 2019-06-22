@@ -36,6 +36,7 @@ public class PopupMenuContributor extends CompoundContributionItem implements IW
 
 		if (PluginPreferences.isServerSelected()) {
 			MenuUtil.addBrowse(items, serviceLocator);
+			MenuUtil.addAnalyzeTraces(items, serviceLocator);
 			MenuUtil.addTransferMenu(items, serviceLocator);
 			MenuUtil.addServerSideMenu(items, serviceLocator);
 			MenuUtil.addServerLogMenu(items, serviceLocator);
