@@ -308,42 +308,42 @@
       	</category>
     	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.analyzer" 
     		name="MidPoint Trace Structure"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceAnalyzerView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.other.TraceAnalyzerView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
     	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.details" 
     		name="MidPoint Trace Entry Details"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceDetailsView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.other.TraceDetailsView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
     	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.detailsRaw" 
     		name="MidPoint Trace Entry Details Raw"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceDetailsRawView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.other.TraceDetailsRawView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
     	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.performance" 
     		name="MidPoint Trace Performance Information"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TracePerformanceView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.views.performance.TracePerformanceView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
     	<view id="com.evolveum.midpoint.eclipse.ui.views.trace.options" 
     		name="MidPoint Trace Options"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceOptionsView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.views.options.TraceOptionsView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
         <view id="com.evolveum.midpoint.eclipse.ui.views.trace.lensContext" 
     		name="MidPoint Lens Context View"
-         	class="com.evolveum.midpoint.eclipse.ui.components.lensContextView.LensContextView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.views.lens.LensContextView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
         <view id="com.evolveum.midpoint.eclipse.ui.views.trace.trace" 
     		name="MidPoint Trace Tree View"
-         	class="com.evolveum.midpoint.eclipse.ui.components.traceView.TraceView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.views.entry.EntryView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
         <view id="com.evolveum.midpoint.eclipse.ui.views.trace.log" 
     		name="MidPoint Trace Log View"
-         	class="com.evolveum.midpoint.eclipse.ui.components.tracer.TraceLogView"
+         	class="com.evolveum.midpoint.eclipse.ui.tracer.views.log.TraceLogView"
          	category="com.evolveum.midpoint.eclipse.ui.viewCategory.midPoint"
           	/>		<!-- icon="icons\view.gif" -->
           	
@@ -351,7 +351,7 @@
  <extension
        point="org.eclipse.ui.editors">
     <editor
-          class="com.evolveum.midpoint.eclipse.ui.editors.tracer.TracerViewerEditor"
+          class="com.evolveum.midpoint.eclipse.ui.tracer.editor.TracerViewerEditor"
           default="false"
           extensions="xml, zip"
           id="com.evolveum.midpoint.eclipse.ui.editors.tracer"

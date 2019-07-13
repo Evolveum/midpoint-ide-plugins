@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.eclipse.ui.components.lensContextView.Util;
+import com.evolveum.midpoint.eclipse.ui.tracer.views.lens.Util;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -53,5 +53,10 @@ public class ItemNode extends Node {
 
 	public static ItemNode create(Item<?, ?> item, Node parent) throws SchemaException {
 		return new ItemNode(item, parent);
+	}
+
+	@Override
+	public Object getObject() {
+		return item;
 	}
 }

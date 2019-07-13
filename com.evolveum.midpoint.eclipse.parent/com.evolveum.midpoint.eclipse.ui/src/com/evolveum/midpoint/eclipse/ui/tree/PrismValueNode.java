@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.eclipse.ui.components.lensContextView.Util;
+import com.evolveum.midpoint.eclipse.ui.tracer.views.lens.Util;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -69,33 +69,12 @@ public class PrismValueNode extends Node {
 		return Util.prettyPrint(value);
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismValueNode other = (PrismValueNode) obj;
-		if (Objects.equals(label, other.getLabel()))
-			return false;
-//		if (values == null) {
-//			if (other.values != null)
-//				return false;
-//		} else if (!values.equals(other.values))
-//			return false;
-		return true;
-	}
-
 	public static PrismValueNode create(String string, PrismValue value, Node parent) throws SchemaException {
 		return new PrismValueNode(string, value, parent);		
+	}
+
+	@Override
+	public Object getObject() {
+		return value;
 	}
 }

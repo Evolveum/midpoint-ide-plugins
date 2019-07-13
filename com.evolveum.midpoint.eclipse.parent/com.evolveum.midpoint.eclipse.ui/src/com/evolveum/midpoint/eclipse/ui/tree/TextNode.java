@@ -23,4 +23,9 @@ public class TextNode extends Node {
 	public static TextNode create(String label, Object value, Node parent) {
 		return new TextNode(label, value != null ? value.toString() : "", parent);
 	}
+
+	@Override
+	public Object getObject() {
+		return value;
+	}
 }

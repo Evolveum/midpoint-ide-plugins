@@ -2,8 +2,8 @@ package com.evolveum.midpoint.eclipse.ui.tree;
 
 import java.util.Locale;
 
-import com.evolveum.midpoint.eclipse.ui.components.tracer.OpNode;
-import com.evolveum.midpoint.eclipse.ui.components.tracer.TraceDetailsView;
+import com.evolveum.midpoint.eclipse.ui.tracer.common.OpNode;
+import com.evolveum.midpoint.eclipse.ui.tracer.other.TraceDetailsView;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -78,4 +78,8 @@ public class ResultNode extends Node {
 		return o != null ? o.toString() : "";
 	}
 
+	@Override
+	public Object getObject() {
+		return opNode;
+	}
 }

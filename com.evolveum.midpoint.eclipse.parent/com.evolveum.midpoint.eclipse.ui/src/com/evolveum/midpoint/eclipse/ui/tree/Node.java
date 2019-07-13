@@ -26,10 +26,11 @@ public abstract class Node {
 	
 	public abstract String getLabel();
 	public abstract String getValue();
+	public abstract Object getObject();
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getLabel(), getValue());
+		return Objects.hash(getLabel());
 	}
 	
 	@Override
@@ -40,8 +41,7 @@ public abstract class Node {
 			return false;
 		} else {
 			Node node = (Node) obj;
-			return Objects.equals(getLabel(), node.getLabel()) &&
-					Objects.equals(getValue(), node.getValue());
+			return Objects.equals(getLabel(), node.getLabel());
 		}
 	}
 }
