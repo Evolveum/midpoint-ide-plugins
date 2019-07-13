@@ -1,16 +1,13 @@
 package com.evolveum.midpoint.eclipse.ui.components.tracer;
 
+import static com.evolveum.midpoint.eclipse.ui.components.tracer.TracePerformanceView.formatTime;
+
 import java.io.File;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -23,17 +20,17 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Tree;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.eclipse.runtime.PrismContextHolder;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public class TraceAnalyzerView extends ViewPart {
 	private TreeViewer viewer;
@@ -41,16 +38,8 @@ public class TraceAnalyzerView extends ViewPart {
 	private File traceFile;
 	private List<OpNode> traceRoots;
 	private long start;
+	private TraceOptionsView optionsView;
 	
-	private DatatypeFactory datatypeFactory;
-	{
-		try {
-			datatypeFactory = DatatypeFactory.newInstance();
-		} catch (DatatypeConfigurationException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
 	public TraceAnalyzerView() {
 		super();
 	}
@@ -73,11 +62,11 @@ public class TraceAnalyzerView extends ViewPart {
 		});
 
 		viewer = new TreeViewer(parent);
-		viewer.setContentProvider(new TreeContentProvider());
+		viewer.setContentProvider(new TraceTreeContentProvider());
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
 
-		Tree tree = (Tree) viewer.getControl();
+		//Tree tree = (Tree) viewer.getControl();
 //		tree.addSelectionListener(new SelectionAdapter() {
 //			@Override
 //			public void widgetSelected(SelectionEvent e) {
@@ -119,14 +108,34 @@ public class TraceAnalyzerView extends ViewPart {
 //		tree.addListener(SWT.Expand, listener);
 		
 		TreeViewerColumn operationColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		operationColumn.getColumn().setWidth(300);
+		operationColumn.getColumn().setWidth(500);
 		operationColumn.getColumn().setText("Operation");
-		operationColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getResult().getOperation())));
+		operationColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getOperationNameFormatted())));
+
+		TreeViewerColumn stateColumn = new TreeViewerColumn(viewer, SWT.NONE);
+		stateColumn.getColumn().setWidth(60);
+		stateColumn.getColumn().setText("State");
+		stateColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getClockworkState())));
+
+		TreeViewerColumn execWaveColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
+		execWaveColumn.getColumn().setWidth(35);
+		execWaveColumn.getColumn().setText("EW");
+		execWaveColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getExecutionWave())));
+
+		TreeViewerColumn projWaveColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
+		projWaveColumn.getColumn().setWidth(35);
+		projWaveColumn.getColumn().setText("PW");
+		projWaveColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getProjectionWave())));
 
 		TreeViewerColumn statusColumn = new TreeViewerColumn(viewer, SWT.NONE);
 		statusColumn.getColumn().setWidth(100);
 		statusColumn.getColumn().setText("Status");
 		statusColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getResult().getStatus())));
+
+		TreeViewerColumn importanceColumn = new TreeViewerColumn(viewer, SWT.NONE);
+		importanceColumn.getColumn().setWidth(20);
+		importanceColumn.getColumn().setText("W");
+		importanceColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getImportanceSymbol())));
 
 		TreeViewerColumn startColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
 		startColumn.getColumn().setWidth(60);
@@ -134,28 +143,106 @@ public class TraceAnalyzerView extends ViewPart {
 		startColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getStart(start))));
 
 		TreeViewerColumn microsecondsColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
-		microsecondsColumn.getColumn().setWidth(50);
+		microsecondsColumn.getColumn().setWidth(80);
 		microsecondsColumn.getColumn().setText("Time");
-		microsecondsColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getResult().getMicroseconds() != null ? String.format("%.1f", n.getResult().getMicroseconds() / 1000.0f) : "")));
+		microsecondsColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> formatTime(n.getResult().getMicroseconds()))));
 
 		TreeViewerColumn typeColumn = new TreeViewerColumn(viewer, SWT.NONE);
-		typeColumn.getColumn().setWidth(60);
+		typeColumn.getColumn().setWidth(100);
 		typeColumn.getColumn().setText("Type");
 		typeColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getType())));
+		
+		addPerformanceColumn(PerformanceCategory.REPOSITORY);
+		addPerformanceColumn(PerformanceCategory.REPOSITORY_CACHE);
+		addPerformanceColumn(PerformanceCategory.MAPPING_EVALUATION);
+		addPerformanceColumn(PerformanceCategory.ICF);
+		
+		TreeViewerColumn logLinesColumn = new TreeViewerColumn(viewer, SWT.NONE);
+		logLinesColumn.getColumn().setWidth(50);
+		logLinesColumn.getColumn().setText("Log");
+		logLinesColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getLogEntriesCount())));
 
 //		TreeViewerColumn invocationIdColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
 //		invocationIdColumn.getColumn().setWidth(30);
 //		invocationIdColumn.getColumn().setText("ID");
 //		invocationIdColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider("invocationId")));
 
+		optionsView = getOptionsView();
+		System.out.println("Options view = " + optionsView);
+		
 		setViewerInput();
 		
 		getSite().setSelectionProvider(viewer); 
-
+		
 		GridLayoutFactory.fillDefaults().generateLayout(parent);
+		
+	}
+	
+	private TraceOptionsView getOptionsView() {
+		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (workbenchWindow == null) {
+            IWorkbenchWindow[] allWindows = PlatformUI.getWorkbench().getWorkbenchWindows();
+            for (IWorkbenchWindow window : allWindows) {
+                workbenchWindow = window;
+                if (workbenchWindow != null) {
+                    break;
+                }
+            }
+        }
+
+        if (workbenchWindow == null) {
+            throw new IllegalStateException("Could not retrieve workbench window");
+        }
+        IWorkbenchPage activePage = workbenchWindow.getActivePage();
+
+        try {
+            IViewPart viewPart = activePage.showView("com.evolveum.midpoint.eclipse.ui.views.trace.options");
+            return (TraceOptionsView) viewPart;
+        } catch (PartInitException e) {
+            return null;
+        }
 	}
 
-	class MyLabelProvider extends LabelProvider implements IStyledLabelProvider {
+	private void addPerformanceColumn(PerformanceCategory category) {
+		TreeViewerColumn countColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
+		countColumn.getColumn().setWidth(70);
+		countColumn.getColumn().setText(category.getShortLabel() + " #");
+		countColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return String.valueOf(getCount(element));
+			}
+			private int getCount(Object element) {
+				return ((OpNode) element).getPerformanceByCategory().get(category).getTotalCount();
+			}
+			@Override
+			public Color getForeground(Object element) {
+				return TracePerformanceView.getColor(getCount(element));
+			}
+		});
+		//countColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getPerformanceByCategory().get(category).getTotalCount())));
+
+		TreeViewerColumn timeColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
+		timeColumn.getColumn().setWidth(80);
+		timeColumn.getColumn().setText(category.getShortLabel() + " time");
+		timeColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> formatTime(n.getPerformanceByCategory().get(category).getTotalTime()))));
+		timeColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return formatTime(getTime(element));
+			}
+			private long getTime(Object element) {
+				return ((OpNode) element).getPerformanceByCategory().get(category).getTotalTime();
+			}
+			@Override
+			public Color getForeground(Object element) {
+				return TracePerformanceView.getColor(getTime(element));
+			}
+		});
+
+	}
+
+	public class MyLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
 		private Function<OpNode, Object> extractor;
 
@@ -199,10 +286,7 @@ public class TraceAnalyzerView extends ViewPart {
 
 	private void parseTraceFile() {
 		try {
-			ViewOptions options = new ViewOptions();
-//			options.show(OpType.CLOCKWORK_RUN);
-//			options.show(OpType.MAPPING_EVALUATION);
-			TraceParser parser = new TraceParser(options);
+			TraceParser parser = new TraceParser();
 			traceRoots = parser.parse(traceFile);
 			start = parser.getStartTimestamp();
 			setViewerInput();
@@ -216,6 +300,16 @@ public class TraceAnalyzerView extends ViewPart {
 
 	public void setViewerInput() {
 		viewer.setInput(traceRoots != null ? traceRoots.toArray() : null);
+	}
+
+	public void applyOptions(Options options) {
+		System.out.println("Applying options");
+		if (traceRoots != null) {
+			for (OpNode root : traceRoots) {
+				root.applyOptions(options);
+			}
+			viewer.refresh();
+		}
 	}
 
 }
