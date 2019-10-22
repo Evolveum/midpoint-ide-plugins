@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.eclipse.ui.tracer.editor;
 
 import static com.evolveum.midpoint.eclipse.ui.tracer.views.performance.TracePerformanceView.formatTime;
+import static com.evolveum.midpoint.eclipse.ui.tracer.views.performance.TracePerformanceView.formatPercent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ public class TracerViewerEditor extends EditorPart {
 	private long start;
 	private TraceOptionsView optionsView;
 	private List<TreeViewerColumn> hidablePerformanceColumns;
+	private List<TreeViewerColumn> readWriteOpColumns;
 	
 	private TraceOptionsView getOptionsView() {
 		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
@@ -76,7 +78,7 @@ public class TracerViewerEditor extends EditorPart {
         }
 	}
 
-	private void addPerformanceColumn(PerformanceCategory category, boolean hidable) {
+	private void addPerformanceColumn(PerformanceCategory category, boolean hidable, boolean readWrite) {
 		TreeViewerColumn countColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
 		countColumn.getColumn().setWidth(70);
 		countColumn.getColumn().setText(category.getShortLabel() + " #");
@@ -93,7 +95,9 @@ public class TracerViewerEditor extends EditorPart {
 				return TracePerformanceView.getColor(getCount(element));
 			}
 		});
-		if (hidable) {
+		if (readWrite) {
+			readWriteOpColumns.add(countColumn);
+		} else if (hidable) {
 			hidablePerformanceColumns.add(countColumn);
 		}
 		//countColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getPerformanceByCategory().get(category).getTotalCount())));
@@ -115,7 +119,11 @@ public class TracerViewerEditor extends EditorPart {
 				return TracePerformanceView.getColor(getTime(element));
 			}
 		});
-		hidablePerformanceColumns.add(timeColumn);
+		if (readWrite) {
+			readWriteOpColumns.add(countColumn);
+		} else {
+			hidablePerformanceColumns.add(timeColumn);
+		}
 	}
 
 	class MyLabelProvider extends LabelProvider implements IStyledLabelProvider {
@@ -166,6 +174,9 @@ public class TracerViewerEditor extends EditorPart {
 			}
 			for (TreeViewerColumn column : hidablePerformanceColumns) {
 				column.getColumn().setWidth(options.isShowPerformanceColumns() ? 80 : 0);
+			}
+			for (TreeViewerColumn column : readWriteOpColumns) {
+				column.getColumn().setWidth(options.isShowReadWriteColumns() ? 80 : 0);
 			}
 			viewer.refresh();
 		}
@@ -298,10 +309,26 @@ public class TracerViewerEditor extends EditorPart {
 		typeColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> n.getType())));
 
 		hidablePerformanceColumns = new ArrayList<>();
-		addPerformanceColumn(PerformanceCategory.REPOSITORY, false);
-		addPerformanceColumn(PerformanceCategory.REPOSITORY_CACHE, true);
-		addPerformanceColumn(PerformanceCategory.MAPPING_EVALUATION, false);
-		addPerformanceColumn(PerformanceCategory.ICF, false);
+		readWriteOpColumns = new ArrayList<>();
+		
+		TreeViewerColumn overhead = new TreeViewerColumn(viewer, SWT.RIGHT);
+		overhead.getColumn().setWidth(50);
+		overhead.getColumn().setText("OH");
+		overhead.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> formatPercent(n.getOverhead()))));
+
+		TreeViewerColumn overhead2 = new TreeViewerColumn(viewer, SWT.RIGHT);
+		overhead2.getColumn().setWidth(50);
+		overhead2.getColumn().setText("OH2");
+		overhead2.setLabelProvider(new DelegatingStyledCellLabelProvider(new MyLabelProvider(n -> formatPercent(n.getOverhead2()))));
+		
+		addPerformanceColumn(PerformanceCategory.REPOSITORY, false, false);
+		addPerformanceColumn(PerformanceCategory.REPOSITORY_READ, false, true);
+		addPerformanceColumn(PerformanceCategory.REPOSITORY_WRITE, false, true);
+		addPerformanceColumn(PerformanceCategory.REPOSITORY_CACHE, true, false);
+		addPerformanceColumn(PerformanceCategory.MAPPING_EVALUATION, false, false);
+		addPerformanceColumn(PerformanceCategory.ICF, false, false);
+		addPerformanceColumn(PerformanceCategory.ICF_READ, false, true);
+		addPerformanceColumn(PerformanceCategory.ICF_WRITE, false, true);		
 		
 		TreeViewerColumn logLinesColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
 		logLinesColumn.getColumn().setWidth(50);

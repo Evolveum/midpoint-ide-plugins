@@ -51,6 +51,9 @@ public class ResultNode extends Node {
 		TextNode.create("Start", toString(result.getStart()), this);
 		TextNode.create("End", toString(result.getEnd()), this);
 		TextNode.create("Duration", result.getMicroseconds() != null ? String.format(Locale.US, "%.1f ms", result.getMicroseconds() / 1000.0) : "?", this);
+		if (result.getAsynchronousOperationReference() != null) {
+			TextNode.create("Async operation ref", toString(result.getAsynchronousOperationReference()), this);
+		}
 		addParams("Parameter", result.getParams(), this);
 		addParams("Context", result.getContext(), this);
 		addParams("Return", result.getReturns(), this);

@@ -33,7 +33,7 @@ public class LensElementContextNode extends PrismValueNode {
 		} else if (lensElementContext instanceof LensProjectionContextType) {
 			LensProjectionContextType pctx = (LensProjectionContextType) lensElementContext;
 			ShadowDiscriminatorType rsd = pctx.getResourceShadowDiscriminator();
-			return "Projection: " + rsd.getResourceRef().getOid() + " / " + rsd.getKind() + " / " + rsd.getIntent(); 
+			return "Projection: " + (rsd.getResourceRef() != null ? rsd.getResourceRef().getOid() : "(null)") + " / " + rsd.getKind() + " / " + rsd.getIntent(); 
 		} else {
 			return "??? " + lensElementContext;
 		}

@@ -29,13 +29,16 @@ public class OpNode {
 	private final List<OpNode> children = new ArrayList<>();
 	private final OpNode parent;
 	private final OpResultInfo info;
+	private final TraceInfo traceInfo;
 	
 	private boolean visible = true;
 	
-	public OpNode(OperationResultType result, OpResultInfo info, OpNode parent) {
+	public OpNode(OperationResultType result, OpResultInfo info, OpNode parent, TraceInfo traceInfo) {
+		assert result != null;
 		this.result = result;
 		this.info = info;
 		this.parent = parent;
+		this.traceInfo = traceInfo;
 	}
 	public OperationResultType getResult() {
 		return result;
@@ -127,12 +130,7 @@ public class OpNode {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getTrace(Class<T> aClass) {
-		for (TraceType trace : result.getTrace()) {
-			if (aClass.isAssignableFrom(trace.getClass())) {
-				return (T) trace;
-			}
-		}
-		return null;
+		return TraceUtil.getTrace(result, aClass);
 	}
 	
 	public boolean isVisible() {
@@ -246,5 +244,31 @@ public class OpNode {
 			rv += segment.getEntry().size();
 		}
 		return rv;
+	}
+
+	public TraceInfo getTraceInfo() {
+		return traceInfo;
+	}
+	
+	public Double getOverhead() {
+		long repository = getPerformanceByCategory().get(PerformanceCategory.REPOSITORY).getTotalTime();
+		long icf = getPerformanceByCategory().get(PerformanceCategory.ICF).getTotalTime();
+		Long total = getResult().getMicroseconds();
+		if (total != null && total.doubleValue() != 0.0) {
+			return (total.doubleValue() - repository - icf) / total.doubleValue();
+		} else {
+			return null; 
+		}
+	}
+
+	public Double getOverhead2() {
+		long repository = getPerformanceByCategory().get(PerformanceCategory.REPOSITORY_CACHE).getTotalTime();
+		long icf = getPerformanceByCategory().get(PerformanceCategory.ICF).getTotalTime();
+		Long total = getResult().getMicroseconds();
+		if (total != null && total.doubleValue() != 0.0) {
+			return (total.doubleValue() - repository - icf) / total.doubleValue();
+		} else {
+			return null; 
+		}
 	}
 }

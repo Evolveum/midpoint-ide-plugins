@@ -38,6 +38,7 @@ public class TraceOptionsView extends ViewPart {
 	private Map<PerformanceCategory, Button> categoriesBoxes = new HashMap<>();
 	private Button alsoParentsButton;
 	private Button perfColumnsButton;
+	private Button readWriteColumnsButton;
 	private Button applyButton;
 
 	public TraceOptionsView() {
@@ -114,6 +115,10 @@ public class TraceOptionsView extends ViewPart {
 	    perfColumnsButton.setText("Show performance columns");
 	    perfColumnsButton.setSelection(true);
 
+	    readWriteColumnsButton = new Button(categoriesGroup, SWT.CHECK);
+	    readWriteColumnsButton.setText("Show read/write ops columns");
+	    readWriteColumnsButton.setSelection(true);
+
 	    applyButton = new Button(parent, SWT.PUSH);
 	    applyButton.setText("Apply");
 	    applyButton.addSelectionListener(new SelectionListener() {
@@ -149,6 +154,7 @@ public class TraceOptionsView extends ViewPart {
 		}
 		rv.setShowAlsoParents(alsoParentsButton.getSelection());
 		rv.setShowPerformanceColumns(perfColumnsButton.getSelection());
+		rv.setShowReadWriteColumns(readWriteColumnsButton.getSelection());
 		return rv;
 	}
 
@@ -196,11 +202,12 @@ public class TraceOptionsView extends ViewPart {
 	
 	private void applyOpViewType(OpViewType opViewType) {
 		typeBoxes.forEach((type, button) -> 
-		button.setSelection(opViewType.getTypes() == null || opViewType.getTypes().contains(type)));
+			button.setSelection(opViewType.getTypes() == null || opViewType.getTypes().contains(type)));
 		categoriesBoxes.forEach((category, button) -> 
-		button.setSelection(opViewType.getCategories() == null || opViewType.getCategories().contains(category)));
+			button.setSelection(opViewType.getCategories() == null || opViewType.getCategories().contains(category)));
 		alsoParentsButton.setSelection(opViewType.isShowAlsoParents());
 		perfColumnsButton.setSelection(opViewType.isShowPerformanceColumns());
+		readWriteColumnsButton.setSelection(opViewType.isShowReadWriteColumns());
 	}
 
 

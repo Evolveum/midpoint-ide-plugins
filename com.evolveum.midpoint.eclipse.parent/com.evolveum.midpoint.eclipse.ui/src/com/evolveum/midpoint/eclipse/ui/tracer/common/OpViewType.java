@@ -12,22 +12,25 @@ import java.util.Collection;
 
 public enum OpViewType {
 	
-	ALL("All", null, null, true, true),
-	OVERVIEW("Overview", Arrays.asList(CLOCKWORK_RUN, MAPPING_EVALUATION, CHANGE_EXECUTION_SUB, FOCUS_LOAD, SHADOW_LOAD), emptySet(), false, false),
-	NONE("None", emptySet(), emptySet(), false, false);
+	ALL("All", null, null, true, true, true),
+	OVERVIEW("Overview", Arrays.asList(CLOCKWORK_RUN, MAPPING_EVALUATION, CHANGE_EXECUTION_SUB, FOCUS_LOAD, SHADOW_LOAD), emptySet(), false, false, false),
+	NONE("None", emptySet(), emptySet(), false, false, false);
 	
 	private final String label;
 	private final Collection<OpType> types;
 	private final Collection<PerformanceCategory> categories;
 	private final boolean showAlsoParents;
 	private final boolean showPerformanceColumns;
+	private final boolean showReadWriteColumns;
 	
-	private OpViewType(String label, Collection<OpType> types, Collection<PerformanceCategory> categories, boolean showAlsoParents, boolean showPerformanceColumns) {
+	private OpViewType(String label, Collection<OpType> types, Collection<PerformanceCategory> categories, boolean showAlsoParents, boolean showPerformanceColumns,
+			boolean showReadWriteColumns) {
 		this.label = label;
 		this.types = types;
 		this.categories = categories;
 		this.showAlsoParents = showAlsoParents;
 		this.showPerformanceColumns = showPerformanceColumns;
+		this.showReadWriteColumns = showReadWriteColumns;
 	}
 
 	public String getLabel() {
@@ -50,4 +53,9 @@ public enum OpViewType {
 		return showPerformanceColumns;
 	}
 
+	public boolean isShowReadWriteColumns() {
+		return showReadWriteColumns;
+	}
+
+	
 }

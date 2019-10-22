@@ -217,6 +217,14 @@ public class TracePerformanceView extends ViewPart implements ISelectionListener
 		}
 	}
 
+	public static String formatPercent(Double value) {
+		if (value == null) {
+			return "";
+		} else {
+			return String.format(Locale.US, "%.1f%%", value*100);
+		}
+	}
+
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object first = ((IStructuredSelection) selection).getFirstElement();

@@ -48,7 +48,7 @@ public class PrismValueNode extends Node {
 		if (ctd != null) {
 			@SuppressWarnings("rawtypes")
 			List<? extends ItemDefinition> definitions = ctd.getDefinitions();
-			definitions.stream().map(def -> def.getName()).forEach(name -> rv.add(name));
+			definitions.stream().map(def -> def.getItemName()).forEach(name -> rv.add(name));
 		}
 		for (QName name : pcv.getItemNames()) {
 			ItemName itemName = ItemName.fromQName(name);

@@ -45,7 +45,7 @@ public class TraceParser {
 		}
 		if (rootResult != null) {
 			List<OpNode> rv = new ArrayList<>();
-			addNode(null, rv, rootResult);
+			addNode(null, rv, rootResult, new TraceInfo(tracingOutput));
 			return rv;
 		} else {
 			return new ArrayList<>();
@@ -79,7 +79,7 @@ public class TraceParser {
 			if (visitable instanceof PrismReferenceValue) {
 				PrismReferenceValue refVal = (PrismReferenceValue) visitable;
 				if (refVal.getObject() == null && refVal.getOid() != null && refVal.getOid().startsWith(SchemaConstants.TRACE_DICTIONARY_PREFIX)) {
-					long id = Long.parseLong(refVal.getOid().substring(SchemaConstants.TRACE_DICTIONARY_PREFIX.length()));
+					String id = refVal.getOid().substring(SchemaConstants.TRACE_DICTIONARY_PREFIX.length());
 					TraceDictionaryEntryType entry = findEntry(id);
 					if (entry == null) {
 						System.err.println("No dictionary entry #" + id);
@@ -97,9 +97,10 @@ public class TraceParser {
 			}
 		}
 
-		private TraceDictionaryEntryType findEntry(long id) {
+		private TraceDictionaryEntryType findEntry(String id) {
 			for (TraceDictionaryEntryType entry : dictionary.getEntry()) {
-				if (entry.getIdentifier() != null && entry.getIdentifier() == id) {
+				String qualifiedId = entry.getOriginDictionaryId() + ":" + entry.getIdentifier();
+				if (qualifiedId.equals(id)) {
 					return entry;
 				}
 			}
@@ -141,12 +142,12 @@ public class TraceParser {
 		}
 	}
 
-	private void addNode(OpNode parent, List<OpNode> rv, OperationResultType result) {
+	private void addNode(OpNode parent, List<OpNode> rv, OperationResultType result, TraceInfo traceInfo) {
 		OpResultInfo info = OpResultInfo.create(result, infoMap);
-		OpNode newNode = new OpNode(result, info, parent);
+		OpNode newNode = new OpNode(result, info, parent, traceInfo);
 		rv.add(newNode);
 		for (OperationResultType child : result.getPartialResults()) {
-			addNode(newNode, newNode.getChildren(), child);
+			addNode(newNode, newNode.getChildren(), child, traceInfo);
 		}
 	}
 

@@ -8,6 +8,7 @@ public class Options {
 	private final Set<PerformanceCategory> categoriesToShow = new HashSet<>();
 	private boolean showAlsoParents;
 	private boolean showPerformanceColumns;
+	private boolean showReadWriteColumns;
 	
 	public boolean isShowAlsoParents() {
 		return showAlsoParents;
@@ -27,4 +28,11 @@ public class Options {
 	public void setShowPerformanceColumns(boolean showPerformanceColumns) {
 		this.showPerformanceColumns = showPerformanceColumns;
 	}
+	public boolean isShowReadWriteColumns() {
+		return showReadWriteColumns;
+	}
+	public void setShowReadWriteColumns(boolean showReadWriteColumns) {
+		this.showReadWriteColumns = showReadWriteColumns;
+	}
+	
 }

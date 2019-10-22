@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/xml-apis-1.4.01.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xercesImpl-2.12.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/annotations-java5-15.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ant-1.10.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ant-launcher-1.10.5.jar"/>
@@ -81,10 +83,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/spring-context-5.0.13.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-core-5.0.13.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-expression-5.0.13.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/util-4.0-SNAPSHOT.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/prism-api-4.0-SNAPSHOT.jar" sourcepath="C:/Users/Pavol/.m2/repository/com/evolveum/midpoint/infra/prism-api/4.0-SNAPSHOT/prism-api-4.0-SNAPSHOT-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/prism-impl-4.0-SNAPSHOT.jar" sourcepath="C:/Users/Pavol/.m2/repository/com/evolveum/midpoint/infra/prism-impl/4.0-SNAPSHOT/prism-impl-4.0-SNAPSHOT-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/schema-4.0-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/util-4.0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/prism-api-4.0.1-SNAPSHOT.jar" sourcepath="C:/Users/Pavol/.m2/repository/com/evolveum/midpoint/infra/prism-api/4.0.1-SNAPSHOT/prism-api-4.0.1-SNAPSHOT-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/prism-impl-4.0.1-SNAPSHOT.jar" sourcepath="C:/Users/Pavol/.m2/repository/com/evolveum/midpoint/infra/prism-impl/4.0.1-SNAPSHOT/prism-impl-4.0.1-SNAPSHOT-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/schema-4.0.1-SNAPSHOT.jar" sourcepath="C:/Users/Pavol/.m2/repository/com/evolveum/midpoint/infra/schema/4.0.1-SNAPSHOT/schema-4.0.1-SNAPSHOT-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections4-4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jaxb-api-2.2.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jaxb-impl-2.2.10.jar"/>

@@ -74,13 +74,47 @@ public class LogTrimmer {
 		
 		if (args.length < 3) {
 			System.out.println("Usage: LogTrimmer instructions-file output-file input-file-1 ... input-file-N");
-			return;
+			System.out.println();
+			System.out.println("(or using interactive mode when parameters are not specified)");
+			System.out.println();
 		}
-
-		outfile = args[1];
-		System.out.println("Output: " + outfile);
 		
-		List<Command> commands = parseCommands(args[0]);
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+		String instructionsFile;
+		if (args.length > 0) {
+			instructionsFile = args[0];
+		} else {
+			System.out.print("Instructions file (ENTER to use stdin): ");
+			instructionsFile = br.readLine();
+		}
+		
+		if (args.length > 1) {
+			outfile = args[1];
+			System.out.println("Output: " + outfile);			
+		} else {
+			System.out.print("Output file (ENTER to use out.log): ");
+			outfile = br.readLine();
+			if (outfile.isEmpty()) {
+				outfile = "out.log";
+			}
+		}
+		
+		List<String> inputFiles = new ArrayList<>();
+		for (int i = 2; i < args.length; i++) {
+			inputFiles.add(args[i]);
+		}
+		if (inputFiles.isEmpty()) {
+			System.out.print("Input file (ENTER to skip processing): ");
+			String input = br.readLine();
+			if (!input.isEmpty()) {
+				inputFiles.add(input);
+			} else {
+				return;
+			}
+		}
+		
+		List<Command> commands = parseCommands(instructionsFile);
 		List<TrimCommand> trimCommands = extractCommands(commands, TrimCommand.class);
 		List<SelectTestCommand> selectTestCommands = extractCommands(commands, SelectTestCommand.class);		
 		List<SortByThreadsCommand> sortByThreadsCommands = extractCommands(commands, SortByThreadsCommand.class);
@@ -91,8 +125,7 @@ public class LogTrimmer {
 		int linesWritten = 0;
 		currentThreadName = "";
 		
-		for (int i = 2; i < args.length; i++) {
-			String infile = args[i];
+		for (String infile : inputFiles) {
 			System.out.println("\nInput: " + infile);
 			BufferedReader in = new BufferedReader(new FileReader(infile));
 
@@ -177,7 +210,17 @@ public class LogTrimmer {
 
 	private static List<Command> parseCommands(String filename) throws IOException {
 		List<Command> commands = new ArrayList<>();
-		BufferedReader br = new BufferedReader(new FileReader(filename));
+		BufferedReader br;
+		if (filename.isEmpty()) {
+			System.out.println("Enter instructions:");
+			System.out.println(" - trim \"Log header text\" [lines-to-keep] (0 if remove completely)");
+			System.out.println(" - select-test \"part-of-test-name\"");
+			System.out.println(" - sort-by-threads");
+			System.out.println(" - go");
+			br = new BufferedReader(new InputStreamReader(System.in));
+		} else {
+			br = new BufferedReader(new FileReader(filename));
+		}
 		String line;
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
@@ -202,6 +245,8 @@ public class LogTrimmer {
 				commands.add(cmd);
 			} else if (line.startsWith("sort-by-threads")) {
 				commands.add(new SortByThreadsCommand());
+			} else if (line.equals("go")) {
+				break;
 			} else {
 				throw new IllegalStateException("Unparseable command: " + line);
 			}

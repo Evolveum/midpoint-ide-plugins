@@ -28,7 +28,7 @@ public class ItemNode extends Node {
 
 	@Override
 	public String getLabel() {
-		return item.getDefinition() != null ? item.getDefinition().getName().getLocalPart() : item.getElementName().getLocalPart();
+		return item.getDefinition() != null ? item.getDefinition().getItemName().getLocalPart() : item.getElementName().getLocalPart();
 	}
 
 	@Override
