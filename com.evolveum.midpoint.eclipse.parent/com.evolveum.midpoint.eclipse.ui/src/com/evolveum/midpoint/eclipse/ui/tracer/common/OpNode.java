@@ -40,6 +40,7 @@ public class OpNode {
 		this.parent = parent;
 		this.traceInfo = traceInfo;
 	}
+	
 	public OperationResultType getResult() {
 		return result;
 	}
@@ -47,15 +48,19 @@ public class OpNode {
 	public OperationsPerformanceInformationType getPerformance() {
 		return info.getPerformance();
 	}
+	
 	public Map<PerformanceCategory, PerformanceCategoryInfo> getPerformanceByCategory() {
 		return info.getPerformanceByCategory();
 	}
+	
 	public OpType getType() {
 		return info.getType();
 	}
+	
 	public List<OpNode> getChildren() {
 		return children;
 	}
+	
 	public OpNode getParent() {
 		return parent;
 	}
@@ -63,6 +68,7 @@ public class OpNode {
 	public long getStart(long base) {
 		return XmlTypeConverter.toMillis(result.getStart()) - base; 
 	}
+	
 	public String dump() {
 		try {
 			return OperationResult.createOperationResult(result).debugDump();
@@ -71,9 +77,11 @@ public class OpNode {
 			return e.getMessage();
 		}
 	}
+	
 	public TraceType getFirstTrace() {
 		return result.getTrace().isEmpty() ? null : result.getTrace().get(0);
 	}
+	
 	public String getOperationQualified() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(result.getOperation());
@@ -84,10 +92,10 @@ public class OpNode {
 		}
 		return sb.toString();
 	}
+	
 	public String getOperationNameFormatted() {
 		return getType().getFormattedName(this) + (visible ? "" : "!");
 	}
-	
 	
 	public String getClockworkState() {
 		ClockworkTraceType click = getTrace(ClockworkTraceType.class);
@@ -128,7 +136,6 @@ public class OpNode {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> T getTrace(Class<T> aClass) {
 		return TraceUtil.getTrace(result, aClass);
 	}

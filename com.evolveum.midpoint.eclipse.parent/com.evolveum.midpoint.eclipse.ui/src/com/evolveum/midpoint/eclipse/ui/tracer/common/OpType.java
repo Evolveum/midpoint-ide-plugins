@@ -124,7 +124,10 @@ public enum OpType {
 			String tgtName = getContext(opResult, "assignmentTargetName");
 			return "AssignmentTripleEvaluator.evaluateAssignment" + (tgtName != null ? " (-> " + tgtName + ")" : ""); 
 		} else if ("com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule".equals(operation)) {
-			return "Evaluate rule: " + getParameter(opResult, "policyRule");
+			String triggeredString = getReturn(opResult, "triggered");
+			int enabledActions = TraceUtil.getReturnsAsStringList(opResult, "enabledActions").size();
+			String triggeredSuffix = "true".equals(triggeredString) ? " # (" + enabledActions + ")" : "";
+			return "Evaluate rule: " + getParameter(opResult, "policyRule") + triggeredSuffix;
 		}
 		
 		switch (this) {

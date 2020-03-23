@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.eclipse.runtime;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -25,7 +26,8 @@ public class RuntimeActivator implements BundleActivator {
 		super();
 		instance = this;
 		try {
-			prismContext = MidPointPrismContextFactory.FACTORY.createPrismContext();
+			System.out.println("CURRENT DIR = " + new File(".").getAbsolutePath());
+			prismContext = new MidPointPrismContextFactory(new File("schema")).createPrismContext();
 			prismContext.initialize();
 			System.out.println("Prism context created and initialized");
 		} catch (SchemaException | SAXException | IOException e) {

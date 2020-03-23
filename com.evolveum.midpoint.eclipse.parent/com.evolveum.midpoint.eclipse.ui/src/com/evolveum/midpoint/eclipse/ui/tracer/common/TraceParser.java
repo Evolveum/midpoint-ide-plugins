@@ -120,14 +120,14 @@ public class TraceParser {
 			try (ZipInputStream zis = new ZipInputStream(stream)) {
 				ZipEntry zipEntry = zis.getNextEntry();
 				if (zipEntry != null) {
-					object = prismContext.parserFor(zis).xml().parseRealValue();
+					object = prismContext.parserFor(zis).xml().compat().parseRealValue();
 				} else {
 					System.err.println("No zip entry in input file");		// TODO error handling
 					object = null;
 				}
 			}
 		} else {
-			object = prismContext.parserFor(stream).xml().parseRealValue();
+			object = prismContext.parserFor(stream).xml().compat().parseRealValue();
 		}
 		stream.close();
 		if (object instanceof TracingOutputType) {
